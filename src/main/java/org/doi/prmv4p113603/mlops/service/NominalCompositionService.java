@@ -10,11 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Service layer for business logic related to NominalComposition.
+ * Service layer to encapsulate all business logic related to NominalComposition.
  */
 @Service
 public class NominalCompositionService {
@@ -45,23 +44,23 @@ public class NominalCompositionService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteByName(String name) {
-        NominalComposition nc = repository.findByName(name)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
-        repository.delete(nc);
-    }
-
     public NominalCompositionResponseDto updateByName(String name, NominalCompositionCreateDto dto) {
         NominalComposition nc = repository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        if (dto.getName() != null) {
-            nc.setName(dto.getName());
-        }
+        nc.setName(dto.getName());
         if (dto.getDescription() != null) {
             nc.setDescription(dto.getDescription());
         }
         repository.save(nc);
         return NominalCompositionResponseDto.fromEntity(nc);
     }
+
+    public void deleteByName(String name) {
+        NominalComposition nc = repository.findByName(name)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+        repository.delete(nc);
+    }
+
+
 }
