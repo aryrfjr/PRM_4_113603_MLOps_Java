@@ -78,10 +78,14 @@ public class NominalCompositionController {
     }
 
     /**
-     * Updates an existing NominalComposition by name.
+     * Update a Nominal Composition entry identified by its name.
      * Returns 404 if the resource does not exist.
      */
     @PutMapping("/{name}")
+    @Operation(
+            summary = "Update a Nominal Composition entry identified by its name.",
+            description = "Update a Nominal Composition entry identified by its name."
+    )
     public ResponseEntity<NominalCompositionResponseDto> updateByName(
             @PathVariable String name,
             @RequestBody NominalCompositionCreateDto updateDto
