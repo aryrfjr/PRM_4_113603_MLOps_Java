@@ -10,6 +10,13 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+    networks:
+      - mlopsnet
 
   mlops-api:
     build: .
@@ -21,6 +28,14 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mlops
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - mlopsnet
 
+# Docker networks
+networks:
+  mlopsnet:
+    driver: bridge
+
+# Docker-managed persistent volume for PostgreSQL data
 volumes:
   postgres_data:
