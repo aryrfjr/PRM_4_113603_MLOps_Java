@@ -1,5 +1,7 @@
 package org.doi.prmv4p113603.mlops.controller.v1;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.doi.prmv4p113603.mlops.data.dto.*;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
@@ -15,8 +17,9 @@ import java.util.stream.Collectors;
  * <p>
  * Supports basic CRUD operations and returns DTOs to ensure decoupling from internal models.
  */
+@Tag(name = "CRUD")
 @RestController
-@RequestMapping("/api/nominal_compositions")
+@RequestMapping("/api/v1/nominal_compositions")
 public class NominalCompositionController {
 
     private final NominalCompositionRepository repository;
@@ -26,10 +29,14 @@ public class NominalCompositionController {
     }
 
     /**
-     * Creates a new NominalComposition.
+     * Creates a Nominal Composition entry.
      * Returns HTTP 409 if the name already exists.
      */
     @PostMapping
+    @Operation(
+            summary = "Creates a Nominal Composition entry.",
+            description = "Creates a Nominal Composition entry."
+    )
     public ResponseEntity<NominalCompositionResponseDto> create(@RequestBody NominalCompositionCreateDto dto) {
         if (repository.findByName(dto.getName()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -44,6 +51,10 @@ public class NominalCompositionController {
      * Returns 404 if not found.
      */
     @GetMapping("/{name}")
+    @Operation(
+            summary = "Retrieves a NominalComposition by name.",
+            description = "Retrieves a NominalComposition by name."
+    )
     public ResponseEntity<NominalCompositionResponseDto> getByName(@PathVariable String name) {
         return repository.findByName(name)
                 .map(NominalCompositionResponseDto::fromEntity)
@@ -55,6 +66,10 @@ public class NominalCompositionController {
      * Lists all NominalCompositions ordered by name.
      */
     @GetMapping
+    @Operation(
+            summary = "Lists all NominalCompositions ordered by name.",
+            description = "Lists all NominalCompositions ordered by name."
+    )
     public List<NominalCompositionResponseDto> listAll() {
         return repository.findAll().stream()
                 .map(NominalCompositionResponseDto::fromEntity)
@@ -66,6 +81,10 @@ public class NominalCompositionController {
      * Returns 204 if deleted, 404 if not found.
      */
     @DeleteMapping("/{name}")
+    @Operation(
+            summary = "Deletes a NominalComposition by name.",
+            description = "Deletes a NominalComposition by name."
+    )
     public ResponseEntity<?> deleteByName(@PathVariable String name) {
         return repository.findByName(name).map(nc -> {
             repository.delete(nc);
