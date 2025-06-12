@@ -3,17 +3,15 @@ package org.doi.prmv4p113603.mlops.controller.v1;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+
 import org.doi.prmv4p113603.mlops.data.dto.*;
-import org.doi.prmv4p113603.mlops.model.NominalComposition;
-import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
+import org.doi.prmv4p113603.mlops.service.NominalCompositionService;
 
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * REST controller for managing NominalComposition resources.
@@ -22,14 +20,14 @@ import java.util.stream.Collectors;
  */
 @Tag(name = "CRUD")
 @RestController
-@RequestMapping("/api/v1/nominal-compositions")
+@RequestMapping("/api/v1/nominal_compositions")
 @Validated
 public class NominalCompositionController {
 
-    private final NominalCompositionRepository repository;
+    private final NominalCompositionService service;
 
-    public NominalCompositionController(NominalCompositionRepository repository) {
-        this.repository = repository;
+    public NominalCompositionController(NominalCompositionService service) {
+        this.service = service;
     }
 
     /**
@@ -42,12 +40,7 @@ public class NominalCompositionController {
             description = "Creates a Nominal Composition entry."
     )
     public ResponseEntity<NominalCompositionResponseDto> create(@Valid @RequestBody NominalCompositionCreateDto dto) {
-        if (repository.findByName(dto.getName()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-        NominalComposition saved = repository.save(dto.toEntity());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(NominalCompositionResponseDto.fromEntity(saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
     }
 
     /**
@@ -60,10 +53,7 @@ public class NominalCompositionController {
             description = "Retrieves a NominalComposition by name."
     )
     public ResponseEntity<NominalCompositionResponseDto> getByName(@PathVariable String name) {
-        return repository.findByName(name)
-                .map(NominalCompositionResponseDto::fromEntity)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(service.getByName(name));
     }
 
     /**
@@ -75,9 +65,7 @@ public class NominalCompositionController {
             description = "Lists all NominalCompositions ordered by name."
     )
     public List<NominalCompositionResponseDto> listAll() {
-        return repository.findAll().stream()
-                .map(NominalCompositionResponseDto::fromEntity)
-                .collect(Collectors.toList());
+        return service.listAll();
     }
 
     /**
@@ -93,19 +81,7 @@ public class NominalCompositionController {
             @PathVariable String name,
             @Valid @RequestBody NominalCompositionCreateDto updateDto
     ) {
-        Optional<NominalComposition> optional = repository.findByName(name);
-        if (optional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        NominalComposition nc = optional.get();
-        nc.setName(updateDto.getName());
-        if (updateDto.getDescription() != null) {
-            nc.setDescription(updateDto.getDescription());
-        }
-        repository.save(nc);
-
-        return ResponseEntity.ok(NominalCompositionResponseDto.fromEntity(nc));
+        return ResponseEntity.ok(service.updateByName(name, updateDto));
     }
 
     /**
@@ -118,9 +94,7 @@ public class NominalCompositionController {
             description = "Deletes a NominalComposition by name."
     )
     public ResponseEntity<?> deleteByName(@PathVariable String name) {
-        return repository.findByName(name).map(nc -> {
-            repository.delete(nc);
-            return ResponseEntity.noContent().build();
-        }).orElse(ResponseEntity.notFound().build());
+        service.deleteByName(name);
+        return ResponseEntity.noContent().build();
     }
 }
