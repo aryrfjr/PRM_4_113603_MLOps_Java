@@ -4,6 +4,7 @@ import org.doi.prmv4p113603.mlops.model.NominalComposition;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,4 +14,5 @@ import java.util.Optional;
  */
 public interface NominalCompositionRepository extends JpaRepository<NominalComposition, Long> {
     Optional<NominalComposition> findByName(String name);
+    List<NominalComposition> findAllByOrderByNameAsc();
 }

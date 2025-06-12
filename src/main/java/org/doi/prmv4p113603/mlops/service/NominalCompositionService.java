@@ -47,10 +47,10 @@ public class NominalCompositionService {
     }
 
     /**
-     * Lists all NominalCompositions (TODO: ordered by name).
+     * Lists all NominalCompositions ordered by name.
      */
     public List<NominalCompositionResponseDto> listAll() {
-        return repository.findAll().stream()
+        return repository.findAllByOrderByNameAsc().stream()
                 .map(NominalCompositionResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }

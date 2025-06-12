@@ -66,7 +66,7 @@ public class NominalCompositionController {
     }
 
     /**
-     * Lists all NominalCompositions (TODO: ordered by name).
+     * Lists all NominalCompositions ordered by name.
      */
     @GetMapping
     @Operation(
