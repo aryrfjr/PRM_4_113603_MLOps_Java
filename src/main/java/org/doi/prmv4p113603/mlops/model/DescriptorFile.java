@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class DescriptorFile {
+public class DescriptorFile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

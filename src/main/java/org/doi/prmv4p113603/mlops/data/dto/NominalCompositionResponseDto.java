@@ -6,15 +6,8 @@ import lombok.*;
 import java.time.Instant;
 
 /**
- * DTO used to send NominalComposition data back to the client.
- * <p>
- * Includes ID and timestamps, reflecting data persisted in the database.
- * <p>
- * NOTE: This approach is a refinement (not a new version) of the classic DTO pattern in which different
- * classes (Multiple DTOs like Create, Response, etc.) are defined for each direction or phase of
- * communication. This pattern is useful when validation needs differ, for avoiding issues like
- * leaking internal database fields, and to ensure cleaner contracts (each DTO serves a clear,
- * single responsibility in the request/response cycle).
+ * DTO used to send NominalComposition data back to the client. It
+ * includes ID and timestamps, reflecting data persisted in the database.
  *
  * @see org.doi.prmv4p113603.mlops.model.NominalComposition
  */

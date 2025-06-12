@@ -6,6 +6,13 @@ import lombok.*;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * This entity representing a Run; a set of simulations (they make
+ * this MLOps system physics-informed) which will explore the configuration
+ * space for a given Nominal Composition (NC). It can be used to: (i) improve data
+ * coverage (configurational diversity in terms of structure) without creating
+ * new NCs; (ii) or bring better generalization by creating 100-atom cells for new NCs.
+ */
 @Entity
 @Table(name = "runs", indexes = {
         @Index(name = "idx_runs_nominal_composition", columnList = "nominal_composition_id"),
@@ -18,7 +25,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class Run {
+public class Run {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

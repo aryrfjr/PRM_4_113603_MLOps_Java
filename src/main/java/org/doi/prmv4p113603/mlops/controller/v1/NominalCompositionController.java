@@ -14,24 +14,23 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST Controller for managing NominalComposition resources.
- * <p>
- * Supports basic CRUD operations and returns DTOs to ensure decoupling from internal models.
- * <p>
- * The Controller delegates business logic to the service, keeping it thin and focused.
- * It is Model-Agnostic and only interacts with DTOs and the service layer.
- * <p>
- * Following the MVC Separation of Concerns the Controller only handles HTTP protocol,
- * request validation, and response formatting; whereas the Service implements domain/business
- * logic, the Repository manages persistence, and the Model stays in the data layer.
+ * REST Controller for managing NominalComposition resources. It supports basic
+ * CRUD operations and returns DTOs to ensure decoupling from internal models.
  */
 @Tag(name = "CRUD")
 @RestController
-@RequestMapping("/api/v1/nominal_compositions")
+@RequestMapping("/api/v1/crud/nominal_compositions")
 @Validated
 public class NominalCompositionController {
 
     /*
+     * NOTE: The Controller delegates business logic to the service, keeping it thin and focused.
+     *  It is Model-Agnostic and only interacts with DTOs and the service layer.
+     *
+     * NOTE: Following the MVC Separation of Concerns the Controller only handles HTTP protocol,
+     *  request validation, and response formatting; whereas the Service implements domain/business
+     *  logic, the Repository manages persistence, and the Model stays in the data layer.
+     *
      * TODO: Implement tests independently from persistence, mocking DTOs to assert against in
      *  unit/integration tests.
      */
