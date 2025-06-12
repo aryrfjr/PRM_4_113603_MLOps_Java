@@ -43,7 +43,6 @@ public class NominalCompositionController {
 
     /**
      * Creates a Nominal Composition entry.
-     * Returns HTTP 409 if the name already exists.
      */
     @PostMapping
     @Operation(
@@ -56,7 +55,6 @@ public class NominalCompositionController {
 
     /**
      * Retrieves a NominalComposition by name.
-     * Returns 404 if not found.
      */
     @GetMapping("/{name}")
     @Operation(
@@ -68,7 +66,7 @@ public class NominalCompositionController {
     }
 
     /**
-     * Lists all NominalCompositions ordered by name.
+     * Lists all NominalCompositions (TODO: ordered by name).
      */
     @GetMapping
     @Operation(
@@ -81,7 +79,6 @@ public class NominalCompositionController {
 
     /**
      * Update a Nominal Composition entry identified by its name.
-     * Returns 404 if the resource does not exist.
      */
     @PutMapping("/{name}")
     @Operation(
@@ -97,7 +94,6 @@ public class NominalCompositionController {
 
     /**
      * Deletes a NominalComposition by name.
-     * Returns 204 if deleted, 404 if not found.
      */
     @DeleteMapping("/{name}")
     @Operation(

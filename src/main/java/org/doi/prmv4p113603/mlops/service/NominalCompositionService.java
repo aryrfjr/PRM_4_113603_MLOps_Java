@@ -24,6 +24,10 @@ public class NominalCompositionService {
         this.repository = repository;
     }
 
+    /**
+     * Creates a Nominal Composition entry.
+     * Returns HTTP 409 if the name already exists.
+     */
     public NominalCompositionResponseDto create(NominalCompositionCreateDto dto) {
         if (repository.findByName(dto.getName()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Nominal composition already exists");
@@ -32,18 +36,29 @@ public class NominalCompositionService {
         return NominalCompositionResponseDto.fromEntity(saved);
     }
 
+    /**
+     * Retrieves a NominalComposition by name.
+     * Returns 404 if not found.
+     */
     public NominalCompositionResponseDto getByName(String name) {
         return repository.findByName(name)
                 .map(NominalCompositionResponseDto::fromEntity)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
     }
 
+    /**
+     * Lists all NominalCompositions (TODO: ordered by name).
+     */
     public List<NominalCompositionResponseDto> listAll() {
         return repository.findAll().stream()
                 .map(NominalCompositionResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Update a Nominal Composition entry identified by its name.
+     * Returns 404 if the resource does not exist.
+     */
     public NominalCompositionResponseDto updateByName(String name, NominalCompositionCreateDto dto) {
         NominalComposition nc = repository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
@@ -56,11 +71,14 @@ public class NominalCompositionService {
         return NominalCompositionResponseDto.fromEntity(nc);
     }
 
+    /**
+     * Deletes a NominalComposition by name.
+     * Returns 204 if deleted, 404 if not found.
+     */
     public void deleteByName(String name) {
         NominalComposition nc = repository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
         repository.delete(nc);
     }
-
 
 }
