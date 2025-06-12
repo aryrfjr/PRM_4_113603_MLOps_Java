@@ -10,6 +10,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +75,32 @@ public class NominalCompositionController {
         return repository.findAll().stream()
                 .map(NominalCompositionResponseDto::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Updates an existing NominalComposition by name.
+     * Returns 404 if the resource does not exist.
+     */
+    @PutMapping("/{name}")
+    public ResponseEntity<NominalCompositionResponseDto> updateByName(
+            @PathVariable String name,
+            @RequestBody NominalCompositionCreateDto updateDto
+    ) {
+        Optional<NominalComposition> optional = repository.findByName(name);
+        if (optional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        NominalComposition nc = optional.get();
+        if (updateDto.getName() != null) {
+            nc.setName(updateDto.getName());
+        }
+        if (updateDto.getDescription() != null) {
+            nc.setDescription(updateDto.getDescription());
+        }
+        repository.save(nc);
+
+        return ResponseEntity.ok(NominalCompositionResponseDto.fromEntity(nc));
     }
 
     /**
