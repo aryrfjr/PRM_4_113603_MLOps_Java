@@ -2,9 +2,4 @@
 
 MLOps modernization of the Generate+ETL (GETL) framework used in Phys. Rev. Materials 4, 113603 using Java.
 
-Run and test:
-
-```
-docker-compose up --build
-docker-compose up --build
-```
+REST API documentation: http://localhost:8080/swagger-ui.html
