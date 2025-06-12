@@ -11,7 +11,7 @@ FROM eclipse-temurin:17-jdk
 # Set working directory
 WORKDIR /mlops-api
 
-# Copy the built jar (assumes you build it before)
+# Copy the built jar (assumes it is built before)
 COPY --from=build /mlops-api/target/*.jar mlops-api.jar
 
 # Expose the port (optional)

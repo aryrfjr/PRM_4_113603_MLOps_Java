@@ -108,7 +108,7 @@ public class DataOpsService {
                         .artifactType(artifactType)
                         .filePath(path.toString())
                         .fileSize((int) FileSystemUtils.getFileSize(path.toString()))
-                        .checksum(null) // You can calculate SHA-256 here if needed
+                        .checksum(FileSystemUtils.calculateSHA256(path.toString()))
                         .createdAt(Instant.now())
                         .build();
 
