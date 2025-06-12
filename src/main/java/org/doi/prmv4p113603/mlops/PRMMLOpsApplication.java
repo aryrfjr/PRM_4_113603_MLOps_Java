@@ -9,4 +9,3 @@ public class PRMMLOpsApplication {
         SpringApplication.run(PRMMLOpsApplication.class, args);
     }
 }
-

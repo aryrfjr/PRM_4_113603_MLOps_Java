@@ -1,5 +1,6 @@
 package org.doi.prmv4p113603.mlops.data.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import lombok.*;
 
@@ -24,7 +25,11 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 public class NominalCompositionCreateDto {
+
+    @NonNull
+    @NotBlank(message = "Name must not be blank")
     private String name;
+
     private String description;
 
     public NominalComposition toEntity() {

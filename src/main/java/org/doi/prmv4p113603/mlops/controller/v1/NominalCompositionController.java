@@ -2,11 +2,13 @@ package org.doi.prmv4p113603.mlops.controller.v1;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.doi.prmv4p113603.mlops.data.dto.*;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 
 import org.springframework.http.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +22,8 @@ import java.util.stream.Collectors;
  */
 @Tag(name = "CRUD")
 @RestController
-@RequestMapping("/api/v1/nominal_compositions")
+@RequestMapping("/api/v1/nominal-compositions")
+@Validated
 public class NominalCompositionController {
 
     private final NominalCompositionRepository repository;
@@ -38,7 +41,7 @@ public class NominalCompositionController {
             summary = "Creates a Nominal Composition entry.",
             description = "Creates a Nominal Composition entry."
     )
-    public ResponseEntity<NominalCompositionResponseDto> create(@RequestBody NominalCompositionCreateDto dto) {
+    public ResponseEntity<NominalCompositionResponseDto> create(@Valid @RequestBody NominalCompositionCreateDto dto) {
         if (repository.findByName(dto.getName()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
@@ -88,7 +91,7 @@ public class NominalCompositionController {
     )
     public ResponseEntity<NominalCompositionResponseDto> updateByName(
             @PathVariable String name,
-            @RequestBody NominalCompositionCreateDto updateDto
+            @Valid @RequestBody NominalCompositionCreateDto updateDto
     ) {
         Optional<NominalComposition> optional = repository.findByName(name);
         if (optional.isEmpty()) {
@@ -96,9 +99,7 @@ public class NominalCompositionController {
         }
 
         NominalComposition nc = optional.get();
-        if (updateDto.getName() != null) {
-            nc.setName(updateDto.getName());
-        }
+        nc.setName(updateDto.getName());
         if (updateDto.getDescription() != null) {
             nc.setDescription(updateDto.getDescription());
         }
