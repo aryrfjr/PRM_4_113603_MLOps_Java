@@ -100,6 +100,10 @@ public class DataOpsService {
                 .build();
     }
 
+    /*
+     * Class helpers.
+     */
+
     private List<SimulationArtifact> detectSimulationArtifacts(SubRun subRun, String dirPath) {
         List<SimulationArtifact> artifacts = new ArrayList<>();
         try (DirectoryStream<Path> stream = fileSystem.listFiles(dirPath)) {
@@ -133,4 +137,5 @@ public class DataOpsService {
         if (filename.endsWith(".xyz")) return "XYZ";
         return "UNKNOWN";
     }
+
 }
