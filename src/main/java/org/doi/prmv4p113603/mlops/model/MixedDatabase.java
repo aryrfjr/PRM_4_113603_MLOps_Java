@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class MixedDatabase {
+public class MixedDatabase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

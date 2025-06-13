@@ -6,6 +6,14 @@ import lombok.*;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * This entity representing a SubRun; a sub-set of simulations (they also make
+ * this MLOps system physics-informed) which will exploit the configuration
+ * space for a given Run created for a Nominal Composition. It is related
+ * to data augmentation (shear, tension, compression) on existing 100-atom cells
+ * when the structural diversity of current configs needs improvement without
+ * having to create new Runs.
+ */
 @Entity
 @Table(name = "sub_runs", indexes = {
         @Index(name = "idx_sub_runs_run_id", columnList = "run_id"),
@@ -18,7 +26,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class SubRun {
+public class SubRun {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

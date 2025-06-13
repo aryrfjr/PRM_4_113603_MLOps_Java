@@ -1,4 +1,9 @@
 services:
+
+  # TODO: Avoid production impact by creating a docker-compose.dev.ym
+
+  # PostgreSQL database service
+  # Uses a public official image (no build needed)
   postgres:
     image: postgres:16
     restart: always
@@ -18,18 +23,37 @@ services:
     networks:
       - mlopsnet
 
+  # MLOps REST API with Spring Framework
   mlops-api:
     build: .
     depends_on:
       - postgres
     ports:
       - "8080:8080"
+    volumes:
+      - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data  # raw data accessible to the API
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mlops
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
     networks:
       - mlopsnet
+
+  # MLOps REST API tests (to run: docker-compose run --rm mlops-tests)
+  mlops-tests:
+    build: .
+    command: ./mvnw test
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mlops
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - mlopsnet
+    volumes:
+      - .:/mlops-api
 
 # Docker networks
 networks:

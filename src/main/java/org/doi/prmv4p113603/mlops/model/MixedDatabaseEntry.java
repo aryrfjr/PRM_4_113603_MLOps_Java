@@ -13,7 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class MixedDatabaseEntry {
+public class MixedDatabaseEntry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

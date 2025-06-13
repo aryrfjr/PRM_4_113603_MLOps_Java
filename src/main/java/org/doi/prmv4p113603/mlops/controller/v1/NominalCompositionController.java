@@ -1,75 +1,106 @@
 package org.doi.prmv4p113603.mlops.controller.v1;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
 import org.doi.prmv4p113603.mlops.data.dto.*;
-import org.doi.prmv4p113603.mlops.model.NominalComposition;
-import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
+import org.doi.prmv4p113603.mlops.service.NominalCompositionService;
 
 import org.springframework.http.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * REST controller for managing NominalComposition resources.
- * <p>
- * Supports basic CRUD operations and returns DTOs to ensure decoupling from internal models.
+ * REST Controller for managing NominalComposition resources. It supports basic
+ * CRUD operations and returns DTOs to ensure decoupling from internal models.
  */
+@Tag(name = "CRUD")
 @RestController
-@RequestMapping("/api/nominal_compositions")
+@RequestMapping("/api/v1/crud/nominal_compositions")
+@Validated
 public class NominalCompositionController {
 
-    private final NominalCompositionRepository repository;
+    /*
+     * NOTE: The Controller delegates business logic to the service, keeping it thin and focused.
+     *  It is Model-Agnostic and only interacts with DTOs and the service layer.
+     *
+     * NOTE: Following the MVC Separation of Concerns the Controller only handles HTTP protocol,
+     *  request validation, and response formatting; whereas the Service implements domain/business
+     *  logic, the Repository manages persistence, and the Model stays in the data layer.
+     *
+     * TODO: Implement tests independently from persistence, mocking DTOs to assert against in
+     *  unit/integration tests.
+     */
+    private final NominalCompositionService service;
 
-    public NominalCompositionController(NominalCompositionRepository repository) {
-        this.repository = repository;
+    public NominalCompositionController(NominalCompositionService service) {
+        this.service = service;
     }
 
     /**
-     * Creates a new NominalComposition.
-     * Returns HTTP 409 if the name already exists.
+     * Creates a Nominal Composition entry.
      */
     @PostMapping
-    public ResponseEntity<NominalCompositionResponseDto> create(@RequestBody NominalCompositionCreateDto dto) {
-        if (repository.findByName(dto.getName()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-        NominalComposition saved = repository.save(dto.toEntity());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(NominalCompositionResponseDto.fromEntity(saved));
+    @Operation(
+            summary = "Creates a Nominal Composition entry.",
+            description = "Creates a Nominal Composition entry."
+    )
+    public ResponseEntity<NominalCompositionResponseDto> create(@Valid @RequestBody NominalCompositionCreateDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
     }
 
     /**
      * Retrieves a NominalComposition by name.
-     * Returns 404 if not found.
      */
     @GetMapping("/{name}")
+    @Operation(
+            summary = "Retrieves a NominalComposition by name.",
+            description = "Retrieves a NominalComposition by name."
+    )
     public ResponseEntity<NominalCompositionResponseDto> getByName(@PathVariable String name) {
-        return repository.findByName(name)
-                .map(NominalCompositionResponseDto::fromEntity)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(service.getByName(name));
     }
 
     /**
      * Lists all NominalCompositions ordered by name.
      */
     @GetMapping
+    @Operation(
+            summary = "Lists all NominalCompositions ordered by name.",
+            description = "Lists all NominalCompositions ordered by name."
+    )
     public List<NominalCompositionResponseDto> listAll() {
-        return repository.findAll().stream()
-                .map(NominalCompositionResponseDto::fromEntity)
-                .collect(Collectors.toList());
+        return service.listAll();
+    }
+
+    /**
+     * Update a Nominal Composition entry identified by its name.
+     */
+    @PutMapping("/{name}")
+    @Operation(
+            summary = "Update a Nominal Composition entry identified by its name.",
+            description = "Update a Nominal Composition entry identified by its name."
+    )
+    public ResponseEntity<NominalCompositionResponseDto> updateByName(
+            @PathVariable String name,
+            @Valid @RequestBody NominalCompositionCreateDto updateDto
+    ) {
+        return ResponseEntity.ok(service.updateByName(name, updateDto));
     }
 
     /**
      * Deletes a NominalComposition by name.
-     * Returns 204 if deleted, 404 if not found.
      */
     @DeleteMapping("/{name}")
+    @Operation(
+            summary = "Deletes a NominalComposition by name.",
+            description = "Deletes a NominalComposition by name."
+    )
     public ResponseEntity<?> deleteByName(@PathVariable String name) {
-        return repository.findByName(name).map(nc -> {
-            repository.delete(nc);
-            return ResponseEntity.noContent().build();
-        }).orElse(ResponseEntity.notFound().build());
+        service.deleteByName(name);
+        return ResponseEntity.noContent().build();
     }
 }
