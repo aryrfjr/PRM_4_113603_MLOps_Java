@@ -1,3 +1,4 @@
+# TODO: move src to a new folder mlops-api?
 # ---------- Build Stage ----------
 FROM eclipse-temurin:21-jdk AS build
 

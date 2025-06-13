@@ -39,7 +39,7 @@ services:
     networks:
       - mlopsnet
 
-  # MLOps REST API tests
+  # MLOps REST API tests (to run: docker-compose run --rm mlops-tests)
   mlops-tests:
     build: .
     command: ./mvnw test
