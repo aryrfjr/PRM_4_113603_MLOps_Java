@@ -39,3 +39,9 @@ replay_pid*
 out/
 *.iml
 
+# Maven Wrapper
+!.mvn/wrapper/maven-wrapper-*.jar
+.mvn/wrapper/maven-wrapper-download/
+target/
+.m2/
+

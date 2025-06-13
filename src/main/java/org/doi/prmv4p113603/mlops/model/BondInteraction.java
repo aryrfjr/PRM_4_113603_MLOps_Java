@@ -16,7 +16,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class BondInteraction {
+public class BondInteraction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -17,7 +17,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class SimulationArtifact {
+public class SimulationArtifact {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +37,7 @@ class SimulationArtifact {
     private Integer fileSize;
 
     @Column(name = "checksum", length = 64)
-    private String checksum;
+    private String checksum; // TODO: Index this column for lookup; use it to detect duplicate artifacts
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();

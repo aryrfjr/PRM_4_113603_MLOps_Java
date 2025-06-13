@@ -1,22 +1,26 @@
-# === STAGE 1: Build ===
-FROM maven:3.9.6-eclipse-temurin-17 AS build
-WORKDIR /mlops-api
-COPY . .
-RUN mvn clean package -DskipTests
+# TODO: move src to a new folder mlops-api?
+# ---------- Build Stage ----------
+FROM eclipse-temurin:21-jdk AS build
 
-# === STAGE 2: Runtime ===
-# Use JDK 17 base image
-FROM eclipse-temurin:17-jdk
-
-# Set working directory
 WORKDIR /mlops-api
 
-# Copy the built jar (assumes you build it before)
-COPY --from=build /mlops-api/target/*.jar mlops-api.jar
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
+RUN chmod +x mvnw && ./mvnw dependency:go-offline
 
-# Expose the port (optional)
+COPY src ./src
+
+# Build the jar with tests skipped
+RUN ./mvnw clean package -DskipTests
+
+# ---------- Runtime Stage ----------
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /mlops-api
+
+# Copy only the built jar from the build stage
+COPY --from=build /mlops-api/target/PRM_4_113603-0.0.1-SNAPSHOT.jar ./mlops-api.jar
+
 EXPOSE 8080
 
-# Run the app
 ENTRYPOINT ["java", "-jar", "mlops-api.jar"]
-
