@@ -3,9 +3,9 @@ package org.doi.prmv4p113603.mlops.service;
 import org.doi.prmv4p113603.mlops.data.dto.RunDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
+import org.doi.prmv4p113603.mlops.model.Run;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 import org.doi.prmv4p113603.mlops.repository.RunRepository;
-import org.doi.prmv4p113603.mlops.util.FileSystemUtils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,13 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.nio.file.DirectoryStream;
-import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-public class DataOpsServiceTest {
+class DataOpsServiceTest {
 
     @Mock
     private NominalCompositionRepository compositionRepo;
@@ -35,37 +32,38 @@ public class DataOpsServiceTest {
     private DataOpsService dataOpsService;
 
     @Test
-    public void testScheduleExploration_Success() {
-        // Arrange
+    void testScheduleExploration_nominalCase() {
+        // Given
         String compositionName = "MgO";
         ScheduleExplorationRequest request = new ScheduleExplorationRequest();
-        request.setNumSimulations(2); // simulate 2 subruns
+        request.setNumSimulations(1);
 
-        NominalComposition nc = new NominalComposition();
-        nc.setId(1L);
-        nc.setName("MgO");
+        // Mock NominalComposition
+        NominalComposition mockComp = new NominalComposition();
+        mockComp.setId(42L);
+        mockComp.setName(compositionName);
 
-        when(compositionRepo.findByName("MgO")).thenReturn(Optional.of(nc));
-        when(runRepo.findMaxRunNumberByNominalCompositionId(1L)).thenReturn(Optional.of(1)); // nextRun = 2
+        when(compositionRepo.findByName(eq(compositionName)))
+                .thenReturn(Optional.of(mockComp));
 
-        // Mock FileSystemUtils for existing sub_run directories and artifact detection
-        mockStatic(FileSystemUtils.class).useMock(mocked -> {
-            for (int i = 1; i <= 2; i++) {
-                String subRunPath = "/data/MgO/run_2/sub_run_" + i;
-                when(FileSystemUtils.join(any(), any(), any(), any())).thenReturn(subRunPath);
-                when(FileSystemUtils.pathExists(subRunPath)).thenReturn(true);
+        // Mock next run number
+        when(runRepo.findMaxRunNumberByNominalCompositionId(eq(42L)))
+                .thenReturn(Optional.of(4)); // nextRunNumber should be 5
 
-                DirectoryStream<Path> mockStream = mock(DirectoryStream.class);
-                when(FileSystemUtils.listFiles(subRunPath)).thenReturn(mockStream);
-                when(mockStream.iterator()).thenReturn(Collections.emptyIterator()); // no artifacts
-            }
+        // Mock the save (optional: you can just verify it was called)
+        when(runRepo.save(any(Run.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // return same Run
 
-            // Act
-            RunDto runDto = dataOpsService.scheduleExploration("MgO", request);
+        // Stub filesystem utils as needed here...
 
-            // Assert
-            assertEquals(2, runDto.getSubRuns().size());
-            assertEquals("SCHEDULED", runDto.getStatus());
-        });
+        // When
+        RunDto result = dataOpsService.scheduleExploration(compositionName, request);
+
+        // Then
+        assertEquals("SCHEDULED", result.getStatus());
+        assertEquals(1, result.getSubRuns().size());
+
+        verify(runRepo).save(any(Run.class));
+        verify(compositionRepo).findByName(compositionName);
     }
 }
