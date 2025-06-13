@@ -31,6 +31,9 @@ class DataOpsServiceTest {
     @InjectMocks
     private DataOpsService dataOpsService;
 
+    @Mock
+    private FileSystemService fileSystem;
+
     @Test
     void testScheduleExploration_nominalCase() {
         // Given

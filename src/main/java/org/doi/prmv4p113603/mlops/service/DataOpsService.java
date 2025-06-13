@@ -4,7 +4,6 @@ import org.doi.prmv4p113603.mlops.data.dto.*;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.*;
-import org.doi.prmv4p113603.mlops.util.FileSystemUtils;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,12 +27,18 @@ import java.util.stream.Collectors;
 @Service
 public class DataOpsService {
 
+    private final FileSystemService fileSystem;
+
     private final NominalCompositionRepository compositionRepo;
     private final RunRepository runRepo;
 
-    public DataOpsService(NominalCompositionRepository compositionRepo, RunRepository runRepo) {
+    public DataOpsService(
+            NominalCompositionRepository compositionRepo,
+            RunRepository runRepo,
+            FileSystemService fileSystem) {
         this.compositionRepo = compositionRepo;
         this.runRepo = runRepo;
+        this.fileSystem = fileSystem;
     }
 
     public RunDto scheduleExploration(String compositionName, ScheduleExplorationRequest request) {
@@ -53,8 +58,8 @@ public class DataOpsService {
         List<SubRun> subRuns = new ArrayList<>();
 
         for (int i = 1; i <= request.getNumSimulations(); i++) {
-            String subRunDir = FileSystemUtils.join("/data", compositionName, "run_" + nextRunNumber, "sub_run_" + i);
-            if (!FileSystemUtils.pathExists(subRunDir)) {
+            String subRunDir = fileSystem.join("/data", compositionName, "run_" + nextRunNumber, "sub_run_" + i);
+            if (!fileSystem.pathExists(subRunDir)) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "SubRun directory not found: " + subRunDir);
             }
 
@@ -97,9 +102,9 @@ public class DataOpsService {
 
     private List<SimulationArtifact> detectSimulationArtifacts(SubRun subRun, String dirPath) {
         List<SimulationArtifact> artifacts = new ArrayList<>();
-        try (DirectoryStream<Path> stream = FileSystemUtils.listFiles(dirPath)) {
+        try (DirectoryStream<Path> stream = fileSystem.listFiles(dirPath)) {
             for (Path path : stream) {
-                if (!FileSystemUtils.isRegularFile(path.toString())) continue;
+                if (!fileSystem.isRegularFile(path.toString())) continue;
 
                 String fileName = path.getFileName().toString();
                 String artifactType = classifyArtifact(fileName);
@@ -108,8 +113,8 @@ public class DataOpsService {
                         .subRun(subRun)
                         .artifactType(artifactType)
                         .filePath(path.toString())
-                        .fileSize((int) FileSystemUtils.getFileSize(path.toString()))
-                        .checksum(FileSystemUtils.calculateSHA256(path.toString()))
+                        .fileSize((int) fileSystem.getFileSize(path.toString()))
+                        .checksum(fileSystem.calculateSHA256(path.toString()))
                         .createdAt(Instant.now())
                         .build();
 
