@@ -29,4 +29,5 @@ public class MixedDatabaseEntry {
 
     @Column(name = "bond_type", nullable = false, length = 20)
     private String bondType;
+
 }

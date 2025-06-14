@@ -56,4 +56,5 @@ public class SubRun {
 
     @OneToMany(mappedBy = "subRun", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BondInteraction> bonds;
+
 }

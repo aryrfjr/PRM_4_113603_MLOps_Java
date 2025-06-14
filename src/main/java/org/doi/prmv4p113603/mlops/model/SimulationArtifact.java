@@ -41,4 +41,5 @@ public class SimulationArtifact {
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
+
 }

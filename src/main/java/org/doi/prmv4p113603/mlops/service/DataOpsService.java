@@ -1,10 +1,9 @@
 package org.doi.prmv4p113603.mlops.service;
 
-import org.doi.prmv4p113603.mlops.data.dto.*;
+import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.*;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,7 +13,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Service layer scoped to the Data Generation & Labeling (DataOps) phase,
@@ -27,10 +25,14 @@ import java.util.stream.Collectors;
 @Service
 public class DataOpsService {
 
-    private final FileSystemService fileSystem;
+    // Constants
+    private static final String DATA_ROOT = "/data/ML/big-data-full"; // TODO: environment variable from docker-compose.yml
 
+    // Dependencies
+    private final FileSystemService fileSystem;
     private final NominalCompositionRepository compositionRepo;
     private final RunRepository runRepo;
+
 
     public DataOpsService(
             NominalCompositionRepository compositionRepo,
@@ -41,63 +43,66 @@ public class DataOpsService {
         this.fileSystem = fileSystem;
     }
 
-    public RunDto scheduleExploration(String compositionName, ScheduleExplorationRequest request) {
-        NominalComposition nc = compositionRepo.findByName(compositionName)
+    public NominalCompositionDto scheduleExploration(String nominalCompositionName, ScheduleExplorationRequest request) {
+
+        // Check that the NominalComposition exists and that its directory exists
+        NominalComposition nominalComposition = compositionRepo.findByName(nominalCompositionName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nominal Composition not found"));
 
-        int nextRunNumber = runRepo.findMaxRunNumberByNominalCompositionId(nc.getId()).orElse(0) + 1;
+        String nominalCompositionDir = fileSystem.join(DATA_ROOT, nominalCompositionName);
 
-        Run run = Run.builder()
-                .nominalComposition(nc)
-                .runNumber(nextRunNumber)
-                .status("SCHEDULED")
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+        if (!fileSystem.pathExists(nominalCompositionDir)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(
+                    "Directory for Nominal Composition '%s' not found",
+                    nominalCompositionName
+            ));
+        }
 
-        List<SubRun> subRuns = new ArrayList<>();
+        // Checking the consistency of directories for all requested runs
+        int nextRunNumber = runRepo.findMaxRunNumberByNominalCompositionId(nominalComposition.getId()).orElse(0) + 1;
+        for (int runNumber = nextRunNumber; runNumber < nextRunNumber + request.getNumSimulations(); runNumber++) {
 
-        for (int i = 1; i <= request.getNumSimulations(); i++) {
-            String subRunDir = fileSystem.join("/data", compositionName, "run_" + nextRunNumber, "sub_run_" + i);
-            if (!fileSystem.pathExists(subRunDir)) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "SubRun directory not found: " + subRunDir);
+            // TODO: handle gaps in the sequence of ID_RUN directories.
+            String runDir = fileSystem.join(nominalCompositionDir, "c/md/lammps/100", String.valueOf(nextRunNumber));
+            String subRunDir = fileSystem.join(runDir, "2000/0");
+
+            if (!fileSystem.pathExists(runDir) || !fileSystem.pathExists(subRunDir)) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(
+                        "Directory for ID_RUN '%s' or for SUB_RUN '0' not found for Nominal Composition '%s'",
+                        runNumber, nominalCompositionName
+                ));
             }
+
+        }
+
+        // Since everything is OK with the folders, persisting the Runs to DB
+        List<Run> runs = new ArrayList<>();
+        for (int runNumber = nextRunNumber; runNumber < nextRunNumber + request.getNumSimulations(); runNumber++) {
+
+            Run run = Run.builder()
+                    .nominalComposition(nominalComposition)
+                    .runNumber(runNumber)
+                    .status("SCHEDULED") // TODO: constants for statuses
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
 
             SubRun subRun = SubRun.builder()
                     .run(run)
-                    .subRunNumber(i)
-                    .status("SCHEDULED")
+                    .subRunNumber(0)
+                    .status("SCHEDULED") // TODO: constants for statuses
                     .scheduledAt(Instant.now())
                     .build();
 
-            List<SimulationArtifact> artifacts = detectSimulationArtifacts(subRun, subRunDir);
-            subRun.setSimulationArtifacts(artifacts);
-            subRuns.add(subRun);
+            run.setSubRuns(List.of(subRun));
+
+            runs.add(run);
+
         }
 
-        run.setSubRuns(subRuns);
-        runRepo.save(run);
+        // Returning only DTOs
+        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, runs);
 
-        return RunDto.builder()
-                .nominalCompositionId(nc.getId())
-                .runNumber(run.getRunNumber())
-                .status(run.getStatus())
-                .subRuns(subRuns.stream()
-                        .map(sr -> SubRunDto.builder()
-                                .subRunNumber(sr.getSubRunNumber())
-                                .status(sr.getStatus())
-                                .simulationArtifacts(sr.getSimulationArtifacts().stream()
-                                        .map(a -> SimulationArtifactDto.builder()
-                                                .artifactType(a.getArtifactType())
-                                                .filePath(a.getFilePath())
-                                                .fileSize(a.getFileSize() != null ? a.getFileSize().longValue() : null)
-                                                .checksum(a.getChecksum())
-                                                .createdAt(a.getCreatedAt())
-                                                .build())
-                                        .collect(Collectors.toList()))
-                                .build())
-                        .collect(Collectors.toList()))
-                .build();
     }
 
     /*

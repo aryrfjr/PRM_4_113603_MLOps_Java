@@ -9,34 +9,40 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit Test class for the DataOps service. Dependencies are mocked with Mockito.
+ * <p>
+ * It is focused on testing the DataOps service in isolation, by stubbing all external
+ * dependencies without loading the Spring context. No real database, no real file system
+ * access; everything is mocked.
+ */
 @ExtendWith(MockitoExtension.class)
 class DataOpsServiceTest {
 
+    // Mocked dependencies to be injected
     @Mock
     NominalCompositionRepository compositionRepo;
-
     @Mock
     RunRepository runRepo;
-
     @Mock
     FileSystemService fileSystem;
 
+    // Service to be unit tested
     @InjectMocks
     DataOpsService dataOpsService;
 
     @Test
     void testScheduleExploration_successfullySchedulesRun() throws IOException {
+
         // Given
-        String compositionName = "MgO";
+        String nominalCompositionName = "Zr49Cu49Al2";
         int numSimulations = 2;
 
         ScheduleExplorationRequest request = new ScheduleExplorationRequest();
@@ -44,19 +50,21 @@ class DataOpsServiceTest {
 
         NominalComposition composition = new NominalComposition();
         composition.setId(1L);
-        composition.setName(compositionName);
+        composition.setName(nominalCompositionName);
 
-        when(compositionRepo.findByName(compositionName)).thenReturn(Optional.of(composition));
+        when(compositionRepo.findByName(nominalCompositionName)).thenReturn(Optional.of(composition));
         when(runRepo.findMaxRunNumberByNominalCompositionId(1L)).thenReturn(Optional.of(3)); // next run = 4
 
         // Mock filesystem for each subRun directory
         for (int i = 1; i <= numSimulations; i++) {
-            String subRunPath = "/data/MgO/run_4/sub_run_" + i;
+
+            String subRunPath = "/data/ML/big-data-full/" ;
 
             when(fileSystem.join("/data", "MgO", "run_4", "sub_run_" + i))
                     .thenReturn(subRunPath);
             when(fileSystem.pathExists(subRunPath)).thenReturn(true);
             when(fileSystem.listFiles(subRunPath)).thenReturn(mockEmptyDirectoryStream());
+
         }
 
         when(fileSystem.isRegularFile(anyString())).thenReturn(true);
@@ -67,7 +75,7 @@ class DataOpsServiceTest {
         when(runRepo.save(any(Run.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        RunDto result = dataOpsService.scheduleExploration(compositionName, request);
+        RunDto result = dataOpsService.scheduleExploration(nominalCompositionName, request);
 
         // Then
         assertNotNull(result);
@@ -75,6 +83,7 @@ class DataOpsServiceTest {
         assertEquals(2, result.getSubRuns().size());
 
         verify(runRepo).save(any(Run.class));
+
     }
 
     private DirectoryStream<Path> mockEmptyDirectoryStream() {

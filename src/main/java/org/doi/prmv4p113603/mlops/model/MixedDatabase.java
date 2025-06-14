@@ -30,4 +30,5 @@ public class MixedDatabase {
 
     @OneToMany(mappedBy = "mixedDb", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MixedDatabaseEntry> entries;
+
 }

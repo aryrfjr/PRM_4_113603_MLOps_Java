@@ -6,7 +6,16 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Static methods that provide a fixed state of objects and data needed for testing.
+ */
 public class TestFixtures {
+
+
+    /*
+     This is a typical class used to establish a consistent environment for running tests.
+     It ensures tests are repeatable by setting up preconditions and resources.
+     */
 
     public static NominalComposition dummyNominalComposition(Long id, String name) {
         NominalComposition nc = new NominalComposition();
