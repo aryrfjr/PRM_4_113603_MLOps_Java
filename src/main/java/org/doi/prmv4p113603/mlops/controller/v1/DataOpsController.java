@@ -36,7 +36,7 @@ public class DataOpsController {
      *
      * @param nominalCompositionName the name of the nominal composition
      * @param request         payload indicating the number of sub-runs to process
-     * @return created ScheduleExplorationResponse with run, sub-run, and artifact information
+     * @return created NominalCompositionDto with run, sub-run, and artifact information
      */
     @PostMapping("/generate/{nominal_composition}")
     public ResponseEntity<NominalCompositionDto> generateArtifacts(

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
-import org.doi.prmv4p113603.mlops.model.SubRun;
 import java.time.Instant;
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class RunDto {
     @JsonProperty("run_number")
     private int runNumber;
 
-    private String status = "SCHEDULED";
+    private SimulationStatus status = SimulationStatus.SCHEDULED;
 
     @JsonProperty("created_at")
     private Instant createdAt = Instant.now();

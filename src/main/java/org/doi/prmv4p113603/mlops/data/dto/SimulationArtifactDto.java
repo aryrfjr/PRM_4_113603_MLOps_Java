@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
 import org.doi.prmv4p113603.mlops.model.SubRun;
 import java.time.Instant;
 
@@ -32,7 +33,7 @@ public class SimulationArtifactDto {
     private SubRun subRun;
 
     @JsonProperty("artifact_type")
-    private String artifactType;
+    private SimulationArtifactType artifactType;
 
     @JsonProperty("file_path")
     private String filePath;

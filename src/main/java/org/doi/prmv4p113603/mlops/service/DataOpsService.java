@@ -1,16 +1,20 @@
 package org.doi.prmv4p113603.mlops.service;
 
+import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
+import org.doi.prmv4p113603.mlops.domain.SimulationDirectories;
+import org.doi.prmv4p113603.mlops.domain.SimulationDirectory;
+import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
+import org.doi.prmv4p113603.mlops.exception.SimulationArtifactNotFoundException;
+import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.*;
+import org.doi.prmv4p113603.mlops.util.SimulationArtifactFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
 
@@ -25,76 +29,80 @@ import java.util.*;
 @Service
 public class DataOpsService {
 
-    // Constants
-    private static final String DATA_ROOT = "/data/ML/big-data-full"; // TODO: environment variable from docker-compose.yml
-
     // Dependencies
-    private final FileSystemService fileSystem;
     private final NominalCompositionRepository compositionRepo;
     private final RunRepository runRepo;
+    private final MlopsProperties mlopsProperties;
 
+    public DataOpsService(NominalCompositionRepository compositionRepo, RunRepository runRepo, MlopsProperties mlopsProperties) {
 
-    public DataOpsService(
-            NominalCompositionRepository compositionRepo,
-            RunRepository runRepo,
-            FileSystemService fileSystem) {
         this.compositionRepo = compositionRepo;
         this.runRepo = runRepo;
-        this.fileSystem = fileSystem;
+        this.mlopsProperties = mlopsProperties;
+
     }
 
+    /**
+     * Schedules exploration jobs for a given nominal composition by detecting local simulation artifacts.
+     * <p>
+     * This service method initiates a new Run and creates SubRuns and SimulationArtifacts for each valid folder found.
+     * <p>
+     * Example POST request:
+     * POST /api/v1/dataops/generate/Zr49Cu49Al2
+     * Body: { "numSimulations": 3 }
+     *
+     * @param nominalCompositionName the name of the nominal composition
+     * @param request                payload indicating the number of sub-runs to process
+     * @return created NominalCompositionDto with run, sub-run, and artifact information
+     */
     public NominalCompositionDto scheduleExploration(String nominalCompositionName, ScheduleExplorationRequest request) {
 
         // Check that the NominalComposition exists and that its directory exists
         NominalComposition nominalComposition = compositionRepo.findByName(nominalCompositionName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nominal Composition not found"));
 
-        String nominalCompositionDir = fileSystem.join(DATA_ROOT, nominalCompositionName);
-
-        if (!fileSystem.pathExists(nominalCompositionDir)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(
-                    "Directory for Nominal Composition '%s' not found",
-                    nominalCompositionName
-            ));
-        }
-
-        // Checking the consistency of directories for all requested runs
+        // Now loading and checking directories
         int nextRunNumber = runRepo.findMaxRunNumberByNominalCompositionId(nominalComposition.getId()).orElse(0) + 1;
-        for (int runNumber = nextRunNumber; runNumber < nextRunNumber + request.getNumSimulations(); runNumber++) {
 
-            // TODO: handle gaps in the sequence of ID_RUN directories.
-            String runDir = fileSystem.join(nominalCompositionDir, "c/md/lammps/100", String.valueOf(nextRunNumber));
-            String subRunDir = fileSystem.join(runDir, "2000/0");
+        SimulationDirectories simulationDirectories = new SimulationDirectories(nominalCompositionName, mlopsProperties.getDataRoot());
+        simulationDirectories.setNextRunNumber(nextRunNumber);
+        simulationDirectories.setNumSimulations(request.getNumSimulations());
 
-            if (!fileSystem.pathExists(runDir) || !fileSystem.pathExists(subRunDir)) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format(
-                        "Directory for ID_RUN '%s' or for SUB_RUN '0' not found for Nominal Composition '%s'",
-                        runNumber, nominalCompositionName
-                ));
-            }
-
+        try {
+            simulationDirectories.load(true);
+        } catch (SimulationDirectoryNotFoundException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
         }
 
         // Since everything is OK with the folders, persisting the Runs to DB
         List<Run> runs = new ArrayList<>();
-        for (int runNumber = nextRunNumber; runNumber < nextRunNumber + request.getNumSimulations(); runNumber++) {
+        for (SimulationDirectory runDir : simulationDirectories.getNominalCompositionDir().getChildren()) {
 
             Run run = Run.builder()
                     .nominalComposition(nominalComposition)
-                    .runNumber(runNumber)
-                    .status("SCHEDULED") // TODO: constants for statuses
+                    .runNumber(runDir.getNumber())
+                    .status(SimulationStatus.SCHEDULED)
                     .createdAt(Instant.now())
                     .updatedAt(Instant.now())
                     .build();
 
-            SubRun subRun = SubRun.builder()
+            SubRun subRun = SubRun.builder() // A Run is created with a reference structure as SubRun 0
                     .run(run)
                     .subRunNumber(0)
-                    .status("SCHEDULED") // TODO: constants for statuses
+                    .status(SimulationStatus.SCHEDULED)
                     .scheduledAt(Instant.now())
                     .build();
 
             run.setSubRuns(List.of(subRun));
+
+            try {
+                subRun.setSimulationArtifacts(SimulationArtifactFactory.load(
+                        nominalCompositionName,
+                        subRun,
+                        runDir.getChildren().get(0))); // passing the SubRun directory
+            } catch (SimulationArtifactNotFoundException ex) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+            }
 
             runs.add(run);
 
@@ -103,44 +111,6 @@ public class DataOpsService {
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, runs);
 
-    }
-
-    /*
-     * Class helpers.
-     */
-
-    private List<SimulationArtifact> detectSimulationArtifacts(SubRun subRun, String dirPath) {
-        List<SimulationArtifact> artifacts = new ArrayList<>();
-        try (DirectoryStream<Path> stream = fileSystem.listFiles(dirPath)) {
-            for (Path path : stream) {
-                if (!fileSystem.isRegularFile(path.toString())) continue;
-
-                String fileName = path.getFileName().toString();
-                String artifactType = classifyArtifact(fileName);
-
-                SimulationArtifact artifact = SimulationArtifact.builder()
-                        .subRun(subRun)
-                        .artifactType(artifactType)
-                        .filePath(path.toString())
-                        .fileSize((int) fileSystem.getFileSize(path.toString()))
-                        .checksum(fileSystem.calculateSHA256(path.toString()))
-                        .createdAt(Instant.now())
-                        .build();
-
-                artifacts.add(artifact);
-            }
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error reading directory: " + dirPath);
-        }
-        return artifacts;
-    }
-
-    private String classifyArtifact(String filename) {
-        if (filename.endsWith(".vasp")) return "POSCAR";
-        if (filename.endsWith(".out")) return "OUTPUT";
-        if (filename.endsWith(".lobster")) return "LOBSTER";
-        if (filename.endsWith(".xyz")) return "XYZ";
-        return "UNKNOWN";
     }
 
 }
