@@ -108,7 +108,7 @@ class DataOpsServiceTest {
 
         String resultJson = mapper.writeValueAsString(result);
 
-        System.out.println("ARYLOG: resultJson -> " + resultJson);
+        System.out.println("DataOpsService.scheduleExploration -> resultJson -> " + resultJson);
 
         // Asserting with Junit 5
         assertNotNull(result);
