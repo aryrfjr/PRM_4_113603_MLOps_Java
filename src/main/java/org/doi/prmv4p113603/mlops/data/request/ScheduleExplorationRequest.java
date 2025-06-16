@@ -22,4 +22,5 @@ public class ScheduleExplorationRequest {
 
     @Min(value = 1, message = "Number of simulations must be at least 1")
     private int numSimulations;
+
 }

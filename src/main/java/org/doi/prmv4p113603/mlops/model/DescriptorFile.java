@@ -45,4 +45,5 @@ public class DescriptorFile {
 
     @OneToMany(mappedBy = "descriptorFile")
     private List<BondInteraction> bonds;
+
 }

@@ -1,14 +1,11 @@
 package org.doi.prmv4p113603.mlops.service;
 
-import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionCreateDto;
-import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionResponseDto;
+import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,30 +25,30 @@ public class NominalCompositionService {
      * Creates a Nominal Composition entry.
      * Returns HTTP 409 if the name already exists.
      */
-    public NominalCompositionResponseDto create(NominalCompositionCreateDto dto) {
+    public NominalCompositionDto create(NominalCompositionDto dto) {
         if (repository.findByName(dto.getName()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Nominal composition already exists");
         }
         NominalComposition saved = repository.save(dto.toEntity());
-        return NominalCompositionResponseDto.fromEntity(saved);
+        return NominalCompositionDto.fromEntity(saved);
     }
 
     /**
      * Retrieves a NominalComposition by name.
      * Returns 404 if not found.
      */
-    public NominalCompositionResponseDto getByName(String name) {
+    public NominalCompositionDto getByName(String name) {
         return repository.findByName(name)
-                .map(NominalCompositionResponseDto::fromEntity)
+                .map(NominalCompositionDto::fromEntity)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
     }
 
     /**
      * Lists all NominalCompositions ordered by name.
      */
-    public List<NominalCompositionResponseDto> listAll() {
+    public List<NominalCompositionDto> listAll() {
         return repository.findAllByOrderByNameAsc().stream()
-                .map(NominalCompositionResponseDto::fromEntity)
+                .map(NominalCompositionDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
@@ -59,7 +56,7 @@ public class NominalCompositionService {
      * Update a Nominal Composition entry identified by its name.
      * Returns 404 if the resource does not exist.
      */
-    public NominalCompositionResponseDto updateByName(String name, NominalCompositionCreateDto dto) {
+    public NominalCompositionDto updateByName(String name, NominalCompositionDto dto) {
         NominalComposition nc = repository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
@@ -68,7 +65,7 @@ public class NominalCompositionService {
             nc.setDescription(dto.getDescription());
         }
         repository.save(nc);
-        return NominalCompositionResponseDto.fromEntity(nc);
+        return NominalCompositionDto.fromEntity(nc);
     }
 
     /**

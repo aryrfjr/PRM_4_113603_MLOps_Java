@@ -2,6 +2,7 @@ package org.doi.prmv4p113603.mlops.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
 
 import java.time.Instant;
 import java.util.List;
@@ -38,8 +39,9 @@ public class Run {
     @Column(name = "run_number", nullable = false)
     private int runNumber;
 
-    @Column(nullable = false, length = 20)
-    private String status = "SCHEDULED";
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private SimulationStatus status = SimulationStatus.SCHEDULED;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
@@ -49,4 +51,5 @@ public class Run {
 
     @OneToMany(mappedBy = "run", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubRun> subRuns;
+
 }

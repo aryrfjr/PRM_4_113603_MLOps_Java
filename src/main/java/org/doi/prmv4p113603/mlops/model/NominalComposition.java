@@ -32,4 +32,5 @@ public class NominalComposition {
 
     @OneToMany(mappedBy = "nominalComposition", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Run> runs;
+
 }
