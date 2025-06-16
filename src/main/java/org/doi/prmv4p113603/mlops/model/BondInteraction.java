@@ -47,4 +47,5 @@ public class BondInteraction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "descriptor_file_id")
     private DescriptorFile descriptorFile;
+
 }

@@ -39,7 +39,7 @@ services:
     networks:
       - mlopsnet
 
-  # MLOps REST API tests (to run: docker-compose run --rm mlops-tests)
+  # MLOps REST API tests (to run: docker-compose run --rm mlops-tests) # TODO: not needed
   mlops-tests:
     build: .
     command: ./mvnw test
@@ -52,8 +52,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
     networks:
       - mlopsnet
-    volumes:
-      - .:/mlops-api
 
 # Docker networks
 networks:

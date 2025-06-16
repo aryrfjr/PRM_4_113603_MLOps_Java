@@ -48,7 +48,7 @@ public class NominalCompositionController {
             summary = "Creates a Nominal Composition entry.",
             description = "Creates a Nominal Composition entry."
     )
-    public ResponseEntity<NominalCompositionResponseDto> create(@Valid @RequestBody NominalCompositionCreateDto dto) {
+    public ResponseEntity<NominalCompositionDto> create(@Valid @RequestBody NominalCompositionDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
     }
 
@@ -60,7 +60,7 @@ public class NominalCompositionController {
             summary = "Retrieves a NominalComposition by name.",
             description = "Retrieves a NominalComposition by name."
     )
-    public ResponseEntity<NominalCompositionResponseDto> getByName(@PathVariable String name) {
+    public ResponseEntity<NominalCompositionDto> getByName(@PathVariable String name) {
         return ResponseEntity.ok(service.getByName(name));
     }
 
@@ -72,7 +72,7 @@ public class NominalCompositionController {
             summary = "Lists all NominalCompositions ordered by name.",
             description = "Lists all NominalCompositions ordered by name."
     )
-    public List<NominalCompositionResponseDto> listAll() {
+    public List<NominalCompositionDto> listAll() {
         return service.listAll();
     }
 
@@ -84,9 +84,9 @@ public class NominalCompositionController {
             summary = "Update a Nominal Composition entry identified by its name.",
             description = "Update a Nominal Composition entry identified by its name."
     )
-    public ResponseEntity<NominalCompositionResponseDto> updateByName(
+    public ResponseEntity<NominalCompositionDto> updateByName(
             @PathVariable String name,
-            @Valid @RequestBody NominalCompositionCreateDto updateDto
+            @Valid @RequestBody NominalCompositionDto updateDto
     ) {
         return ResponseEntity.ok(service.updateByName(name, updateDto));
     }
