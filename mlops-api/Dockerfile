@@ -4,13 +4,13 @@ FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /mlops-api
 
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
+# Copy everything from the context (mlops-api/)
+COPY . .
+
+# Make Maven wrapper executable and cache dependencies
 RUN chmod +x mvnw && ./mvnw dependency:go-offline
 
-COPY src ./src
-
-# Build the jar with tests skipped
+# Build the JAR (skip tests for faster build)
 RUN ./mvnw clean package -DskipTests
 
 # ---------- Runtime Stage ----------
@@ -18,7 +18,7 @@ FROM eclipse-temurin:21-jdk
 
 WORKDIR /mlops-api
 
-# Copy only the built jar from the build stage
+# Copy only the final jar
 COPY --from=build /mlops-api/target/PRM_4_113603-0.0.1-SNAPSHOT.jar ./mlops-api.jar
 
 EXPOSE 8080
