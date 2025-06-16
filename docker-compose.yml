@@ -4,7 +4,7 @@ services:
 
   # PostgreSQL database service
   # Uses a public official image (no build needed)
-  db:
+  postgres:
     image: postgres:16
     restart: always
     environment:
@@ -25,9 +25,9 @@ services:
 
   # MLOps REST API with Spring Framework
   mlops-api:
-    build: .
+    build: ./mlops-api
     depends_on:
-      - db
+      - postgres
     ports:
       - "8080:8080"
     volumes:
