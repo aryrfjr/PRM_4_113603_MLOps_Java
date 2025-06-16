@@ -64,9 +64,8 @@ public class DataOpsService {
         // Now loading and checking directories
         int nextRunNumber = runRepo.findMaxRunNumberByNominalCompositionId(nominalComposition.getId()).orElse(0) + 1;
 
-        SimulationDirectories simulationDirectories = new SimulationDirectories(nominalCompositionName, mlopsProperties.getDataRoot());
-        simulationDirectories.setNextRunNumber(nextRunNumber);
-        simulationDirectories.setNumSimulations(request.getNumSimulations());
+        SimulationDirectories simulationDirectories =
+                createSimulationDirectories(nominalCompositionName, mlopsProperties.getDataRoot(), nextRunNumber, request.getNumSimulations());
 
         try {
             simulationDirectories.load(true);
@@ -110,6 +109,21 @@ public class DataOpsService {
 
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, runs);
+
+    }
+
+    // Will be accessible from test class that is in the same package
+    protected SimulationDirectories createSimulationDirectories(
+            String nominalCompositionName,
+            String root,
+            int runNumber,
+            int numSimulations) {
+
+        SimulationDirectories dirs = new SimulationDirectories(nominalCompositionName, root);
+        dirs.setNextRunNumber(runNumber);
+        dirs.setNumSimulations(numSimulations);
+
+        return dirs;
 
     }
 

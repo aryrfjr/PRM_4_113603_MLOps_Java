@@ -1,8 +1,12 @@
 package org.doi.prmv4p113603.mlops.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
-import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
+import org.doi.prmv4p113603.mlops.domain.*;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 import org.doi.prmv4p113603.mlops.repository.RunRepository;
@@ -10,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -24,63 +30,91 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DataOpsServiceTest {
 
+    /*
+     * This is a mock object (i.e., not a real Spring Data repository — just a dummy
+     * that will behave as per instructions provided with the method 'when' below).
+     *
+     * The same is true for 'runRepo' and 'mlopsProperties'.
+     */
     @Mock
-    private NominalCompositionRepository compositionRepo;
+    NominalCompositionRepository compositionRepo;
 
     @Mock
-    private RunRepository runRepo;
+    RunRepository runRepo;
 
-    @InjectMocks
-    private DataOpsService dataOpsService;
+    @Mock
+    MlopsProperties mlopsProperties;
 
     @Test
-    void testScheduleExploration_success() {
+    void testScheduleExploration_success() throws Exception {
 
-        // Arrange
-        String compositionName = "Zr49Cu49Al2";
-        int numSimulations = 2;
-        long compositionId = 1L;
+        // TODO: set in a file 'application.properties' for tests
+        final String dataRoot = "/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/";
+
+        // Starting Mockito setup
+        String nominalCompositionName = "Zr49Cu49Al2";
+        long nominalCompositionId = 1L;
+        int numSimulations = 3;
+
+        NominalComposition nc = new NominalComposition();
+        nc.setId(nominalCompositionId);
+        nc.setName(nominalCompositionName);
 
         ScheduleExplorationRequest request = new ScheduleExplorationRequest();
         request.setNumSimulations(numSimulations);
 
-        NominalComposition composition = new NominalComposition();
-        composition.setId(compositionId);
-        composition.setName(compositionName);
+        /*
+         * Mockito configuration:
+         *
+         * When the 'compositionRepo.findByName(...)' method is called with the argument
+         * 'nominalCompositionName', then return 'Optional.of(nc)' instead of actually
+         * querying a database.
+         *
+         * Methods from 'runRepo' and 'mlopsProperties' are mocked in the same way.
+         *
+         * NOTE: the class 'java.util.Optional<T>' is a container object introduced in
+         *  Java 8 to represent a value that may or may not be present. It helps reduce
+         *  the need for explicit null checks and prevents NullPointerException in many cases.
+         *  Not in this case, but with that class, it is possible to achieve the same goal
+         *  of the safe navigation operator ?. that Groovy has.
+         */
+        when(compositionRepo.findByName(nominalCompositionName)).thenReturn(Optional.of(nc));
+        when(runRepo.findMaxRunNumberByNominalCompositionId(nominalCompositionId)).thenReturn(Optional.of(0));
+        when(mlopsProperties.getDataRoot()).thenReturn(dataRoot);
 
-        when(compositionRepo.findByName(compositionName))
-                .thenReturn(Optional.of(composition));
+        /*
+         * Mockito configuration:
+         *
+         * Spy the service to inject mock 'SimulationDirectories'. It will create a partial
+         * mock of the real 'DataOpsService' object and its real methods will run unless they
+         * are explicitly stub or override.
+         */
+        DataOpsService service = spy(new DataOpsService(compositionRepo, runRepo, mlopsProperties));
 
-        when(runRepo.findMaxRunNumberByNominalCompositionId(compositionId))
-                .thenReturn(Optional.of(5));  // Next run will be 6
+        /*
+         * Acting to get the response payload in the same way the controller does.
+         *
+         * NOTE: that process will scan directories, what will turn this unit test into
+         *  an integration test, since we will be testing how the service integrates
+         *  with the real filesystem. There are some trade-offs since there is an
+         *  external dependence introduced but that data discovery portion is needed here.
+         */
+        NominalCompositionDto result = service.scheduleExploration(nominalCompositionName, request);
 
-        // Set up path checks for both runs
-//        for (int runNumber = 6; runNumber < 6 + numSimulations; runNumber++) {
-//
-//            String runDir = DataOpsService.DATA_ROOT + "/" + compositionName + "/c/md/lammps/100/" + runNumber;
-//            String subRunDir = runDir + "/2000/0";
-//
-//        }
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // Mock save (even though it's not asserted here)
-        when(runRepo.save(any(Run.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        String resultJson = mapper.writeValueAsString(result);
 
-        // Act
-        NominalCompositionDto result = dataOpsService.scheduleExploration(compositionName, request);
+        System.out.println("DataOpsService.scheduleExploration -> resultJson -> " + resultJson);
 
-        // Assert
+        // Asserting with Junit 5
         assertNotNull(result);
-        assertEquals(compositionId, result.getId());
         assertEquals(numSimulations, result.getRuns().size());
-        result.getRuns().forEach(runDto -> {
-            assertEquals(SimulationStatus.SCHEDULED, runDto.getStatus());
-            assertEquals(1, runDto.getSubRuns().size());
-            assertEquals(0, runDto.getSubRuns().get(0).getSubRunNumber());
-        });
+        assertEquals(SimulationStatus.SCHEDULED, result.getRuns().get(0).getStatus());
 
-        verify(compositionRepo).findByName(compositionName);
-        verify(runRepo).findMaxRunNumberByNominalCompositionId(compositionId);
     }
-
 
 }

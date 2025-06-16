@@ -38,7 +38,6 @@ public class FileSystemUtils {
     }
 
     public static String join(String... parts) {
-        System.out.println("ARYLOG =======>>>> "+parts);
         return Path.of(parts[0], Arrays.copyOfRange(parts, 1, parts.length)).toString();
     }
 
