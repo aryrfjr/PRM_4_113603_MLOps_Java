@@ -40,8 +40,8 @@ out/
 *.iml
 
 # Maven Wrapper
-!.mvn/wrapper/maven-wrapper-*.jar
-.mvn/wrapper/maven-wrapper-download/
-target/
-.m2/
+!mlops-api/.mvn/wrapper/maven-wrapper-*.jar
+mlops-api/.mvn/wrapper/maven-wrapper-download/
+mlops-api/target/
+mlops-api/.m2/
 
