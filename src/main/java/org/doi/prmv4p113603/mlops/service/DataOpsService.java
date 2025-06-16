@@ -113,11 +113,15 @@ public class DataOpsService {
     }
 
     // Will be accessible from test class that is in the same package
-    protected SimulationDirectories createSimulationDirectories(String name, String root, int run, int count) {
+    protected SimulationDirectories createSimulationDirectories(
+            String nominalCompositionName,
+            String root,
+            int runNumber,
+            int numSimulations) {
 
-        SimulationDirectories dirs = new SimulationDirectories(name, root);
-        dirs.setNextRunNumber(run);
-        dirs.setNumSimulations(count);
+        SimulationDirectories dirs = new SimulationDirectories(nominalCompositionName, root);
+        dirs.setNextRunNumber(runNumber);
+        dirs.setNumSimulations(numSimulations);
 
         return dirs;
 
