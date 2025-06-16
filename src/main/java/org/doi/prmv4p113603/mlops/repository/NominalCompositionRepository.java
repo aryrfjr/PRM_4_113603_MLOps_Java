@@ -1,6 +1,7 @@
 package org.doi.prmv4p113603.mlops.repository;
 
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
