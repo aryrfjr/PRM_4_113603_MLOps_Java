@@ -16,4 +16,6 @@ For building reliable, scalable, and maintainable systems, Java with **Spring Bo
 
 This repository contains a Java-based counterpart for the controller layer — replacing **FastAPI** from the original [PRM_4_113603_MLOps](https://github.com/aryrfjr/PRM_4_113603_MLOps) repository — that handles all user-triggered interactions (via **Streamlit**) and serves as the central gateway, including endpoints callable by **Airflow** for orchestration.
 
+This repository provides a Java-based counterpart for the controller layer—replacing FastAPI from the original [PRM_4_113603_MLOps](https://github.com/aryrfjr/PRM_4_113603_MLOps) repository — that handles all user-triggered interactions (via Streamlit) and serves as the central gateway. Built with **Spring Boot**, it exposes orchestration endpoints callable by **Airflow **while delegating domain-specific tasks like **model training** to Python-based services implemented with **FastAPI**, following a **microservice-friendly**, polyglot architecture.
+
 - 📝 **NOTE**: REST API documentation: http://localhost:8080/swagger-ui.html
