@@ -8,7 +8,7 @@ The pipeline includes **data generation**, **feature engineering**, **model trai
 
 The architecture consists of a set of services (**Streamlit**, **FastAPI**, **Airflow**, and **MLflow**) which coordinate the execution of key components such as the **data explorer and augmenter**, the **human-in-the-loop active learning** process, and **feature extraction** pipeline.
 
-![MLOPs system architecture](img/PRM_4_113603_MLOps_Architecture.drawio.png)
+![MLOPs system architecture](img/PRM_4_113603_MLOps_JavaPythonArchitecture.drawio.png)
 
 The **FastAPI back-end application** serves as the central controller in this architecture, acting as the communication bridge between the **Streamlit** user interface and the services for **workflow orchestration** and **ML lifecycle** management. It handles all user-triggered actions such as launching **data generation**, triggering **model evaluations**, and updating **experiment states**. By exposing a clean REST interface, it enables modular coordination of the MLOps components, facilitating **interactive workflows**, **experiment reproducibility**, and seamless **integration** with other services like **Airflow** and the **Feature Store Lite**.
 
