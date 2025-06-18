@@ -30,6 +30,13 @@ public class NominalComposition {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
+    /*
+     * NOTE: Lazy-loaded by default (because no fetch = FetchType.EAGER is set).
+     *
+     * Which means: after findAllById(...), the runs list will be empty unless:
+     * - It is accessed later, triggering a lazy load (only works within a transactional context; i.e., in a @Transactional service method).
+     * - It is explicitly fetched it in the query.
+     */
     @OneToMany(mappedBy = "nominalComposition", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Run> runs;
 
