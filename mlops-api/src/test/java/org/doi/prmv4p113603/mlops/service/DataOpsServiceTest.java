@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
+import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.domain.*;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 import org.doi.prmv4p113603.mlops.repository.RunRepository;
+import org.doi.prmv4p113603.mlops.repository.SubRunRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -41,6 +43,9 @@ class DataOpsServiceTest {
 
     @Mock
     RunRepository runRepo;
+
+    @Mock
+    SubRunRepository subRunRepo;
 
     @Mock
     MlopsProperties mlopsProperties;
@@ -89,7 +94,7 @@ class DataOpsServiceTest {
          * mock of the real 'DataOpsService' object and its real methods will run unless they
          * are explicitly stub or override.
          */
-        DataOpsService service = spy(new DataOpsService(compositionRepo, runRepo, mlopsProperties));
+        DataOpsService service = spy(new DataOpsService(compositionRepo, mlopsProperties, runRepo, subRunRepo));
 
         /*
          * Acting to get the response payload in the same way the controller does.
@@ -113,6 +118,60 @@ class DataOpsServiceTest {
         // Asserting with Junit 5
         assertNotNull(result);
         assertEquals(numSimulations, result.getRuns().size());
+        assertEquals(SimulationStatus.SCHEDULED, result.getRuns().get(0).getStatus());
+
+    }
+
+    @Test
+    void testScheduleExploitation_success() throws Exception {
+
+        // TODO: set in a file 'application.properties' for tests
+        final String dataRoot = "/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/";
+
+        // Starting Mockito setup
+        String nominalCompositionName = "Zr49Cu49Al2";
+        long nominalCompositionId = 1L;
+
+        NominalComposition nc = new NominalComposition();
+        nc.setId(nominalCompositionId);
+        nc.setName(nominalCompositionName);
+
+        Run run1 = Run.builder().runNumber(1).status(SimulationStatus.SCHEDULED).build();
+        Run run2 = Run.builder().runNumber(2).status(SimulationStatus.SCHEDULED).build();
+        List<Run> runs = List.of(run1, run2);
+
+        ScheduleExploitationRequest.RunInput runInput1 = new ScheduleExploitationRequest.RunInput();
+        runInput1.setId(1L);
+        runInput1.setRunNumber(1);
+        runInput1.setSubRuns(List.of(1, 2, 3, 4, 5));
+
+        ScheduleExploitationRequest.RunInput runInput2 = new ScheduleExploitationRequest.RunInput();
+        runInput2.setId(2L);
+        runInput2.setRunNumber(2);
+        runInput2.setSubRuns(List.of(6, 13, 14));
+
+        ScheduleExploitationRequest request = new ScheduleExploitationRequest();
+        request.setRuns(List.of(runInput1, runInput2));
+
+        when(compositionRepo.findByName(nominalCompositionName)).thenReturn(Optional.of(nc));
+        when(runRepo.findAllByIdIn(List.of(1L, 2L))).thenReturn(runs);
+        when(mlopsProperties.getDataRoot()).thenReturn(dataRoot);
+
+        DataOpsService service = spy(new DataOpsService(compositionRepo, mlopsProperties, runRepo, subRunRepo));
+
+        NominalCompositionDto result = service.scheduleExploitation(nominalCompositionName, request);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        String resultJson = mapper.writeValueAsString(result.getRuns().get(0));
+
+        System.out.println("DataOpsService.scheduleExploitation -> resultJson -> " + resultJson);
+
+        // Asserting with Junit 5
+        assertNotNull(result);
         assertEquals(SimulationStatus.SCHEDULED, result.getRuns().get(0).getStatus());
 
     }

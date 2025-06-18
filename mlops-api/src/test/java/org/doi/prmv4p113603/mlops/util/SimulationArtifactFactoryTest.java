@@ -1,6 +1,7 @@
 package org.doi.prmv4p113603.mlops.util;
 
 import org.doi.prmv4p113603.mlops.domain.SimulationDirectories;
+import org.doi.prmv4p113603.mlops.domain.SimulationType;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import org.doi.prmv4p113603.mlops.model.Run;
@@ -43,14 +44,13 @@ public class SimulationArtifactFactoryTest {
         // Testing exploration scenario
 
         SimulationDirectories simulationDirectories = new SimulationDirectories(
+                SimulationType.EXPLORATION,
                 nc.getName(),
-                "/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/");
-
-        simulationDirectories.setNextRunNumber(run.getRunNumber());
-        simulationDirectories.setNumSimulations(1);
+                "/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/",
+                run.getRunNumber(), 1);
 
         try {
-            simulationDirectories.load(true);
+            simulationDirectories.load();
         } catch (SimulationDirectoryNotFoundException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
         }
