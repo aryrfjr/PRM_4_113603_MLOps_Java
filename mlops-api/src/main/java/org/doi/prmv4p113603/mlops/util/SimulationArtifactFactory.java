@@ -37,14 +37,14 @@ public class SimulationArtifactFactory {
         // SubRun 0 is the reference structure and also contains the Runs inputs/outputs as artifacts
         if (subRun.getSubRunNumber() == 0) {
             loaded.addAll(loadExpectedSimulationArtifacts(
-                    ExpectedSimulationArtifacts.RUN,
+                    ExpectedSimulationArtifacts.RUN_INPUTS,
                     nominalCompositionName,
                     subRun,
                     subRunDir.getParent().getPath()));
         }
 
         loaded.addAll(loadExpectedSimulationArtifacts(
-                ExpectedSimulationArtifacts.SUB_RUN,
+                ExpectedSimulationArtifacts.SUB_RUN_INPUTS,
                 nominalCompositionName,
                 subRun,
                 subRunDir.getPath()));
