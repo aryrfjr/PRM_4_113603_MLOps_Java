@@ -1,12 +1,10 @@
 package org.doi.prmv4p113603.mlops.testutil;
 
-import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
 import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
 import org.doi.prmv4p113603.mlops.model.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Static methods that provide a fixed state of objects and data needed for testing.
@@ -32,7 +30,6 @@ public class TestFixtures {
         run.setRunNumber(runNumber);
         run.setStatus(SimulationStatus.SCHEDULED);
         run.setCreatedAt(Instant.now());
-        run.setUpdatedAt(Instant.now());
         run.setSubRuns(new ArrayList<>());
         return run;
     }
@@ -42,7 +39,7 @@ public class TestFixtures {
         sr.setRun(run);
         sr.setSubRunNumber(subRunNumber);
         run.setStatus(SimulationStatus.SCHEDULED);
-        sr.setScheduledAt(Instant.now());
+        run.setCreatedAt(Instant.now());
         sr.setSimulationArtifacts(new ArrayList<>());
         return sr;
     }

@@ -72,13 +72,13 @@ public class NominalCompositionDto {
                                 .runNumber(run.getRunNumber())
                                 .status(run.getStatus())
                                 .createdAt(run.getCreatedAt())
-                                .updatedAt(run.getUpdatedAt())
+                                .updatedAt(run.getCompletedAt())
                                 .subRuns(
                                         run.getSubRuns().stream()
                                                 .map(srun -> SubRunDto.builder()
                                                         .subRunNumber(srun.getSubRunNumber())
                                                         .status(srun.getStatus())
-                                                        .scheduledAt(srun.getScheduledAt())
+                                                        .scheduledAt(srun.getCreatedAt())
                                                         .completedAt(srun.getCompletedAt())
                                                         .simulationArtifacts(
                                                                 srun.getSimulationArtifacts().stream()

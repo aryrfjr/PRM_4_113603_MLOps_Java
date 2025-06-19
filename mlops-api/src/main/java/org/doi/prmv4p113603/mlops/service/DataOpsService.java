@@ -78,7 +78,7 @@ public class DataOpsService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
         }
 
-        // Since everything is OK with the folders, persisting the Runs to DB
+        // Since everything is OK with the folders, persisting the Runs to DB ...
         List<Run> runs = new ArrayList<>();
         for (SimulationDirectory runDir : simulationDirectories.getNominalCompositionDir().getChildren()) {
 
@@ -87,14 +87,13 @@ public class DataOpsService {
                     .runNumber(runDir.getNumber())
                     .status(SimulationStatus.SCHEDULED)
                     .createdAt(Instant.now())
-                    .updatedAt(Instant.now())
                     .build();
 
             SubRun subRun = SubRun.builder() // A Run is created with a reference structure as SubRun 0
                     .run(run)
                     .subRunNumber(0)
                     .status(SimulationStatus.SCHEDULED)
-                    .scheduledAt(Instant.now())
+                    .createdAt(Instant.now())
                     .build();
 
             run.setSubRuns(List.of(subRun));
@@ -112,7 +111,7 @@ public class DataOpsService {
 
         }
 
-        // And finally uploading to MinIO
+        // ... and finally uploading to MinIO
         // TODO: call simulationDirectories.upload(); and handle exception
 
         // Returning only DTOs
@@ -201,7 +200,7 @@ public class DataOpsService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
         }
 
-        // Since everything is OK with the folders, persisting the Runs to DB
+        // Since everything is OK with the folders, persisting the Runs to DB ...
         Map<Integer, Run> runsByNumber = existingRuns.stream()
                 .collect(Collectors.toMap(Run::getRunNumber, Function.identity()));
         for (SimulationDirectory runDir : simulationDirectories.getNominalCompositionDir().getChildren()) {
@@ -215,7 +214,7 @@ public class DataOpsService {
                         .run(run)
                         .subRunNumber(subRunDir.getNumber())
                         .status(SimulationStatus.SCHEDULED)
-                        .scheduledAt(Instant.now())
+                        .createdAt(Instant.now())
                         .build();
 
                 try {
@@ -235,7 +234,7 @@ public class DataOpsService {
 
         }
 
-        // And finally uploading to MinIO
+        // ... and finally uploading to MinIO
         // TODO: call simulationDirectories.upload(); and handle exception
 
         // Returning only DTOs
