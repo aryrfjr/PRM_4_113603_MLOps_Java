@@ -1,14 +1,19 @@
 package org.doi.prmv4p113603.mlops.domain;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.doi.prmv4p113603.mlops.config.MinioProperties;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
 import org.doi.prmv4p113603.mlops.util.FileSystemUtils;
+import software.amazon.awssdk.services.s3.S3Client;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Setter
+@RequiredArgsConstructor
 public class SimulationDirectories {
 
     /*
@@ -17,32 +22,12 @@ public class SimulationDirectories {
     private final SimulationType simulationType;
     private final String nominalCompositionName;
     private final String dataRoot;
+    private final MinioProperties minioProperties;
+    private final S3Client s3Client;
     private int exploreNextRunNumber = -1;
     private int exploreNumSimulations = -1;
-    private List<ScheduleExploitationRequest.RunInput> exploitRuns = new ArrayList<>();
+    private List<ScheduleExploitationRequest.RunInput> exploitRuns;
     private SimulationDirectory nominalCompositionDir;
-
-    public SimulationDirectories(SimulationType simulationType,
-                                 String nominalCompositionName,
-                                 String dataRoot,
-                                 int exploreNextRunNumber,
-                                 int exploreNumSimulations) {
-        this.simulationType = simulationType;
-        this.nominalCompositionName = nominalCompositionName;
-        this.dataRoot = dataRoot;
-        this.exploreNextRunNumber = exploreNextRunNumber;
-        this.exploreNumSimulations = exploreNumSimulations;
-    }
-
-    public SimulationDirectories(SimulationType simulationType,
-                                 String nominalCompositionName,
-                                 String dataRoot,
-                                 List<ScheduleExploitationRequest.RunInput> exploitRuns) {
-        this.simulationType = simulationType;
-        this.nominalCompositionName = nominalCompositionName;
-        this.dataRoot = dataRoot;
-        this.exploitRuns = exploitRuns;
-    }
 
     public SimulationDirectory getNominalCompositionDir() {
 
@@ -54,6 +39,9 @@ public class SimulationDirectories {
 
     }
 
+    /**
+     * Checks integrity and loads real input files (read-only from local HD).
+     */
     public void load() {
 
         String nominalCompositionDirName = FileSystemUtils.join(dataRoot, nominalCompositionName);
@@ -138,6 +126,17 @@ public class SimulationDirectories {
 
             }
 
+        }
+
+    }
+
+    /**
+     * Uploads the loaded files to MinIO.
+     */
+    public void upload() {
+
+        if (nominalCompositionDir == null) {
+            throw new IllegalStateException("The method load() must be called before use.");
         }
 
     }

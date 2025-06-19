@@ -2,6 +2,7 @@ package org.doi.prmv4p113603.mlops.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.doi.prmv4p113603.mlops.config.MinioProperties;
 import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
@@ -18,6 +19,7 @@ import org.doi.prmv4p113603.mlops.util.SimulationArtifactFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.time.Instant;
 import java.util.*;
@@ -39,6 +41,8 @@ public class DataOpsService {
     // Dependencies
     private final NominalCompositionRepository compositionRepo;
     private final MlopsProperties mlopsProperties;
+    private final MinioProperties minioProperties;
+    private final S3Client s3Client;
     private final RunRepository runRepo;
     private final SubRunRepository subRunRepo;
 
@@ -69,10 +73,15 @@ public class DataOpsService {
         // Now loading and checking directories
         int nextRunNumber = runRepo.findMaxRunNumberByNominalCompositionId(nominalComposition.getId()).orElse(0) + 1;
 
-        SimulationDirectories simulationDirectories = createSimulationDirectories(
+        SimulationDirectories simulationDirectories = new SimulationDirectories(
+                SimulationType.EXPLORATION,
                 nominalCompositionName,
                 mlopsProperties.getDataRoot(),
-                nextRunNumber, request.getNumSimulations());
+                minioProperties,
+                s3Client);
+
+        simulationDirectories.setExploreNextRunNumber(nextRunNumber);
+        simulationDirectories.setExploreNumSimulations(request.getNumSimulations());
 
         try {
             simulationDirectories.load();
@@ -113,6 +122,9 @@ public class DataOpsService {
             runs.add(run);
 
         }
+
+        // And finally uploading to MinIO
+        // TODO: call simulationDirectories.load(); and handle exception
 
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, runs);
@@ -188,10 +200,14 @@ public class DataOpsService {
         }
 
         // Checking the consistency of directories
-        SimulationDirectories simulationDirectories = createSimulationDirectories(
+        SimulationDirectories simulationDirectories = new SimulationDirectories(
+                SimulationType.EXPLOITATION,
                 nominalCompositionName,
                 mlopsProperties.getDataRoot(),
-                request.getRuns());
+                minioProperties,
+                s3Client);
+
+        simulationDirectories.setExploitRuns(request.getRuns());
 
         try {
             simulationDirectories.load();
@@ -233,31 +249,12 @@ public class DataOpsService {
 
         }
 
+        // And finally uploading to MinIO
+        // TODO: call simulationDirectories.load(); and handle exception
+
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, existingRuns);
 
-    }
-
-    /*
-     *
-     * Helpers.
-     *
-     */
-
-    // Will be accessible from test class that is in the same package
-    protected SimulationDirectories createSimulationDirectories(
-            String nominalCompositionName,
-            String root,
-            int runNumber,
-            int numSimulations) {
-        return new SimulationDirectories(SimulationType.EXPLORATION, nominalCompositionName, root, runNumber, numSimulations);
-    }
-
-    protected SimulationDirectories createSimulationDirectories(
-            String nominalCompositionName,
-            String root,
-            List<ScheduleExploitationRequest.RunInput> runs) {
-        return new SimulationDirectories(SimulationType.EXPLOITATION, nominalCompositionName, root, runs);
     }
 
 }

@@ -6,7 +6,7 @@
     <artifactId>PRM_4_113603</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>PRM_4_113603</name>
-    <description>MLOps modernization of the Generate+ETL (GETL) framework used in Phys. Rev. Materials 4, 113603
+    <description>SimOps portion of the MLOps workflow used in Phys. Rev. Materials 4, 113603
     </description>
     <parent>
         <groupId>org.springframework.boot</groupId>

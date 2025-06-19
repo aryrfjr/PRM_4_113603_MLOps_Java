@@ -28,6 +28,10 @@ replay_pid*
 !.idea/inspectionProfiles
 !.idea/runConfigurations
 !.idea/codeStyles
+hpc-mock/.idea/*
+!hpc-mock/.idea/inspectionProfiles
+!hpc-mock/.idea/runConfigurations
+!hpc-mock/.idea/codeStyles
 
 # Ignore workspace-specific files
 .idea/workspace.xml

@@ -3,6 +3,7 @@ package org.doi.prmv4p113603.mlops.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.doi.prmv4p113603.mlops.config.MinioProperties;
 import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.*;
 
@@ -94,7 +96,13 @@ class DataOpsServiceTest {
          * mock of the real 'DataOpsService' object and its real methods will run unless they
          * are explicitly stub or override.
          */
-        DataOpsService service = spy(new DataOpsService(compositionRepo, mlopsProperties, runRepo, subRunRepo));
+        DataOpsService service = spy(new DataOpsService(
+                compositionRepo,
+                mlopsProperties,
+                Mockito.mock(MinioProperties.class),
+                Mockito.mock(S3Client.class),
+                runRepo,
+                subRunRepo));
 
         /*
          * Acting to get the response payload in the same way the controller does.
@@ -157,7 +165,13 @@ class DataOpsServiceTest {
         when(runRepo.findAllByIdIn(List.of(1L, 2L))).thenReturn(runs);
         when(mlopsProperties.getDataRoot()).thenReturn(dataRoot);
 
-        DataOpsService service = spy(new DataOpsService(compositionRepo, mlopsProperties, runRepo, subRunRepo));
+        DataOpsService service = spy(new DataOpsService(
+                compositionRepo,
+                mlopsProperties,
+                Mockito.mock(MinioProperties.class),
+                Mockito.mock(S3Client.class),
+                runRepo,
+                subRunRepo));
 
         NominalCompositionDto result = service.scheduleExploitation(nominalCompositionName, request);
 
