@@ -1,5 +1,7 @@
 package org.doi.prmv4p113603.mlops.domain;
 
+import org.doi.prmv4p113603.mlops.model.SimulationArtifact;
+
 /**
  * Just a controlled vocabulary for simulation artifact scoping. Specifies the scope of a
  * directory containing {@code SimulationArtifact}s, indicating whether it belongs

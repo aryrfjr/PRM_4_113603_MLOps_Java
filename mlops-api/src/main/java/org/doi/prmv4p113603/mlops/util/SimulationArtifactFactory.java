@@ -13,9 +13,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Utility class that creates instances of entity class SimulationArtifact.
@@ -31,7 +32,37 @@ public class SimulationArtifactFactory {
 
     public static List<SimulationArtifact> load(String nominalCompositionName, SubRun subRun, SimulationDirectory subRunDir) {
 
-        return ExpectedSimulationArtifacts.SUB_RUN.entrySet().stream()
+        List<SimulationArtifact> loaded = new ArrayList<>();
+
+        // SubRun 0 is the reference structure and also contains the Runs inputs/outputs as artifacts
+        if (subRun.getSubRunNumber() == 0) {
+            loaded.addAll(loadExpectedSimulationArtifacts(
+                    ExpectedSimulationArtifacts.RUN,
+                    nominalCompositionName,
+                    subRun,
+                    subRunDir.getParent().getPath()));
+        }
+
+        loaded.addAll(loadExpectedSimulationArtifacts(
+                ExpectedSimulationArtifacts.SUB_RUN,
+                nominalCompositionName,
+                subRun,
+                subRunDir.getPath()));
+
+        return loaded;
+
+    }
+
+    /*
+     * Helpers
+     */
+
+    private static List<SimulationArtifact> loadExpectedSimulationArtifacts(
+            Map<String, SimulationArtifactType> expectedSimulationArtifacts,
+            String nominalCompositionName,
+            SubRun subRun, String path) {
+
+        return expectedSimulationArtifacts.entrySet().stream()
                 .map(entry -> {
 
                     String template = entry.getKey();
@@ -41,10 +72,10 @@ public class SimulationArtifactFactory {
                     Path subRunDirPath;
 
                     if (type == SimulationArtifactType.SOAP_VECTORS) {
-                        subRunDirPath = Path.of(subRunDir.getPath().replace(
+                        subRunDirPath = Path.of(path.replace(
                                 nominalCompositionName, nominalCompositionName + "-SOAPS"));
                     } else {
-                        subRunDirPath = Path.of(subRunDir.getPath());
+                        subRunDirPath = Path.of(path);
                     }
 
                     Path resolvedPath = subRunDirPath.resolve(resolvedFileName);
@@ -58,13 +89,9 @@ public class SimulationArtifactFactory {
 
                 })
                 .filter(Objects::nonNull) // Remove nulls (i.e., missing files)
-                .collect(Collectors.toList());
+                .toList();
 
     }
-
-    /*
-     * Helpers
-     */
 
     private static SimulationArtifact buildArtifact(Path filePath, SubRun subRun, SimulationArtifactType type) {
 
