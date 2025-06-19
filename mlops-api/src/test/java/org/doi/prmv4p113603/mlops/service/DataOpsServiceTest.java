@@ -96,11 +96,16 @@ class DataOpsServiceTest {
          * mock of the real 'DataOpsService' object and its real methods will run unless they
          * are explicitly stub or override.
          */
-        DataOpsService service = spy(new DataOpsService(
-                compositionRepo,
+
+        SimulationDirectoriesFactory simulationDirectoriesFactory = new SimulationDirectoriesFactory(
                 mlopsProperties,
                 Mockito.mock(MinioProperties.class),
-                Mockito.mock(S3Client.class),
+                Mockito.mock(S3Client.class)
+        );
+
+        DataOpsService service = spy(new DataOpsService(
+                compositionRepo,
+                simulationDirectoriesFactory,
                 runRepo,
                 subRunRepo));
 
@@ -165,11 +170,15 @@ class DataOpsServiceTest {
         when(runRepo.findAllByIdIn(List.of(1L, 2L))).thenReturn(runs);
         when(mlopsProperties.getDataRoot()).thenReturn(dataRoot);
 
-        DataOpsService service = spy(new DataOpsService(
-                compositionRepo,
+        SimulationDirectoriesFactory simulationDirectoriesFactory = new SimulationDirectoriesFactory(
                 mlopsProperties,
                 Mockito.mock(MinioProperties.class),
-                Mockito.mock(S3Client.class),
+                Mockito.mock(S3Client.class)
+        );
+
+        DataOpsService service = spy(new DataOpsService(
+                compositionRepo,
+                simulationDirectoriesFactory,
                 runRepo,
                 subRunRepo));
 

@@ -2,15 +2,10 @@ package org.doi.prmv4p113603.mlops.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.doi.prmv4p113603.mlops.config.MinioProperties;
-import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
-import org.doi.prmv4p113603.mlops.domain.SimulationDirectories;
-import org.doi.prmv4p113603.mlops.domain.SimulationDirectory;
-import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
-import org.doi.prmv4p113603.mlops.domain.SimulationType;
+import org.doi.prmv4p113603.mlops.domain.*;
 import org.doi.prmv4p113603.mlops.exception.SimulationArtifactNotFoundException;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
 import org.doi.prmv4p113603.mlops.model.*;
@@ -19,7 +14,6 @@ import org.doi.prmv4p113603.mlops.util.SimulationArtifactFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.time.Instant;
 import java.util.*;
@@ -40,9 +34,7 @@ public class DataOpsService {
 
     // Dependencies
     private final NominalCompositionRepository compositionRepo;
-    private final MlopsProperties mlopsProperties;
-    private final MinioProperties minioProperties;
-    private final S3Client s3Client;
+    private final SimulationDirectoriesFactory simulationDirectoriesFactory;
     private final RunRepository runRepo;
     private final SubRunRepository subRunRepo;
 
@@ -70,18 +62,15 @@ public class DataOpsService {
         NominalComposition nominalComposition = compositionRepo.findByName(nominalCompositionName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nominal Composition not found"));
 
-        // Now loading and checking directories
+        // Now loading and checking the consistency of directories
+
         int nextRunNumber = runRepo.findMaxRunNumberByNominalCompositionId(nominalComposition.getId()).orElse(0) + 1;
 
-        SimulationDirectories simulationDirectories = new SimulationDirectories(
+        SimulationDirectories simulationDirectories = simulationDirectoriesFactory.create(
                 SimulationType.EXPLORATION,
                 nominalCompositionName,
-                mlopsProperties.getDataRoot(),
-                minioProperties,
-                s3Client);
-
-        simulationDirectories.setExploreNextRunNumber(nextRunNumber);
-        simulationDirectories.setExploreNumSimulations(request.getNumSimulations());
+                nextRunNumber,
+                request.getNumSimulations());
 
         try {
             simulationDirectories.load();
@@ -124,7 +113,7 @@ public class DataOpsService {
         }
 
         // And finally uploading to MinIO
-        // TODO: call simulationDirectories.load(); and handle exception
+        // TODO: call simulationDirectories.upload(); and handle exception
 
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, runs);
@@ -200,14 +189,11 @@ public class DataOpsService {
         }
 
         // Checking the consistency of directories
-        SimulationDirectories simulationDirectories = new SimulationDirectories(
+
+        SimulationDirectories simulationDirectories = simulationDirectoriesFactory.create(
                 SimulationType.EXPLOITATION,
                 nominalCompositionName,
-                mlopsProperties.getDataRoot(),
-                minioProperties,
-                s3Client);
-
-        simulationDirectories.setExploitRuns(request.getRuns());
+                request.getRuns());
 
         try {
             simulationDirectories.load();
@@ -250,7 +236,7 @@ public class DataOpsService {
         }
 
         // And finally uploading to MinIO
-        // TODO: call simulationDirectories.load(); and handle exception
+        // TODO: call simulationDirectories.upload(); and handle exception
 
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, existingRuns);
