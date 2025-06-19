@@ -1,11 +1,10 @@
 package org.doi.prmv4p113603.mlops.domain;
 
 import lombok.RequiredArgsConstructor;
-import org.doi.prmv4p113603.mlops.config.MinioProperties;
 import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
+import org.doi.prmv4p113603.mlops.service.MinioStorageService;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.List;
 
@@ -18,8 +17,7 @@ public class SimulationDirectoriesFactory {
 
     // Dependencies
     private final MlopsProperties mlopsProperties;
-    private final MinioProperties minioProperties;
-    private final S3Client s3Client;
+    private final MinioStorageService minioStorageService;
 
     public SimulationDirectories create(
             SimulationType simulationType,
@@ -31,8 +29,7 @@ public class SimulationDirectoriesFactory {
                 simulationType,
                 nominalCompositionName,
                 mlopsProperties.getDataRoot(),
-                minioProperties,
-                s3Client);
+                minioStorageService);
 
         simulationDirectories.setExploreNextRunNumber(exploreNextRunNumber);
         simulationDirectories.setExploreNumSimulations(exploreNumSimulations);
@@ -50,8 +47,7 @@ public class SimulationDirectoriesFactory {
                 simulationType,
                 nominalCompositionName,
                 mlopsProperties.getDataRoot(),
-                minioProperties,
-                s3Client);
+                minioStorageService);
 
         simulationDirectories.setExploitRuns(exploitRuns);
 

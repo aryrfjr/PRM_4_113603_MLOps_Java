@@ -38,7 +38,6 @@ services:
       - mlopsnet
 
   # MinIO Object Storage
-  # TODO: For a more portable setup, use a named volume (minio_data:/data) instead.
   minio:
     image: minio/minio
     container_name: minio
@@ -51,7 +50,7 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     volumes:
-      - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
+      - minio_data:/data
     networks:
       - mlopsnet
 

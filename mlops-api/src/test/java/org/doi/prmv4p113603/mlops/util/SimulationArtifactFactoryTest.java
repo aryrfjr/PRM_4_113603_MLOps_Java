@@ -1,6 +1,5 @@
 package org.doi.prmv4p113603.mlops.util;
 
-import org.doi.prmv4p113603.mlops.config.MinioProperties;
 import org.doi.prmv4p113603.mlops.domain.SimulationDirectories;
 import org.doi.prmv4p113603.mlops.domain.SimulationType;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
@@ -8,13 +7,13 @@ import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import org.doi.prmv4p113603.mlops.model.Run;
 import org.doi.prmv4p113603.mlops.model.SimulationArtifact;
 import org.doi.prmv4p113603.mlops.model.SubRun;
+import org.doi.prmv4p113603.mlops.service.MinioStorageService;
 import org.doi.prmv4p113603.mlops.testutil.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.List;
 
@@ -50,8 +49,7 @@ public class SimulationArtifactFactoryTest {
                 SimulationType.EXPLORATION,
                 nc.getName(),
                 "/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/",
-                Mockito.mock(MinioProperties.class),
-                Mockito.mock(S3Client.class));
+                Mockito.mock(MinioStorageService.class));
 
         simulationDirectories.setExploreNextRunNumber(run.getRunNumber());
         simulationDirectories.setExploreNumSimulations(1);

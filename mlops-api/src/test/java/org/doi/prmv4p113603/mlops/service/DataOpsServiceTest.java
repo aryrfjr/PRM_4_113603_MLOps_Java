@@ -99,9 +99,7 @@ class DataOpsServiceTest {
 
         SimulationDirectoriesFactory simulationDirectoriesFactory = new SimulationDirectoriesFactory(
                 mlopsProperties,
-                Mockito.mock(MinioProperties.class),
-                Mockito.mock(S3Client.class)
-        );
+                Mockito.mock(MinioStorageService.class));
 
         DataOpsService service = spy(new DataOpsService(
                 compositionRepo,
@@ -172,9 +170,7 @@ class DataOpsServiceTest {
 
         SimulationDirectoriesFactory simulationDirectoriesFactory = new SimulationDirectoriesFactory(
                 mlopsProperties,
-                Mockito.mock(MinioProperties.class),
-                Mockito.mock(S3Client.class)
-        );
+                Mockito.mock(MinioStorageService.class));
 
         DataOpsService service = spy(new DataOpsService(
                 compositionRepo,

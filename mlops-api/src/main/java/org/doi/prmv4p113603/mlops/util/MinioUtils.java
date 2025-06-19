@@ -12,6 +12,9 @@ import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
 
+/**
+ * Utility class with static helper methods for low-level S3 logic (like objectExists, hash).
+ */
 public class MinioUtils {
 
     public static boolean objectExists(S3Client s3, String bucket, String key) {
