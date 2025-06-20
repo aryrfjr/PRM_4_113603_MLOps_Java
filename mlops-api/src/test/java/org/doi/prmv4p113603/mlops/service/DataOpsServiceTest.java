@@ -47,9 +47,9 @@ class DataOpsServiceTest {
      *  - "localstack/localstack:2.3" specifies the Docker image version of LocalStack.
      *
      *  - .withServices(LocalStackContainer.Service.S3) tells the container to start only the
-     *    S3 service inside LocalStack. You can add other AWS services as needed.
+     *    S3 service inside LocalStack. It is also possible to add other AWS services as needed.
      *
-     * NOTE: Testcontainers is a Java testing library that lets you run Docker containers programmatically.
+     * NOTE: Testcontainers is a Java testing library that allows running Docker containers programmatically.
      *
      * NOTE: LocalStack is a Docker-based AWS emulator (S3, SQS, Lambda, etc.).
      */

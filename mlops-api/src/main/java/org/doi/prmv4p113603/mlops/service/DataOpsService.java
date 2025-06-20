@@ -115,9 +115,12 @@ public class DataOpsService {
 
         nominalComposition.setRuns(runs);
 
+        /*
+         * NOTE: Regarding exception handling here, the application has an exception handler
+         *  annotated with @ControllerAdvice. Since this service is expose via a REST controller,
+         *  that exception handler ensures consistent API error responses.
+         */
         compositionRepo.save(nominalComposition); // TODO: handle exception?
-
-        // TODO: persist in the DB here?
 
         // ... and finally uploading to MinIO
         uploadSimulationInputFilesToS3(nominalComposition);
