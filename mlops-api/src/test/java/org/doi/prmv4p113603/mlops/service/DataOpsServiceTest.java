@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
+import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.domain.*;
+import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 import org.doi.prmv4p113603.mlops.repository.RunRepository;
 import org.doi.prmv4p113603.mlops.repository.SubRunRepository;
@@ -21,6 +23,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -94,9 +98,19 @@ class DataOpsServiceTest {
 
         // Content of the request payload
         String nominalCompositionName = "Zr49Cu49Al2";
-        int numSimulations = 3;
+        int numSimulations = 2;
 
-        NominalCompositionDto result = getNominalCompositionDto(numSimulations, nominalCompositionName);
+        ScheduleExplorationRequest request = new ScheduleExplorationRequest();
+        request.setNumSimulations(numSimulations);
+
+        DataOpsService service = new DataOpsService(
+                compositionRepo,
+                new SimulationDirectoriesFactory(mlopsProperties),
+                minioStorageService,
+                runRepo,
+                subRunRepo);
+
+        NominalCompositionDto result = service.scheduleExploration(nominalCompositionName, request);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -114,26 +128,51 @@ class DataOpsServiceTest {
 
     }
 
-    // TODO: testScheduleExploitation_success
+    @Test
+    void testScheduleExploitation_success() throws Exception {
 
-    /*
-     *
-     */
-    private NominalCompositionDto getNominalCompositionDto(int numSimulations, String nominalCompositionName) {
+        // Content of the request payload
+        String nominalCompositionName = "Zr49Cu49Al2";
+        long nominalCompositionId = 1L;
 
-        ScheduleExplorationRequest request = new ScheduleExplorationRequest();
-        request.setNumSimulations(numSimulations);
+        NominalComposition nc = new NominalComposition();
+        nc.setId(nominalCompositionId);
+        nc.setName(nominalCompositionName);
 
-        SimulationDirectoriesFactory simulationDirectoriesFactory = new SimulationDirectoriesFactory(mlopsProperties);
+        ScheduleExploitationRequest.RunInput runInput1 = new ScheduleExploitationRequest.RunInput();
+        runInput1.setId(1L);
+        runInput1.setRunNumber(1);
+        runInput1.setSubRuns(List.of(1, 2, 3, 4, 5));
+
+        ScheduleExploitationRequest.RunInput runInput2 = new ScheduleExploitationRequest.RunInput();
+        runInput2.setId(2L);
+        runInput2.setRunNumber(2);
+        runInput2.setSubRuns(List.of(6, 13, 14));
+
+        ScheduleExploitationRequest request = new ScheduleExploitationRequest();
+        request.setRuns(List.of(runInput1, runInput2));
 
         DataOpsService service = new DataOpsService(
                 compositionRepo,
-                simulationDirectoriesFactory,
+                new SimulationDirectoriesFactory(mlopsProperties),
                 minioStorageService,
                 runRepo,
                 subRunRepo);
 
-        return service.scheduleExploration(nominalCompositionName, request);
+        NominalCompositionDto result = service.scheduleExploitation(nominalCompositionName, request);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        String resultJson = mapper.writeValueAsString(result);
+
+        System.out.println("DataOpsService.scheduleExploitation -> resultJson -> " + resultJson);
+
+        // Asserting with Junit 5
+        assertNotNull(result);
+        assertEquals(SimulationStatus.SCHEDULED, result.getRuns().get(0).getStatus());
 
     }
 

@@ -14,6 +14,7 @@ import org.doi.prmv4p113603.mlops.util.MinioUtils;
 import org.doi.prmv4p113603.mlops.util.SimulationArtifactFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
@@ -58,6 +59,7 @@ public class DataOpsService {
      * @param request                payload indicating the number of sub-runs to process
      * @return created NominalCompositionDto with run, sub-run, and artifact information
      */
+    @Transactional
     public NominalCompositionDto scheduleExploration(String nominalCompositionName, ScheduleExplorationRequest request) {
 
         // Check that the NominalComposition exists and that its directory exists
@@ -120,7 +122,8 @@ public class DataOpsService {
          *  annotated with @ControllerAdvice. Since this service is expose via a REST controller,
          *  that exception handler ensures consistent API error responses.
          */
-        compositionRepo.save(nominalComposition); // TODO: handle exception?
+        // ... persisting ensuring atomicity ...
+        runRepo.saveAll(runs);
 
         // ... and finally uploading to MinIO
         uploadSimulationInputFilesToS3(nominalComposition);
@@ -157,6 +160,7 @@ public class DataOpsService {
      * @param request                payload indicating the set of runs and sub-runs to process
      * @return created NominalCompositionDto with run, sub-run, and artifact information
      */
+    @Transactional
     public NominalCompositionDto scheduleExploitation(String nominalCompositionName, ScheduleExploitationRequest request) {
 
         // Check that the NominalComposition exists and that its directory exists
@@ -169,19 +173,19 @@ public class DataOpsService {
          */
 
         // Check Runs IDs
-        List<Long> runIds = request.getRuns().stream()
+        List<Long> requestedRunsIds = request.getRuns().stream()
                 .map(ScheduleExploitationRequest.RunInput::getId)
                 .toList();
 
-        List<Run> existingRuns = runRepo.findAllByIdIn(runIds).stream().toList();
+        List<Run> existingRequestedRuns = runRepo.findAllByIdIn(requestedRunsIds).stream().toList();
 
-        Set<Long> existingRunIds = existingRuns.stream()
+        Set<Long> requestedExistingRunsIds = existingRequestedRuns.stream()
                 .map(Run::getId)
                 .collect(Collectors.toSet());
 
-        for (Long requestedId : runIds) {
-            if (existingRunIds.contains(requestedId)) {
-                EntityNotFoundException ex = new EntityNotFoundException("Run with ID " + requestedId + " not found");
+        for (Long requestedRunId : requestedRunsIds) {
+            if (!requestedExistingRunsIds.contains(requestedRunId)) {
+                EntityNotFoundException ex = new EntityNotFoundException("Run with ID " + requestedRunId + " not found");
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
             }
         }
@@ -212,13 +216,14 @@ public class DataOpsService {
         }
 
         // Since everything is OK with the folders, persisting the Runs to DB ...
-        Map<Integer, Run> runsByNumber = existingRuns.stream()
+        Map<Integer, Run> existingRequestedRunsByNumber = existingRequestedRuns.stream()
                 .collect(Collectors.toMap(Run::getRunNumber, Function.identity()));
+
+        List<SubRun> allNewSubRuns = new ArrayList<>();
         for (SimulationDirectory runDir : simulationDirectories.getNominalCompositionDir().getChildren()) {
 
-            Run run = runsByNumber.get(runDir.getNumber());
+            Run run = existingRequestedRunsByNumber.get(runDir.getNumber());
 
-            List<SubRun> newSubRuns = new ArrayList<>();
             for (SimulationDirectory subRunDir : runDir.getChildren()) {
 
                 SubRun subRun = SubRun.builder()
@@ -237,20 +242,21 @@ public class DataOpsService {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
                 }
 
-                newSubRuns.add(subRun);
+                allNewSubRuns.add(subRun);
 
             }
 
-            run.setSubRuns(newSubRuns); // TODO: not sure if we need the existing sub-runs here before commit to the DB
+            run.setSubRuns(allNewSubRuns); // Just to build the DTO, not going to be persisted
 
         }
 
-        nominalComposition.setRuns(existingRuns);
+        nominalComposition.setRuns(existingRequestedRuns); // Just to build the DTO, not going to be persisted
 
-        // TODO: persist in the DB here?
+        // ... persisting ensuring atomicity ...
+        subRunRepo.saveAll(allNewSubRuns);
 
         // ... and finally uploading to MinIO
-        // TODO: call simulationDirectories.upload(); and handle exception
+        uploadSimulationInputFilesToS3(nominalComposition);
 
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
@@ -268,13 +274,7 @@ public class DataOpsService {
                 .flatMap(subRun -> subRun.getSimulationArtifacts().stream())
                 .filter(artifact -> artifact.getArtifactRole() == SimulationArtifactRole.INPUT)
                 .map(SimulationArtifact::getFilePath)
-                .forEach(path -> {
-
-                    String key = MinioUtils.pathToKey(path);
-
-                    minioStorageService.uploadFile(key, path);
-
-                });
+                .forEach(path -> minioStorageService.uploadFile(MinioUtils.pathToKey(path), path));
     }
 
 }

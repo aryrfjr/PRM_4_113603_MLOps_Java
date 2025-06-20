@@ -13,25 +13,24 @@ import java.util.Map;
  * This is a class that implements a way to apply cross-cutting concern logic
  * (like error handling) across multiple controllers without repeating code.
  */
-/*
- * NOTE: Once picked up, Spring configures it to intercept exceptions (via
- *  @ExceptionHandler methods), model attributes (via @ModelAttribute), and
- *  binding logic (via @InitBinder) for all controllers.
- *
- *  It doesn't require additional configuration, when DataIntegrityViolationException
- *  is thrown anywhere in any of the controllers, Spring will route it to the matching
- *  method in GlobalExceptionHandler.
- *
- * NOTE: Since it modularizes exception handling across controllers — a classic
- *  cross-cutting concern — and applies it declaratively, without changing the
- *  controllers themselves, it is related to the principles of AOP
- *  (Aspect-Oriented Programming), although it's not implemented using classical AOP
- *  mechanisms in Spring like proxies or @Aspect.
- */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     /*
+     * NOTE: Once picked up, Spring configures it to intercept exceptions (via
+     *  @ExceptionHandler methods), model attributes (via @ModelAttribute), and
+     *  binding logic (via @InitBinder) for all controllers.
+     *
+     *  It doesn't require additional configuration, when DataIntegrityViolationException
+     *  is thrown anywhere in any of the controllers, Spring will route it to the matching
+     *  method in GlobalExceptionHandler.
+     *
+     * NOTE: Since it modularizes exception handling across controllers — a classic
+     *  cross-cutting concern — and applies it declaratively, without changing the
+     *  controllers themselves, it is related to the principles of AOP
+     *  (Aspect-Oriented Programming), although it's not implemented using classical AOP
+     *  mechanisms in Spring like proxies or @Aspect.
+     *
      * TODO: Add custom exception types (UserAlreadyExistsException, etc.).
      *
      * TODO: Handle @Valid/@Validated bean validation errors.
