@@ -46,8 +46,10 @@ public class SimulationArtifactFactoryTest {
         SimulationDirectories simulationDirectories = new SimulationDirectories(
                 SimulationType.EXPLORATION,
                 nc.getName(),
-                "/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/",
-                run.getRunNumber(), 1);
+                "/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/");
+
+        simulationDirectories.setExploreNextRunNumber(run.getRunNumber());
+        simulationDirectories.setExploreNumSimulations(1);
 
         try {
             simulationDirectories.load();
@@ -62,6 +64,9 @@ public class SimulationArtifactFactoryTest {
                 subRun,
                 simulationDirectories.getNominalCompositionDir().getChildren().get(0).getChildren().get(0)
         );
+
+        System.out.println(result.get(0).getArtifactType());
+        System.out.println(result.get(0).getFilePath());
 
         assertFalse(result.isEmpty(), "Should skip all artifacts since none exist");
 
