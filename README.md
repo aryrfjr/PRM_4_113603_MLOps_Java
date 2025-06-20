@@ -21,3 +21,5 @@ This repository provides a Java-based counterpart for the controller layer—rep
 - 📝 **NOTE**: REST API documentation: http://localhost:8080/swagger-ui.html
   
 - 📝 **NOTE**: MinIO console UI: http://localhost:9001
+
+- 📝 **NOTE**: Angular (DEV): http://localhost:4200
