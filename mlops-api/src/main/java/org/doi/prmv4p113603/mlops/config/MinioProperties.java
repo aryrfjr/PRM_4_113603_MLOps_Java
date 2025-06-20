@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * Holds MinIO configuration values from application.properties
+ * Holds MinIO configuration values from application.properties entries with prefix 'minio'.
  */
 @Configuration
 @ConfigurationProperties(prefix = "minio")

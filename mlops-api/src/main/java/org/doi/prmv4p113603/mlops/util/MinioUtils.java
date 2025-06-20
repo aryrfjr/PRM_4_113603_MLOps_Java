@@ -3,9 +3,11 @@ package org.doi.prmv4p113603.mlops.util;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -68,6 +70,15 @@ public class MinioUtils {
 
     public static String join(String... parts) {
         return Path.of(parts[0], Arrays.copyOfRange(parts, 1, parts.length)).toString();
+    }
+
+    public static String pathToKey(String path) {
+
+        Path fullPath = Path.of(path);
+        Path baseDir = Paths.get("/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/"); // TODO: to configuration
+
+        return baseDir.relativize(fullPath).toString().replace(File.separator, "/");
+
     }
 
 }

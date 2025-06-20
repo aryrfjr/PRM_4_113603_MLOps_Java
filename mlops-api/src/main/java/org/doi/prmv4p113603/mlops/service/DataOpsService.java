@@ -10,6 +10,7 @@ import org.doi.prmv4p113603.mlops.exception.SimulationArtifactNotFoundException;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.*;
+import org.doi.prmv4p113603.mlops.util.MinioUtils;
 import org.doi.prmv4p113603.mlops.util.SimulationArtifactFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class DataOpsService {
     // Dependencies
     private final NominalCompositionRepository compositionRepo;
     private final SimulationDirectoriesFactory simulationDirectoriesFactory;
+    private final MinioStorageService minioStorageService;
     private final RunRepository runRepo;
     private final SubRunRepository subRunRepo;
 
@@ -111,11 +113,15 @@ public class DataOpsService {
 
         }
 
+        nominalComposition.setRuns(runs);
+
+        // TODO: persist in the DB here?
+
         // ... and finally uploading to MinIO
-        // TODO: call simulationDirectories.upload(); and handle exception
+        uploadSimulationInputFilesToS3(nominalComposition);
 
         // Returning only DTOs
-        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, runs);
+        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
 
     }
 
@@ -230,16 +236,41 @@ public class DataOpsService {
 
             }
 
-            run.setSubRuns(newSubRuns);
+            run.setSubRuns(newSubRuns); // TODO: not sure if we need the existing sub-runs here before commit to the DB
 
         }
+
+        nominalComposition.setRuns(existingRuns);
+
+        // TODO: persist in the DB here?
 
         // ... and finally uploading to MinIO
         // TODO: call simulationDirectories.upload(); and handle exception
 
         // Returning only DTOs
-        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition, existingRuns);
+        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
 
+    }
+
+    /*
+     * Helpers
+     */
+
+    private void uploadSimulationInputFilesToS3(NominalComposition nominalComposition) {
+
+        nominalComposition.getRuns().stream()
+                .flatMap(run -> run.getSubRuns().stream())
+                .flatMap(subRun -> subRun.getSimulationArtifacts().stream())
+                .filter(artifact -> artifact.getArtifactRole() == SimulationArtifactRole.INPUT)
+                .map(SimulationArtifact::getFilePath)
+                .forEach(path -> {
+
+                    String key = MinioUtils.pathToKey(path);
+
+                    System.out.println("=========> path: " + path);
+                    System.out.println("====>key: " + key);
+
+                });
     }
 
 }

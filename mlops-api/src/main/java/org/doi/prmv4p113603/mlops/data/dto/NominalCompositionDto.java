@@ -63,11 +63,11 @@ public class NominalCompositionDto {
     }
 
     // Used in the DataOps service when an exploration is requested
-    public static NominalCompositionDto fromScheduleExploreExploitRequest(NominalComposition nc, List<Run> runs) {
+    public static NominalCompositionDto fromScheduleExploreExploitRequest(NominalComposition nc) {
 
         return NominalCompositionDto.builder()
                 .name(nc.getName())
-                .runs(runs.stream()
+                .runs(nc.getRuns().stream()
                         .map(run -> RunDto.builder()
                                 .runNumber(run.getRunNumber())
                                 .status(run.getStatus())

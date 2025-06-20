@@ -3,7 +3,6 @@ package org.doi.prmv4p113603.mlops.domain;
 import lombok.RequiredArgsConstructor;
 import org.doi.prmv4p113603.mlops.config.MlopsProperties;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
-import org.doi.prmv4p113603.mlops.service.MinioStorageService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,7 +16,6 @@ public class SimulationDirectoriesFactory {
 
     // Dependencies
     private final MlopsProperties mlopsProperties;
-    private final MinioStorageService minioStorageService;
 
     public SimulationDirectories create(
             SimulationType simulationType,
@@ -28,8 +26,7 @@ public class SimulationDirectoriesFactory {
         SimulationDirectories simulationDirectories = new SimulationDirectories(
                 simulationType,
                 nominalCompositionName,
-                mlopsProperties.getDataRoot(),
-                minioStorageService);
+                mlopsProperties.getDataRoot());
 
         simulationDirectories.setExploreNextRunNumber(exploreNextRunNumber);
         simulationDirectories.setExploreNumSimulations(exploreNumSimulations);
@@ -46,8 +43,7 @@ public class SimulationDirectoriesFactory {
         SimulationDirectories simulationDirectories = new SimulationDirectories(
                 simulationType,
                 nominalCompositionName,
-                mlopsProperties.getDataRoot(),
-                minioStorageService);
+                mlopsProperties.getDataRoot());
 
         simulationDirectories.setExploitRuns(exploitRuns);
 

@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
-import org.doi.prmv4p113603.mlops.service.MinioStorageService;
 import org.doi.prmv4p113603.mlops.util.FileSystemUtils;
 
 import java.util.List;
@@ -34,7 +33,6 @@ public class SimulationDirectories {
     private final SimulationType simulationType;
     private final String nominalCompositionName;
     private final String dataRoot;
-    private final MinioStorageService minioStorageService;
     private int exploreNextRunNumber = -1;
     private int exploreNumSimulations = -1;
     private List<ScheduleExploitationRequest.RunInput> exploitRuns;
@@ -137,17 +135,6 @@ public class SimulationDirectories {
 
             }
 
-        }
-
-    }
-
-    /**
-     * Uploads the loaded files to MinIO.
-     */
-    public void upload() {
-
-        if (nominalCompositionDir == null) {
-            throw new IllegalStateException("The method load() must be called before use.");
         }
 
     }
