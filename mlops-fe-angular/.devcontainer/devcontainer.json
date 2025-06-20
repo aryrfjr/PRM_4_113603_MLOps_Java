@@ -2,9 +2,9 @@
   "name": "Angular Dev Container",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": ".." // Dockerfile is built with the parent folder as context
   },
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspace", // VS Code will open /workspace inside the container
   "customizations": {
     "vscode": {
       "extensions": [
@@ -15,7 +15,8 @@
   },
   "forwardPorts": [4200],
   "mounts": [
-    "source=mlops-angular-node_modules,target=/workspace/node_modules,type=volume"
+    "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    "source=mlops-angular-node_modules,target=/workspace/node_modules,type=volume" // to avoid host/container node_modules mismatch.
   ]
 }
 
