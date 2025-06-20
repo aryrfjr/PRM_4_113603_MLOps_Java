@@ -1,0 +1,21 @@
+{
+  "name": "Angular Dev Container",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "angular.ng-template",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "forwardPorts": [4200],
+  "mounts": [
+    "source=mlops-angular-node_modules,target=/workspace/node_modules,type=volume"
+  ]
+}
+

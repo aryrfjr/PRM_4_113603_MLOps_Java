@@ -6,6 +6,15 @@ package org.doi.prmv4p113603.mlops.domain;
 public enum SimulationArtifactRole {
 
     INPUT,
-    OUTPUT
+    OUTPUT;
+
+    public boolean isInput() {
+        return this == INPUT;
+    }
+
+    public boolean isOutput() {
+        return this == OUTPUT;
+    }
+
 
 }
