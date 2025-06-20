@@ -1,6 +1,6 @@
 package org.doi.prmv4p113603.mlops.repository;
 
-import org.doi.prmv4p113603.mlops.model.NominalComposition;
+import org.doi.prmv4p113603.mlops.model.SubRun;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * DAO for SubRunR entity. It provides built-in CRUD operations.
  */
-public interface SubRunRepository extends JpaRepository<NominalComposition, Long> {
+public interface SubRunRepository extends JpaRepository<SubRun, Long> {
 
     /*
      * SELECT COUNT(*) > 0

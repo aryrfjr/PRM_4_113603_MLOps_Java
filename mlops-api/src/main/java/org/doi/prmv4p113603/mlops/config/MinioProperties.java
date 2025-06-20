@@ -8,17 +8,25 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * This class is used hold the value set in the property 'mlops-api.data-root'
- * in the file 'application.properties'.
+ * Holds MinIO configuration values from application.properties entries with prefix 'minio'.
  */
 @Configuration
-@ConfigurationProperties(prefix = "mlops-api")
+@ConfigurationProperties(prefix = "minio")
 @Validated
 @Getter
 @Setter
-public class MlopsProperties {
+public class MinioProperties {
 
     @NotBlank
-    private String dataRoot;
+    private String endpoint;
+
+    @NotBlank
+    private String accessKey;
+
+    @NotBlank
+    private String secretKey;
+
+    @NotBlank
+    private String bucket;
 
 }

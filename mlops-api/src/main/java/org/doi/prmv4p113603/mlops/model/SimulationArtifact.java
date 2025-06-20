@@ -2,6 +2,7 @@ package org.doi.prmv4p113603.mlops.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.domain.SimulationArtifactRole;
 import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
 
 import java.time.Instant;
@@ -31,6 +32,10 @@ public class SimulationArtifact {
     @Enumerated(EnumType.STRING)
     @Column(name = "artifact_type", nullable = false, length = 50)
     private SimulationArtifactType artifactType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "artifact_role", nullable = false, length = 50)
+    private SimulationArtifactRole artifactRole;
 
     @Column(name = "file_path", nullable = false, columnDefinition = "TEXT")
     private String filePath;

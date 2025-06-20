@@ -6,7 +6,7 @@
     <artifactId>PRM_4_113603</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>PRM_4_113603</name>
-    <description>MLOps modernization of the Generate+ETL (GETL) framework used in Phys. Rev. Materials 4, 113603
+    <description>SimOps portion of the MLOps workflow used in Phys. Rev. Materials 4, 113603
     </description>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -19,14 +19,6 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>1.19.3</version>
@@ -36,12 +28,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>1.19.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>localstack</artifactId>
-            <version>1.19.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>

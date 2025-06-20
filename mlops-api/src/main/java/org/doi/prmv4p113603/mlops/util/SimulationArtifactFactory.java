@@ -1,6 +1,7 @@
 package org.doi.prmv4p113603.mlops.util;
 
 import jakarta.xml.bind.DatatypeConverter;
+import org.doi.prmv4p113603.mlops.domain.SimulationArtifactRole;
 import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
 import org.doi.prmv4p113603.mlops.domain.SimulationDirectory;
 import org.doi.prmv4p113603.mlops.exception.SimulationArtifactNotFoundException;
@@ -13,9 +14,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Utility class that creates instances of entity class SimulationArtifact.
@@ -31,7 +33,55 @@ public class SimulationArtifactFactory {
 
     public static List<SimulationArtifact> load(String nominalCompositionName, SubRun subRun, SimulationDirectory subRunDir) {
 
-        return ExpectedSimulationArtifacts.SUB_RUN.entrySet().stream()
+        List<SimulationArtifact> loaded = new ArrayList<>();
+
+        // SubRun 0 is the reference structure and also contains the Runs inputs/outputs as artifacts
+        if (subRun.getSubRunNumber() == 0) {
+
+            loaded.addAll(loadExpectedSimulationArtifacts(
+                    ExpectedSimulationArtifacts.RUN_INPUTS,
+                    nominalCompositionName,
+                    subRun,
+                    subRunDir.getParent().getPath(),
+                    SimulationArtifactRole.INPUT));
+
+            loaded.addAll(loadExpectedSimulationArtifacts(
+                    ExpectedSimulationArtifacts.RUN_OUTPUTS,
+                    nominalCompositionName,
+                    subRun,
+                    subRunDir.getParent().getPath(),
+                    SimulationArtifactRole.OUTPUT));
+
+        }
+
+        loaded.addAll(loadExpectedSimulationArtifacts(
+                ExpectedSimulationArtifacts.SUB_RUN_INPUTS,
+                nominalCompositionName,
+                subRun,
+                subRunDir.getPath(),
+                SimulationArtifactRole.INPUT));
+
+        loaded.addAll(loadExpectedSimulationArtifacts(
+                ExpectedSimulationArtifacts.SUB_RUN_OUTPUTS,
+                nominalCompositionName,
+                subRun,
+                subRunDir.getPath(),
+                SimulationArtifactRole.OUTPUT));
+
+        return loaded;
+
+    }
+
+    /*
+     * Helpers
+     */
+
+    private static List<SimulationArtifact> loadExpectedSimulationArtifacts(
+            Map<String, SimulationArtifactType> expectedSimulationArtifacts,
+            String nominalCompositionName,
+            SubRun subRun, String path, SimulationArtifactRole role) {
+
+        return expectedSimulationArtifacts.entrySet().stream()
                 .map(entry -> {
 
                     String template = entry.getKey();
@@ -41,10 +91,10 @@ public class SimulationArtifactFactory {
                     Path subRunDirPath;
 
                     if (type == SimulationArtifactType.SOAP_VECTORS) {
-                        subRunDirPath = Path.of(subRunDir.getPath().replace(
+                        subRunDirPath = Path.of(path.replace(
                                 nominalCompositionName, nominalCompositionName + "-SOAPS"));
                     } else {
-                        subRunDirPath = Path.of(subRunDir.getPath());
+                        subRunDirPath = Path.of(path);
                     }
 
                     Path resolvedPath = subRunDirPath.resolve(resolvedFileName);
@@ -54,23 +104,23 @@ public class SimulationArtifactFactory {
                                 resolvedPath.toAbsolutePath() + "',  not found");
                     }
 
-                    return buildArtifact(resolvedPath, subRun, type);
+                    return buildArtifact(resolvedPath, subRun, type, role);
 
                 })
                 .filter(Objects::nonNull) // Remove nulls (i.e., missing files)
-                .collect(Collectors.toList());
+                .toList();
 
     }
 
-    /*
-     * Helpers
-     */
-
-    private static SimulationArtifact buildArtifact(Path filePath, SubRun subRun, SimulationArtifactType type) {
+    private static SimulationArtifact buildArtifact(Path filePath,
+                                                    SubRun subRun,
+                                                    SimulationArtifactType type,
+                                                    SimulationArtifactRole role) {
 
         return SimulationArtifact.builder()
                 .subRun(subRun)
                 .artifactType(type)
+                .artifactRole(role)
                 .filePath(filePath.toString())
                 .fileSize(getFileSize(filePath))
                 .checksum(computeChecksum(filePath))
