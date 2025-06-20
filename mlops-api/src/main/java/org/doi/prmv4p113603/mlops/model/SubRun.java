@@ -44,8 +44,8 @@ public class SubRun {
     @Column(name = "status", nullable = false, length = 20)
     private SimulationStatus status = SimulationStatus.SCHEDULED;
 
-    @Column(name = "scheduled_at", nullable = false)
-    private Instant scheduledAt = Instant.now();
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt = Instant.now();
 
     @Column(name = "completed_at")
     private Instant completedAt;

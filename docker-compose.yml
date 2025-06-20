@@ -17,25 +17,40 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./db:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
       retries: 5
     networks:
       - mlopsnet
 
-  # MLOps REST API with Spring Framework
+  # MLOps Gateway REST API with Spring Framework
   mlops-api:
     build: ./mlops-api
     depends_on:
       - postgres
     ports:
       - "8080:8080"
-    volumes:
-      - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data  # raw data accessible to the API
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mlops
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - mlopsnet
+
+  # MinIO Object Storage
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: always
+    ports:
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # Web UI
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
     networks:
       - mlopsnet
 
@@ -47,3 +62,4 @@ networks:
 # Docker-managed persistent volume for PostgreSQL data
 volumes:
   postgres_data:
+  minio_data:
