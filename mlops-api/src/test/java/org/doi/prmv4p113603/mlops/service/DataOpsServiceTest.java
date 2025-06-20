@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration Test class for the DataOps service.
  * <p>
  * It is focused on testing the DataOps service loading the Spring context.
+ * <p>
+ * NOTE: start Docker Compose before use this class with Maven Wrapper (mvnw).
  */
 @ExtendWith(SpringExtension.class) // To integrate the Spring TestContext Framework into JUnit 5 tests
 @SpringBootTest // Tells Spring Boot to bootstrap the entire application context for the tests

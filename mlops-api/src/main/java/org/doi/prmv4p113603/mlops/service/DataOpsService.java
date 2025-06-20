@@ -115,6 +115,8 @@ public class DataOpsService {
 
         nominalComposition.setRuns(runs);
 
+        compositionRepo.save(nominalComposition); // TODO: handle exception?
+
         // TODO: persist in the DB here?
 
         // ... and finally uploading to MinIO
@@ -267,8 +269,7 @@ public class DataOpsService {
 
                     String key = MinioUtils.pathToKey(path);
 
-                    System.out.println("=========> path: " + path);
-                    System.out.println("====>key: " + key);
+                    minioStorageService.uploadFile(key, path);
 
                 });
     }
