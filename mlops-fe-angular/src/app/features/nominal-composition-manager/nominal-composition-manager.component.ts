@@ -4,9 +4,9 @@ import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-nominal-manager',
-  templateUrl: './nominal-manager.component.html'
+  templateUrl: './nominal-composition-manager.component.html'
 })
-export class NominalManagerComponent implements OnInit {
+export class NominalCompositionManagerComponent implements OnInit {
   API_URL = 'http://localhost:8000/api/v1/nominal_compositions';
   compositions: any[] = [];
   selected = '';
