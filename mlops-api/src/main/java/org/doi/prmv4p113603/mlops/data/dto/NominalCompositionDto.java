@@ -34,7 +34,6 @@ public class NominalCompositionDto {
 
     private Long id;
 
-    @JsonProperty("nominal_composition_name")
     private String name;
 
     private String description;

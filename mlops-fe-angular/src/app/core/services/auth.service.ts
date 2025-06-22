@@ -11,13 +11,30 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+
+/*
+* NOTE: Observable is not an Angular component, but a type from RxJS (Reactive 
+*       Extensions for JavaScript), which Angular uses heavily for handling 
+*       asynchronous operations like HTTP requests.
+* 
+* NOTE: Type can be seen as a "spy" on the Observable chain. It is an RxJS 
+*       operator used for side effects; that is, executing code when something 
+*       happens in the stream without modifying the data.
+*/
 import { Observable, tap } from 'rxjs';
+
 import { jwtDecode } from 'jwt-decode';
 
+/*
+* A DTO for the data that the backend sends in response to a successful login request.
+*/
 interface LoginResponse {
   token: string;
 }
 
+/*
+* A DTO for JWT token that the backend sends in response to a successful login request.
+*/
 interface JwtPayload {
   exp: number; // UNIX timestamp (seconds)
 }
@@ -48,10 +65,15 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
+  /*
+  * The functional goal here is to send login credentials to the backend (via 
+  * HttpClient.post), then receive a JWT token if credentials are valid to 
+  * finally store the token locally, so the user stays authenticated on future requests.
+  */
   login(username: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.loginUrl, { username, password }).pipe(
-      tap(response => {
-        localStorage.setItem('jwtToken', response.token); // Save token on successful login
+      tap(response => { // NOTE: tap is used here to run side effects without changing the response
+        localStorage.setItem('jwtToken', response.token); // Save the JWT token (as a side effect) on successful login
       })
     );
   }
@@ -82,7 +104,7 @@ export class AuthService {
 
     try {
 
-      // Decoding the JWT expiration field (exp) that came encoded in the payload to check
+      // Decoding the JWT token expiration field (exp) that came encoded in the response payload to check
       const decoded = jwtDecode<JwtPayload>(token);
       const now = Math.floor(Date.now() / 1000);
       return decoded.exp < now;
@@ -99,7 +121,7 @@ export class AuthService {
     
     if (!token) return;
 
-      // Decoding the JWT expiration field (exp) that came encoded in the payload
+      // Decoding the JWT token expiration field (exp) that came encoded in the response payload
     const decoded = jwtDecode<JwtPayload>(token);
 
     // Calculating how long the token is valid

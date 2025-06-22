@@ -3,6 +3,7 @@
 <div *ngIf="loading">Loading...</div>
 <div *ngIf="error" class="error">{{ error }}</div>
 
+<!-- TABLE -->
 <table *ngIf="!loading && compositions.length > 0" border="1" cellpadding="8">
   <thead>
     <tr>
@@ -13,7 +14,7 @@
   </thead>
   <tbody>
     <tr *ngFor="let comp of compositions">
-      <td>{{ comp.nominal_composition_name }}</td>
+      <td>{{ comp.name }}</td>
       <td>{{ comp.description || "-" }}</td>
       <td>{{ comp.created_at | date : "short" }}</td>
     </tr>
@@ -21,3 +22,31 @@
 </table>
 
 <p *ngIf="!loading && compositions.length === 0">No compositions found.</p>
+
+<!-- CREATE FORM TOGGLE -->
+<button (click)="toggleForm()">
+  {{ showForm ? "Cancel" : "+ Create New" }}
+</button>
+
+<!-- CREATE FORM -->
+<div *ngIf="showForm" class="form-container">
+  <h3>Create New Composition</h3>
+
+  <div *ngIf="formError" class="error">{{ formError }}</div>
+  <div *ngIf="formSuccess" class="success">{{ formSuccess }}</div>
+
+  <label>
+    Name *
+    <input [(ngModel)]="name" placeholder="Enter composition name" />
+  </label>
+
+  <label>
+    Description
+    <textarea
+      [(ngModel)]="description"
+      placeholder="Optional description"
+    ></textarea>
+  </label>
+
+  <button (click)="createComposition()">Submit</button>
+</div>

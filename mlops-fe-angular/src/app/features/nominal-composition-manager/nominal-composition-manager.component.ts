@@ -19,6 +19,13 @@ export class NominalCompositionManagerComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
+  // Form State
+  showForm = false;
+  name = '';
+  description = '';
+  formError: string | null = null;
+  formSuccess: string | null = null;
+
   constructor(private service: NominalCompositionService) {}
 
   ngOnInit(): void {
@@ -40,6 +47,53 @@ export class NominalCompositionManagerComponent implements OnInit {
         console.error(err);
       }
     });
+
+  }
+
+  toggleForm(): void {
+
+    this.showForm = !this.showForm;
+    this.formError = null;
+    this.formSuccess = null;
+
+  }
+
+  createComposition(): void {
+
+    this.formError = null;
+    this.formSuccess = null;
+
+    const trimmedName = this.name.trim();
+
+    if (!trimmedName) {
+      this.formError = 'Name is required.';
+      return;
+    }
+
+    const nameExists = this.compositions.some(
+      c => c.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (nameExists) {
+      this.formError = `Composition '${trimmedName}' already exists.`;
+      return;
+    }
+
+    const payload = { name: trimmedName, description: this.description };
+
+    this.service.create(payload).subscribe({
+      next: () => {
+        this.formSuccess = `Composition '${trimmedName}' created.`;
+        this.name = '';
+        this.description = '';
+        this.fetchCompositions(); // Refresh list
+      },
+      error: (err) => {
+        this.formError = 'Failed to create composition.';
+        console.error(err);
+      }
+    });
     
   }
+
 }
