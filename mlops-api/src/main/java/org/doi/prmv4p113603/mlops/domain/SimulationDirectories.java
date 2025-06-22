@@ -77,7 +77,6 @@ public class SimulationDirectories {
                     String runDirName = FileSystemUtils.join(nominalCompositionDirName, "c/md/lammps/100", String.valueOf(runNumber));
                     String subRunDirName = FileSystemUtils.join(runDirName, "2000/0");
 
-                    // TODO: refactor for exploitation DataOps service method
                     if (!FileSystemUtils.pathExists(runDirName) || !FileSystemUtils.pathExists(subRunDirName)) {
                         throw new SimulationDirectoryNotFoundException("Directory for ID_RUN '" + runNumber +
                                 "' or for SUB_RUN '0' not found for Nominal Composition '" + nominalCompositionName + "'");

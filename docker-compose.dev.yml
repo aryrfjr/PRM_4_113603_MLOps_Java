@@ -54,16 +54,6 @@ services:
     networks:
       - mlopsnet
 
-  # Angular front-end
-  mlops-fe-angular:
-    build: ./mlops-fe-angular
-    ports:
-      - "4200:80"  # serve from Nginx on port 80, exposed as 4200
-    depends_on:
-      - mlops-api
-    networks:
-      - mlopsnet
-
 # Docker networks
 networks:
   mlopsnet:

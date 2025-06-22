@@ -49,3 +49,20 @@ mlops-api/.mvn/wrapper/maven-wrapper-download/
 mlops-api/target/
 mlops-api/.m2/
 
+# Ignore build artifacts and cache inside Angular frontend;
+# Trying to follow container best practices
+mlops-fe-angular/dist/
+mlops-fe-angular/node_modules/
+mlops-fe-angular/.angular/
+mlops-fe-angular/.vscode/
+mlops-fe-angular/npm-debug.log*
+mlops-fe-angular/coverage/
+mlops-fe-angular/.env*
+
+# System files
+mlops-fe-angular/.DS_Store
+mlops-fe-angular/Thumbs.db
+
+# Optional: ignore Docker-specific or temp files
+*.tmp
+

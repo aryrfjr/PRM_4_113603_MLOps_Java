@@ -7,5 +7,22 @@ public enum SimulationStatus {
     SCHEDULED,
     RUNNING,
     COMPLETED,
-    FAILED
+    FAILED;
+
+    public boolean isScheduled() {
+        return this == SCHEDULED;
+    }
+
+    public boolean isRunning() {
+        return this == RUNNING;
+    }
+
+    public boolean isCompleted() {
+        return this == COMPLETED;
+    }
+
+    public boolean isFailed() {
+        return this == FAILED;
+    }
+
 }
