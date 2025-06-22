@@ -19,10 +19,29 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
+/**
+ * Spring Security configuration class.
+ * <p>
+ * Configures HTTP security, authentication manager, CORS, and in-memory user store.
+ * Adds a JWT filter before the default Spring Security authentication filter.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * Configures the HTTP security filter chain, including:
+     * - CORS configuration
+     * - CSRF disabling
+     * - Public and protected routes
+     * - Stateless session management
+     * - JWT filter integration
+     *
+     * @param http the HttpSecurity object to configure
+     * @param jwtFilter the JWT authentication filter
+     * @return the configured SecurityFilterChain
+     * @throws Exception if an error occurs during configuration
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
 

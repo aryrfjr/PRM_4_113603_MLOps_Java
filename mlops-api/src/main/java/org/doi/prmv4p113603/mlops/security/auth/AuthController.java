@@ -16,6 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/**
+ * REST controller for handling authentication requests.
+ * <p>
+ * Provides an endpoint for users to authenticate with username and password.
+ * Upon successful authentication, a JWT token is generated and returned.
+ */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -27,6 +33,13 @@ public class AuthController {
     @Autowired
     private UserDetailsService userDetailsService; // To load user details
 
+    /**
+     * Authenticates the user using provided credentials.
+     *
+     * @param request the authentication request containing username and password
+     * @return a JWT token wrapped in a JSON object if authentication is successful;
+     * HTTP 403 otherwise
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
 
