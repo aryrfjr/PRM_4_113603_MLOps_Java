@@ -1,0 +1,18 @@
+.main-layout {
+  display: flex;
+  height: 100vh;
+}
+
+app-sidebar {
+  width: 250px;
+  background-color: #f4f4f4;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.content {
+  flex-grow: 1;
+  padding: 2rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}

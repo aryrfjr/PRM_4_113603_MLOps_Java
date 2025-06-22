@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+
+import { AuthService } from 'src/app/core/services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -7,6 +10,12 @@ import { Component } from '@angular/core';
 })
 
 export class SidebarComponent {
-  // No logic needed for static links, 
-  // but properties or methods can be added if needed later
+
+  constructor(private authService: AuthService, private router: Router) {}
+
+  logout(): void {
+    this.authService.logout();   // Clear token
+    this.router.navigate(['/login']); // Redirect to login screen
+  }
+
 }

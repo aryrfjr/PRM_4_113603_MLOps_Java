@@ -1,17 +1,29 @@
 <!--
 This is the root component template (view) of AppComponent (app.component.ts).
 It contains two tags that are defined in another component logic files.
--->
- <!-- The following tag was defined in ./shared/components/sidebar/sidebar.components.ts -->
-<app-sidebar></app-sidebar>
- <!-- 
-The following tag is a core Angular directive used for routing and navigation. 
-It acts as a placeholder where Angular dynamically renders the component that 
-matches the current route. It comes from the RouterModule defined and exported 
-in the feature module AppRoutingModule (app-routing.module.ts).
 
-NOTE: A directive is an Angular core building block that adds behavior to existing 
-      elements (like highlight on hover, auto-focus, dropdown toggle, or routing). 
-      The decorator @Directive is used when defining a customized one.
+In the CSS, main-layout is defined as a flex container, what makes its children
+also flex items; in the CSS file, these children (<app-sidebar> and 
+<div class="content">) are configured.
 -->
-<router-outlet></router-outlet>
+<div *ngIf="isLoggedIn(); else loginOnlyLayout" class="main-layout">
+  <!-- The following tag was defined in ./shared/components/sidebar/sidebar.components.ts -->
+  <app-sidebar></app-sidebar>
+  <div class="content">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+
+<ng-template #loginOnlyLayout>
+  <!-- 
+  The following tag is a core Angular directive used for routing and navigation. 
+  It acts as a placeholder where Angular dynamically renders the component that 
+  matches the current route. It comes from the RouterModule defined and exported 
+  in the feature module AppRoutingModule (app-routing.module.ts).
+
+  NOTE: A directive is an Angular core building block that adds behavior to existing 
+        elements (like highlight on hover, auto-focus, dropdown toggle, or routing). 
+        The decorator @Directive is used when defining a customized one.
+  -->
+  <router-outlet></router-outlet>
+</ng-template>

@@ -1,4 +1,3 @@
-// nominal-manager.component.html
 <h2>Nominal Composition Manager</h2>
 <select [(ngModel)]="mode">
   <option value="Read">Read</option>
@@ -9,7 +8,7 @@
 
 <div *ngIf="mode === 'Create'">
   <h3>Create</h3>
-  <input [(ngModel)]="name" placeholder="Name">
+  <input [(ngModel)]="name" placeholder="Name" />
   <textarea [(ngModel)]="description" placeholder="Description"></textarea>
   <button (click)="create()">Create</button>
 </div>
@@ -17,16 +16,20 @@
 <div *ngIf="mode === 'Read'">
   <h3>Read</h3>
   <ul>
-    <li *ngFor="let comp of compositions">{{ comp.name }} - {{ comp.description }}</li>
+    <li *ngFor="let comp of compositions">
+      {{ comp.name }} - {{ comp.description }}
+    </li>
   </ul>
 </div>
 
 <div *ngIf="mode === 'Update'">
   <h3>Update</h3>
   <select [(ngModel)]="selected">
-    <option *ngFor="let comp of compositions" [value]="comp.name">{{ comp.name }}</option>
+    <option *ngFor="let comp of compositions" [value]="comp.name">
+      {{ comp.name }}
+    </option>
   </select>
-  <input [(ngModel)]="name" placeholder="New Name">
+  <input [(ngModel)]="name" placeholder="New Name" />
   <textarea [(ngModel)]="description" placeholder="New Description"></textarea>
   <button (click)="update()">Update</button>
 </div>
@@ -34,8 +37,9 @@
 <div *ngIf="mode === 'Delete'">
   <h3>Delete</h3>
   <select [(ngModel)]="selected">
-    <option *ngFor="let comp of compositions" [value]="comp.name">{{ comp.name }}</option>
+    <option *ngFor="let comp of compositions" [value]="comp.name">
+      {{ comp.name }}
+    </option>
   </select>
   <button (click)="delete()">Delete</button>
 </div>
-

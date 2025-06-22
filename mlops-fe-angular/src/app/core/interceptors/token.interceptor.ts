@@ -3,9 +3,8 @@
  * successful login.
  * 
  * So, after sending the login request to the backend, this Angular app must 
- * store the JWT token securely (usually in localStorage or sessionStorage) to 
- * protect the rest of the app behind a guard that checks if the token is 
- * present and valid.
+ * store the JWT token securely (in localStorage) to protect the rest of the 
+ * app behind a guard that checks if the token is present and valid.
  */
 import { Injectable } from '@angular/core';
 import {

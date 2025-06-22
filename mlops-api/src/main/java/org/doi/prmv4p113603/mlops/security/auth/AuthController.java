@@ -14,26 +14,42 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager; // To validate credentials
     @Autowired
     private JwtUtil jwtUtil;
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService; // To load user details
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
 
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        try {
 
-        UserDetails user = userDetailsService.loadUserByUsername(request.getUsername());
+            System.out.println("Login attempt: " + request.getUsername());
 
-        return ResponseEntity.ok(jwtUtil.generateToken(user));
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+
+            UserDetails user = userDetailsService.loadUserByUsername(request.getUsername());
+
+            // To return a JWT token wrapped in a JSON structure on success
+            return ResponseEntity.ok(Map.of("token", jwtUtil.generateToken(user)));
+
+        } catch (Exception e) { // TODO: review exception handling here
+
+            System.out.println("Authentication failed: " + e.getMessage());
+
+            return ResponseEntity.status(403).body("Invalid username or password");
+
+        }
 
     }
+
 }

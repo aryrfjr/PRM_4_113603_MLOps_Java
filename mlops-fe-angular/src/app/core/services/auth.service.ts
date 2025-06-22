@@ -12,9 +12,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { jwtDecode } from 'jwt-decode';
 
 interface LoginResponse {
   token: string;
+}
+
+interface JwtPayload {
+  exp: number; // UNIX timestamp (seconds)
 }
 
 /* 
@@ -39,7 +44,7 @@ interface LoginResponse {
 
 export class AuthService {
 
-  private loginUrl = '/auth/login'; // TODO: adjust with full backend URL or proxy
+  private loginUrl = 'http://localhost:8080/auth/login'; // TODO: adjust with full backend URL or proxy
 
   constructor(private http: HttpClient) {}
 
@@ -60,7 +65,61 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+
+    const token = this.getToken();
+
+    if (!token) return false;
+
+    return !this.isTokenExpired();
+
+  }
+
+  isTokenExpired(): boolean {
+
+    const token = this.getToken();
+
+    if (!token) return true;
+
+    try {
+
+      // Decoding the JWT expiration field (exp) that came encoded in the payload to check
+      const decoded = jwtDecode<JwtPayload>(token);
+      const now = Math.floor(Date.now() / 1000);
+      return decoded.exp < now;
+
+    } catch {
+      return true;
+    }
+    
+  }
+
+  setAutoLogout() {
+
+    const token = this.getToken();
+    
+    if (!token) return;
+
+      // Decoding the JWT expiration field (exp) that came encoded in the payload
+    const decoded = jwtDecode<JwtPayload>(token);
+
+    // Calculating how long the token is valid
+    const expiresIn = decoded.exp * 1000 - Date.now();
+
+    if (expiresIn > 0) {
+      /*
+       * NOTE: This is how automatic logout will work:
+       * 
+       * - setTimeout(...): a built-in JavaScript function that delays the execution of code.
+       * 
+       * - () => this.logout(): an arrow function that calls your service’s logout() method.
+       * 
+       * - expiresIn: a number (in milliseconds) that determines how long to wait before executing this.logout().
+       */
+      setTimeout(() => this.logout(), expiresIn);
+    } else {
+      this.logout();
+    }
+
   }
 
 }

@@ -27,17 +27,59 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
         String authHeader = request.getHeader("Authorization");
+
+        // Only process if Authorization header is present and starts with Bearer
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
+
             String jwt = authHeader.substring(7);
-            String username = jwtUtil.extractUsername(jwt);
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(auth);
+
+            try { // To guard against invalid or malformed JWTs in the next line
+
+                /*
+                 * NOTE: If the token is missing periods or is invalid (as in the login request,
+                 *  where no JWT should exist), then extractUsername(jwt) throws a
+                 *  MalformedJwtException, crashing the filter chain.
+                 */
+                String username = jwtUtil.extractUsername(jwt);
+
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                    if (jwtUtil.validateToken(jwt, userDetails)) {
+
+                        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+
+                    }
+
+                }
+
+            } catch (Exception e) {
+                System.out.println("Invalid JWT: " + e.getMessage());
+                // TODO: Optionally could send a 401 here to block invalid tokens
             }
+
         }
+
         filterChain.doFilter(request, response);
+
     }
+
+    /**
+     *
+     * Prevents login requests from being filtered at all.
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getServletPath().equals("/auth/login");
+    }
+
 }

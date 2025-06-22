@@ -58,4 +58,18 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
+    /*
+     * Checking if the username inside the token matches the one from the
+     * database and if it has expired.
+     */
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    private boolean isTokenExpired(String token) {
+        Date expiration = getClaims(token).getExpiration();
+        return expiration.before(new Date());
+    }
+
 }

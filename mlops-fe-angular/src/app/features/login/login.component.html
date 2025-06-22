@@ -1,4 +1,5 @@
-<div class="login-container"> <!-- login-container is a CSS style dfined for this component -->
+<div class="login-container">
+  <!-- login-container is a CSS style dfined for this component -->
 
   <!--
   NOTE: For ngModel and template-driven forms like ngForm, the AppModule (app.module.ts) 
@@ -15,7 +16,13 @@
 
     <div>
       <label for="password">Password:</label>
-      <input id="password" name="password" type="password" required [(ngModel)]="password" />
+      <input
+        id="password"
+        name="password"
+        type="password"
+        required
+        [(ngModel)]="password"
+      />
     </div>
 
     <button type="submit" [disabled]="loginForm.invalid">Login</button>
@@ -24,5 +31,4 @@
       {{ errorMessage }}
     </div>
   </form>
-
 </div>

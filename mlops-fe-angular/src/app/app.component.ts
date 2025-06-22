@@ -8,6 +8,8 @@
 
 import { Component } from '@angular/core';
 
+import { AuthService } from './core/services/auth.service';
+
 @Component({
   selector: 'app-root', // Defines the tag <app-root></app-root> in the body of index.html
   templateUrl: './app.component.html', // Root component template (view); first content visible at /
@@ -15,5 +17,11 @@ import { Component } from '@angular/core';
 })
 
 export class AppComponent {
-  title = 'mlops-fe-angular';
+
+  constructor(private authService: AuthService) {}
+
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
 }
