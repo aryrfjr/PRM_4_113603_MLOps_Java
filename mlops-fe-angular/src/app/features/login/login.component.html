@@ -1,0 +1,34 @@
+<div class="login-container">
+  <!-- login-container is a CSS style dfined for this component -->
+
+  <!--
+  NOTE: For ngModel and template-driven forms like ngForm, the AppModule (app.module.ts) 
+        has made the feature module FormsModule available.
+
+  NOTE: The method onSubmit() is defined in the class LoginComponent (login.component.ts).
+   -->
+  <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+    <h2>Login</h2>
+    <div>
+      <label for="username">Username:</label>
+      <input id="username" name="username" required [(ngModel)]="username" />
+    </div>
+
+    <div>
+      <label for="password">Password:</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        required
+        [(ngModel)]="password"
+      />
+    </div>
+
+    <button type="submit" [disabled]="loginForm.invalid">Login</button>
+
+    <div *ngIf="errorMessage" class="error">
+      {{ errorMessage }}
+    </div>
+  </form>
+</div>

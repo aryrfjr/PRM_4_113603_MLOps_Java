@@ -12,6 +12,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+/**
+ * Utility class for generating and validating JWT tokens.
+ * <p>
+ * Uses HMAC-SHA signing to encode and verify token claims.
+ */
 @Component
 public class JwtUtil {
 
@@ -26,6 +31,12 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
+    /**
+     * Generates a signed JWT token for the given user.
+     *
+     * @param userDetails the authenticated user's details
+     * @return a JWT token string
+     */
     public String generateToken(UserDetails userDetails) {
 
         long expiration = 1000 * 60 * 60; // 1 hour
@@ -40,6 +51,12 @@ public class JwtUtil {
 
     }
 
+    /**
+     * Extracts the username (subject) from a JWT token.
+     *
+     * @param token the JWT token
+     * @return the username contained in the token
+     */
     public String extractUsername(String token) {
         return getClaims(token).getSubject();
     }
@@ -56,6 +73,23 @@ public class JwtUtil {
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Validates the provided JWT token.
+     *
+     * @param token the JWT token
+     * @param userDetails the user details to match the token's subject against
+     * @return true if the token is valid and belongs to the user; false otherwise
+     */
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    private boolean isTokenExpired(String token) {
+        Date expiration = getClaims(token).getExpiration();
+        return expiration.before(new Date());
     }
 
 }
