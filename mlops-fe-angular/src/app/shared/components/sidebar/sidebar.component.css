@@ -1,0 +1,37 @@
+nav {
+  width: 220px;
+  background-color: #2c3e50;
+  height: 100vh; /* Full height */
+  padding-top: 20px;
+  box-sizing: border-box;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  margin: 0;
+}
+
+a {
+  display: block;
+  color: #ecf0f1;
+  padding: 12px 20px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+a:hover {
+  background-color: #34495e;
+  cursor: pointer;
+}
+
+/* Optional: style for active link (requires adding logic in TS or routerLinkActive) */
+a.active {
+  background-color: #1abc9c;
+  color: white;
+}

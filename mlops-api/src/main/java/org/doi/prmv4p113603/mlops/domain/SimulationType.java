@@ -11,6 +11,7 @@ public enum SimulationType {
     public boolean isExploration() {
         return this == EXPLORATION;
     }
+
     public boolean isExploitation() {
         return this == EXPLOITATION;
     }

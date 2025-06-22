@@ -128,6 +128,8 @@ public class DataOpsService {
         // ... and finally uploading to MinIO
         uploadSimulationInputFilesToS3(nominalComposition);
 
+        // TODO: trigger the Airflow DAG
+
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
 
@@ -258,6 +260,8 @@ public class DataOpsService {
         // ... and finally uploading to MinIO
         uploadSimulationInputFilesToS3(nominalComposition);
 
+        // TODO: trigger the Airflow DAG
+
         // Returning only DTOs
         return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
 
@@ -272,7 +276,7 @@ public class DataOpsService {
         nominalComposition.getRuns().stream()
                 .flatMap(run -> run.getSubRuns().stream())
                 .flatMap(subRun -> subRun.getSimulationArtifacts().stream())
-                .filter(artifact -> artifact.getArtifactRole() == SimulationArtifactRole.INPUT)
+                .filter(artifact -> artifact.getArtifactRole().isInput())
                 .map(SimulationArtifact::getFilePath)
                 .forEach(path -> minioStorageService.uploadFile(MinioUtils.pathToKey(path), path));
     }
