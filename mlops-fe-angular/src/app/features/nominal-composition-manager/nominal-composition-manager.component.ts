@@ -1,53 +1,45 @@
 /* 
- Nominal Composition Manager that performs CRUD via HTTP to FastAPI backend.
+ * Nominal Composition Manager that performs CRUD via HTTP to Spring backend.
  */
 
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+
+import { NominalCompositionService } from 'src/app/core/services/nominal-composition.service';
+import { NominalComposition } from 'src/app/core/models/nominal-composition.model';
 
 @Component({
-  selector: 'app-nominal-manager',
-  templateUrl: './nominal-composition-manager.component.html'
+  selector: 'app-nominal-composition-manager',
+  templateUrl: './nominal-composition-manager.component.html',
+  styleUrls: ['./nominal-composition-manager.component.css']
 })
 
 export class NominalCompositionManagerComponent implements OnInit {
 
-  API_URL = 'http://localhost:8000/api/v1/nominal_compositions'; // TODO: the correct URL
-  compositions: any[] = [];
-  selected = '';
-  name = '';
-  description = '';
-  mode: 'Read' | 'Create' | 'Update' | 'Delete' = 'Read';
+  compositions: NominalComposition[] = [];
+  loading = false;
+  error: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private service: NominalCompositionService) {}
 
   ngOnInit(): void {
     this.fetchCompositions();
   }
 
-  fetchCompositions() {
-    this.http.get<any[]>(this.API_URL).subscribe((data) => (this.compositions = data));
-  }
+  fetchCompositions(): void {
 
-  create() {
-    this.http.post(this.API_URL + '/', { name: this.name, description: this.description }).subscribe(() => {
-      alert('Created');
-      this.fetchCompositions();
+    this.loading = true;
+
+    this.service.getAll().subscribe({
+      next: (data) => {
+        this.compositions = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Failed to load data';
+        this.loading = false;
+        console.error(err);
+      }
     });
-  }
-
-  update() {
-    this.http.put(this.API_URL + '/' + this.selected, { name: this.name, description: this.description }).subscribe(() => {
-      alert('Updated');
-      this.fetchCompositions();
-    });
-  }
-
-  delete() {
-    this.http.delete(this.API_URL + '/' + this.selected).subscribe(() => {
-      alert('Deleted');
-      this.fetchCompositions();
-    });
-
+    
   }
 }

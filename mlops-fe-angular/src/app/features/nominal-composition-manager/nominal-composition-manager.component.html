@@ -1,45 +1,23 @@
-<h2>Nominal Composition Manager</h2>
-<select [(ngModel)]="mode">
-  <option value="Read">Read</option>
-  <option value="Create">Create</option>
-  <option value="Update">Update</option>
-  <option value="Delete">Delete</option>
-</select>
+<h2>Nominal Compositions</h2>
 
-<div *ngIf="mode === 'Create'">
-  <h3>Create</h3>
-  <input [(ngModel)]="name" placeholder="Name" />
-  <textarea [(ngModel)]="description" placeholder="Description"></textarea>
-  <button (click)="create()">Create</button>
-</div>
+<div *ngIf="loading">Loading...</div>
+<div *ngIf="error" class="error">{{ error }}</div>
 
-<div *ngIf="mode === 'Read'">
-  <h3>Read</h3>
-  <ul>
-    <li *ngFor="let comp of compositions">
-      {{ comp.name }} - {{ comp.description }}
-    </li>
-  </ul>
-</div>
+<table *ngIf="!loading && compositions.length > 0" border="1" cellpadding="8">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Created At</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let comp of compositions">
+      <td>{{ comp.nominal_composition_name }}</td>
+      <td>{{ comp.description || "-" }}</td>
+      <td>{{ comp.created_at | date : "short" }}</td>
+    </tr>
+  </tbody>
+</table>
 
-<div *ngIf="mode === 'Update'">
-  <h3>Update</h3>
-  <select [(ngModel)]="selected">
-    <option *ngFor="let comp of compositions" [value]="comp.name">
-      {{ comp.name }}
-    </option>
-  </select>
-  <input [(ngModel)]="name" placeholder="New Name" />
-  <textarea [(ngModel)]="description" placeholder="New Description"></textarea>
-  <button (click)="update()">Update</button>
-</div>
-
-<div *ngIf="mode === 'Delete'">
-  <h3>Delete</h3>
-  <select [(ngModel)]="selected">
-    <option *ngFor="let comp of compositions" [value]="comp.name">
-      {{ comp.name }}
-    </option>
-  </select>
-  <button (click)="delete()">Delete</button>
-</div>
+<p *ngIf="!loading && compositions.length === 0">No compositions found.</p>

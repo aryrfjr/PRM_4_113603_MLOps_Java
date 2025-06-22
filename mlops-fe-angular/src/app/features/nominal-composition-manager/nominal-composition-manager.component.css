@@ -1,0 +1,19 @@
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+th {
+  background-color: #f4f4f4;
+  text-align: left;
+}
+
+td, th {
+  padding: 8px;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
