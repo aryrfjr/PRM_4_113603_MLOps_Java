@@ -4,6 +4,11 @@
  * 
  * This file defines LoginComponent, an UI + logic + view for a login 
  * page that accepts username and password
+ * 
+ * NOTE: The application as a whole uses a stateless JWT-based authentication 
+ *  strategy, where a login endpoint issues signed tokens and a custom filter 
+ *  validates them on each request, ensuring protected routes are accessible 
+ *  only to authenticated users.
  */
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
