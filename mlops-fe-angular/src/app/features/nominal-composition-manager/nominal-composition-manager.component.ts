@@ -15,6 +15,9 @@ import { NominalComposition } from 'src/app/core/models/nominal-composition.mode
 
 export class NominalCompositionManagerComponent implements OnInit {
 
+  // TODO: Add edit/delete icons to each row.
+  // TODO: Style table with Angular Material or Bootstrap
+
   compositions: NominalComposition[] = [];
   loading = false;
   error: string | null = null;

@@ -13,5 +13,8 @@ export interface NominalComposition {
   name: string;
   description?: string;
   created_at: string;  // TODO: or Date?
+  updated_at: string;  // TODO: or Date?
+  created_by: string;
+  updated_by: string;
   
 }

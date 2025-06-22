@@ -9,11 +9,14 @@ import { Observable } from 'rxjs';
 
 import { NominalComposition } from '../models/nominal-composition.model';
 
+// TODO: Replace the hardcoded API_URL with Angular environment config.
 const API_URL = 'http://localhost:8080/api/v1/crud/nominal_compositions';
 
 @Injectable({ providedIn: 'root' }) // Singleton (same instance will be injected over the whole app)
 
 export class NominalCompositionService {
+
+  // TODO: Add error handling via catchError and throwError (for cleaner observables).
 
   constructor(private http: HttpClient) {}
 

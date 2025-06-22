@@ -61,7 +61,8 @@ interface JwtPayload {
 
 export class AuthService {
 
-  private loginUrl = 'http://localhost:8080/auth/login'; // TODO: adjust with full backend URL or proxy
+  // TODO: Replace the hardcoded API_URL with Angular environment config.
+  private loginUrl = 'http://localhost:8080/auth/login';
 
   constructor(private http: HttpClient) {}
 

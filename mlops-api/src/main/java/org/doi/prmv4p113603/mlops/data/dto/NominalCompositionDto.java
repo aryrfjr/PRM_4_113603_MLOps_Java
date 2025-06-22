@@ -2,6 +2,7 @@ package org.doi.prmv4p113603.mlops.data.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import lombok.*;
 import org.doi.prmv4p113603.mlops.model.Run;
@@ -41,6 +42,15 @@ public class NominalCompositionDto {
     @JsonProperty("created_at")
     private Instant createdAt;
 
+    @JsonProperty("updated_at")
+    private Instant updatedAt = Instant.now();
+
+    @JsonProperty("created_by")
+    private String createdBy;
+
+    @JsonProperty("updated_by")
+    private String updatedBy;
+
     private List<RunDto> runs;
 
     // Used in CRUD actions for NominalComposition entity
@@ -50,6 +60,9 @@ public class NominalCompositionDto {
                 .name(nc.getName())
                 .description(nc.getDescription())
                 .createdAt(nc.getCreatedAt())
+                .updatedAt(nc.getUpdatedAt())
+                .createdBy(nc.getCreatedBy())
+                .updatedBy(nc.getUpdatedBy())
                 .build();
     }
 
@@ -58,6 +71,9 @@ public class NominalCompositionDto {
                 .name(this.name)
                 .description(this.description)
                 .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .createdBy("admin") // TODO: this is the only user for now
+                .updatedBy("admin") // TODO: this is the only user for now
                 .build();
     }
 
