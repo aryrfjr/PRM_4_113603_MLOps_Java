@@ -8,6 +8,20 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
+  <!-- 
+  Angular will inject the application (actually the component AppComponent) 
+  into this file by replacing this <app-root></app-root> tag.
+  
+  Basically the flow is:
+
+  main.ts: boots Angular
+   -> AppModule (app.module.ts): creates an instance of root AppComponent
+    -> AppComponent (app.component.ts): renders into <app-root></app-root>
+  
+  NOTE: <app-root> is a custom element, not standard, it was defined (by 
+        Angular CLI), and Angular learns about it via the @Component decorator 
+        defined in app.component.ts.
+  -->
   <app-root></app-root>
 </body>
 </html>

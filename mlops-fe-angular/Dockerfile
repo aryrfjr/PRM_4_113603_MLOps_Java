@@ -1,4 +1,4 @@
-# Production Dockerfile (used by Compose/Nginx)
+# Dockerfile used by Compose/Nginx
 
 ###############################
 #

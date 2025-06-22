@@ -1,4 +1,7 @@
-// nominal-manager.component.ts
+/* 
+ Nominal Composition Manager that performs CRUD via HTTP to FastAPI backend.
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
@@ -6,8 +9,10 @@ import { HttpClient } from '@angular/common/http';
   selector: 'app-nominal-manager',
   templateUrl: './nominal-composition-manager.component.html'
 })
+
 export class NominalCompositionManagerComponent implements OnInit {
-  API_URL = 'http://localhost:8000/api/v1/nominal_compositions';
+
+  API_URL = 'http://localhost:8000/api/v1/nominal_compositions'; // TODO: the correct URL
   compositions: any[] = [];
   selected = '';
   name = '';
@@ -43,6 +48,6 @@ export class NominalCompositionManagerComponent implements OnInit {
       alert('Deleted');
       this.fetchCompositions();
     });
+
   }
 }
-
