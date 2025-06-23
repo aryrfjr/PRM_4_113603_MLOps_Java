@@ -3,10 +3,10 @@
 <div *ngIf="loading">Loading...</div>
 <div *ngIf="error" class="error">{{ error }}</div>
 
-<!-- TABLE -->
 <table *ngIf="!loading && compositions.length > 0" border="1" cellpadding="8">
   <thead>
     <tr>
+      <th></th>
       <th>Name</th>
       <th>Description</th>
       <th>Created At</th>
@@ -17,6 +17,13 @@
   </thead>
   <tbody>
     <tr *ngFor="let comp of compositions">
+      <td>
+        <input
+          type="checkbox"
+          [checked]="comp.name === selectedName"
+          (change)="selectRow(comp.name)"
+        />
+      </td>
       <td>{{ comp.name }}</td>
       <td>{{ comp.description || "-" }}</td>
       <td>{{ comp.created_at | date : "short" }}</td>
@@ -29,30 +36,35 @@
 
 <p *ngIf="!loading && compositions.length === 0">No compositions found.</p>
 
-<!-- CREATE FORM TOGGLE -->
-<button (click)="toggleForm()">
-  {{ showForm ? "Cancel" : "+ Create New" }}
-</button>
+<div *ngIf="!selectedName" class="action-buttons">
+  <button (click)="toggleCreateMode()">
+    {{ formMode === "create" ? "Cancel" : "+ Create New" }}
+  </button>
+</div>
 
-<!-- CREATE FORM -->
-<div *ngIf="showForm" class="form-container">
-  <h3>Create New Composition</h3>
+<div *ngIf="selectedName && formMode === 'edit'" class="action-buttons">
+  <button (click)="deleteSelected()">- Delete</button>
+</div>
+
+<div *ngIf="formMode" class="form-container">
+  <h3>
+    {{ formMode === "create" ? "Create New Composition" : "Edit Description" }}
+  </h3>
 
   <div *ngIf="formError" class="error">{{ formError }}</div>
   <div *ngIf="formSuccess" class="success">{{ formSuccess }}</div>
 
   <label>
     Name *
-    <input [(ngModel)]="name" placeholder="Enter composition name" />
+    <input [(ngModel)]="formName" [disabled]="formMode === 'edit'" />
   </label>
 
   <label>
     Description
-    <textarea
-      [(ngModel)]="description"
-      placeholder="Optional description"
-    ></textarea>
+    <textarea [(ngModel)]="formDescription"></textarea>
   </label>
 
-  <button (click)="createComposition()">Submit</button>
+  <button (click)="submitForm()">
+    {{ formMode === "create" ? "Create" : "Update" }}
+  </button>
 </div>

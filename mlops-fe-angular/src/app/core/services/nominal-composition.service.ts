@@ -30,13 +30,19 @@ export class NominalCompositionService {
   *       freezing the browser.
   */
   getAll(): Observable<NominalComposition[]> {
-
     return this.http.get<NominalComposition[]>(API_URL);
-
   }
 
   create(data: { name: string; description?: string }): Observable<NominalComposition> {
     return this.http.post<NominalComposition>(API_URL, data);
+  }
+
+  update(name: string, data: { description?: string }): Observable<NominalComposition> {
+    return this.http.put<NominalComposition>(`${API_URL}/${name}`, data);
+  }
+
+  delete(name: string): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/${name}`);
   }
 
 }

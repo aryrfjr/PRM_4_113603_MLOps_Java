@@ -41,3 +41,13 @@ input, textarea {
 .success {
   color: green;
 }
+
+.action-buttons {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+input[type='checkbox'] {
+  transform: scale(1.2);
+}
