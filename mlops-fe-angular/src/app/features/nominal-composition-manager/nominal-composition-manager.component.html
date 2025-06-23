@@ -3,38 +3,19 @@
 <div *ngIf="loading">Loading...</div>
 <div *ngIf="error" class="error">{{ error }}</div>
 
-<table *ngIf="!loading && compositions.length > 0" border="1" cellpadding="8">
-  <thead>
-    <tr>
-      <th></th>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Created At</th>
-      <th>Updated At</th>
-      <th>Created By</th>
-      <th>Updated By</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let comp of compositions">
-      <td>
-        <input
-          type="checkbox"
-          [checked]="comp.name === selectedName"
-          (change)="selectRow(comp.name)"
-        />
-      </td>
-      <td>{{ comp.name }}</td>
-      <td>{{ comp.description || "-" }}</td>
-      <td>{{ comp.created_at | date : "short" }}</td>
-      <td>{{ comp.updated_at | date : "short" }}</td>
-      <td>{{ comp.created_by }}</td>
-      <td>{{ comp.updated_by }}</td>
-    </tr>
-  </tbody>
-</table>
+<!-- Reusable HTML table defined in '../../shared/components/datatable/datatable.component' -->
+<data-table
+  [columns]="ncTableColumns"
+  [data]="ncTableData"
+  [rowKeyColumn]="ncSelectedKey"
+  [selectedRowKeyValue]="selectedName"
+  (rowSelected)="selectRow($event)"
+>
+</data-table>
 
-<p *ngIf="!loading && compositions.length === 0">No compositions found.</p>
+<p *ngIf="!loading && ncTableData.length === 0">
+  No Nominal Compositions found.
+</p>
 
 <div *ngIf="!selectedName" class="action-buttons">
   <button (click)="toggleCreateMode()">
