@@ -1,0 +1,59 @@
+<h2>Pre-Deployment Exploration</h2>
+
+<div class="exploration-container">
+  <!-- Dropdown -->
+  <label for="composition-select">Select Nominal Composition:</label>
+  <select
+    id="composition-select"
+    [(ngModel)]="selectedCompositionId"
+    (ngModelChange)="onCompositionSelected($event)"
+  >
+    <option *ngFor="let comp of compositions" [value]="comp.id">
+      {{ comp.name }}
+    </option>
+  </select>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="activeTab === 'tab1'" (click)="activeTab = 'tab1'">
+      Schedule calculations runs
+    </button>
+    <button [class.active]="activeTab === 'tab2'" (click)="activateTab2()">
+      View all scheduled runs
+    </button>
+  </div>
+
+  <!-- Tab Contents -->
+  <div *ngIf="activeTab === 'tab1'">
+    <label for="calc-count">Number of Calculations:</label>
+    <div class="counter">
+      <button (click)="decrement()">−</button>
+      <input type="number" [value]="calculationCount" readonly />
+      <button (click)="increment()">+</button>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'tab2'">
+    <table *ngIf="runs.length > 0; else noRuns">
+      <thead>
+        <tr>
+          <th>Run #</th>
+          <th>Status</th>
+          <th>Created at</th>
+          <th>Completed at</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let run of runs">
+          <td>{{ run.run_number }}</td>
+          <td class="centered">{{ run.status }}</td>
+          <td>{{ run.created_at | date : "short" }}</td>
+          <td>{{ run.completed_at | date : "short" }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noRuns>
+      <p>No runs available for the selected nominal composition.</p>
+    </ng-template>
+  </div>
+</div>

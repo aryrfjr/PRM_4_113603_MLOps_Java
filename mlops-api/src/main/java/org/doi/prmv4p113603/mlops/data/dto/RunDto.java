@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
+import org.doi.prmv4p113603.mlops.model.Run;
+
 import java.time.Instant;
 import java.util.List;
 
@@ -40,10 +42,21 @@ public class RunDto {
     @JsonProperty("created_at")
     private Instant createdAt = Instant.now();
 
-    @JsonProperty("updated_at")
-    private Instant updatedAt = Instant.now();
+    @JsonProperty("completed_at")
+    private Instant completedAt = Instant.now();
 
     @JsonProperty("sub_runs")
     private List<SubRunDto> subRuns;
+
+    // Used in CRUD actions for Run entity
+    public static RunDto fromEntity(Run run) {
+        return RunDto.builder()
+                .id(run.getId())
+                .runNumber(run.getRunNumber())
+                .status(run.getStatus())
+                .createdAt(run.getCreatedAt())
+                .completedAt(run.getCompletedAt())
+                .build();
+    }
 
 }

@@ -10,6 +10,7 @@ export interface NominalComposition {
   * NOTE: In TypeScript, the question mark (?) after a property name means 
   * that the property is optional.
   */
+  id: number;
   name: string;
   description?: string;
   created_at: string;  // TODO: or Date?
