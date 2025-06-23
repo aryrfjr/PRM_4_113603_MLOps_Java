@@ -170,6 +170,7 @@ export class NominalCompositionManagerComponent implements OnInit {
       this.service.delete(this.selectedName).subscribe({
         next: () => {
           this.selectedName = null;
+          this.formMode = null;
           this.fetchCompositions();
         },
         error: (err) => {
