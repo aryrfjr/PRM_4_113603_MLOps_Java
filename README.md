@@ -14,8 +14,10 @@ This repository provides a **Java-based** counterpart for the controller layer t
 
 ![MLOPs system architecture](img/PRM_4_113603_MLOps_JavaPythonArchitecture.drawio.png)
 
-- 📝 **NOTE**: REST API documentation: http://localhost:8080/swagger-ui.html
-  
-- 📝 **NOTE**: MinIO console UI: http://localhost:9001
+## Notes for DEV:
 
-- 📝 **NOTE**: Angular (DEV): http://localhost:4200
+- REST API documentation: http://localhost:8080/swagger-ui.html
+  
+- MinIO console UI: http://localhost:9001
+
+- Angular (Dev Container): http://localhost:4200
