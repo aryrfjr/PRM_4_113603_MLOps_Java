@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
                 description = "REST API for MLOps tasks like data generation, augmentation, and building feature store (DBIs)."
         ),
         tags = {
-                @Tag(name = "DataOps", description = "Tasks related to data generation (configuration exploration, augmentation, and ETL/DBI creation)."),
+                @Tag(name = "DataOps", description = "Tasks related to data generation, configuration exploration, augmentation, and ETL/DBI creation."),
                 @Tag(name = "ModelOps", description = "Tasks related to evaluating trained models on DBI test sets."),
                 @Tag(name = "CRUD", description = "Create, read, update, and delete operations."),
                 @Tag(name = "Misc", description = "Miscellaneous.")

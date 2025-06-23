@@ -14,8 +14,7 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http'; // constant
 
 import { AppComponent } from './app.component'; // @Component
 import { AppRoutingModule } from './app-routing.module'; // @NgModule
-import { SidebarComponent } from './shared/components/sidebar/sidebar.component'; // @Component
-import { DataTableComponent } from './shared/components/datatable/datatable.component'; // @Component
+import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { NominalCompositionManagerComponent } from './features/nominal-composition-manager/nominal-composition-manager.component'; // @Component
 import { PreDeploymentExplorationComponent } from './features/pre-deployment-exploration/pre-deployment-exploration.component'; // @Component
 import { PreDeploymentExploitationComponent } from './features/pre-deployment-exploitation/pre-deployment-exploitation.component'; // @Component
@@ -41,7 +40,6 @@ import { TokenInterceptor } from './core/interceptors/token.interceptor'; // @In
   declarations: [
     AppComponent,
     SidebarComponent,
-    DataTableComponent,
     NominalCompositionManagerComponent,
     PreDeploymentExplorationComponent,
     PreDeploymentExploitationComponent,

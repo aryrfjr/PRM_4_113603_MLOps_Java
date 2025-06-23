@@ -3,12 +3,12 @@ This is the root component template (view) of AppComponent (app.component.ts).
 It contains two tags that are defined in another component logic files.
 
 In the CSS, main-layout is defined as a flex container, what makes its children
-also flex items; in the CSS file, these children (<side-bar> and 
+also flex items; in the CSS file, these children (<app-sidebar> and 
 <div class="content">) are configured.
 -->
 <div *ngIf="isLoggedIn(); else loginOnlyLayout" class="main-layout">
   <!-- The following tag was defined in ./shared/components/sidebar/sidebar.components.ts -->
-  <side-bar></side-bar>
+  <app-sidebar></app-sidebar>
   <div class="content">
     <router-outlet></router-outlet>
   </div>

@@ -2,8 +2,10 @@ package org.doi.prmv4p113603.mlops.data.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.model.Run;
 
 import java.time.Instant;
 import java.util.List;
@@ -85,7 +87,7 @@ public class NominalCompositionDto {
                                 .runNumber(run.getRunNumber())
                                 .status(run.getStatus())
                                 .createdAt(run.getCreatedAt())
-                                .completedAt(run.getCompletedAt())
+                                .updatedAt(run.getCompletedAt())
                                 .subRuns(
                                         run.getSubRuns().stream()
                                                 .map(srun -> SubRunDto.builder()
