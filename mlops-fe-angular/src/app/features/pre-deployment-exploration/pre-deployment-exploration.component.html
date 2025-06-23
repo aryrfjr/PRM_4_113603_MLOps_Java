@@ -33,27 +33,21 @@
     </div>
   </div>
 
-  <div *ngIf="activeTab === 'tab2'">
-    <table *ngIf="runs.length > 0; else noRuns">
-      <thead>
-        <tr>
-          <th>Run #</th>
-          <th>Status</th>
-          <th>Created at</th>
-          <th>Completed at</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let run of runs">
-          <td>{{ run.run_number }}</td>
-          <td class="centered">{{ run.status }}</td>
-          <td>{{ run.created_at | date : "short" }}</td>
-          <td>{{ run.completed_at | date : "short" }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <ng-template #noRuns>
+  <!-- 
+  TODO: *ngIf="runs.length > 0; else noRuns" was in <table> ... extract to generic table such a behavior? 
+
+  <ng-template #noRuns>
       <p>No runs available for the selected nominal composition.</p>
-    </ng-template>
+  </ng-template>
+  -->
+  <div *ngIf="activeTab === 'tab2'">
+    <data-table
+      [columns]="runsTableColumns"
+      [data]="runsTableData"
+      [rowKeyColumn]="runSelectedKey"
+      [selectedRowKeyValue]="selectedRunNumber"
+      (rowSelected)="selectRow($event)"
+    >
+    </data-table>
   </div>
 </div>

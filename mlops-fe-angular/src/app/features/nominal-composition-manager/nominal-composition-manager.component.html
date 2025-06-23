@@ -13,7 +13,7 @@ NOTE: This is a reusable HTML table defined in '../../shared/components/datatabl
   [columns]="ncTableColumns"
   [data]="ncTableData"
   [rowKeyColumn]="ncSelectedKey"
-  [selectedRowKeyValue]="selectedName"
+  [selectedRowKeyValue]="selectedNCName"
   (rowSelected)="selectRow($event)"
 >
 </data-table>
@@ -22,13 +22,13 @@ NOTE: This is a reusable HTML table defined in '../../shared/components/datatabl
   No Nominal Compositions found.
 </p>
 
-<div *ngIf="!selectedName" class="action-buttons">
+<div *ngIf="!selectedNCName" class="action-buttons">
   <button (click)="toggleCreateMode()">
     {{ formMode === "create" ? "Cancel" : "+ Create New" }}
   </button>
 </div>
 
-<div *ngIf="selectedName && formMode === 'edit'" class="action-buttons">
+<div *ngIf="selectedNCName && formMode === 'edit'" class="action-buttons">
   <button (click)="deleteSelected()">- Delete</button>
 </div>
 

@@ -16,13 +16,14 @@ import { TableColumn } from '../../shared/components/datatable/datatable.compone
 
 export class NominalCompositionManagerComponent implements OnInit {
 
+  // Attributes for DataTable component
   ncSelectedKey = "name"
 
   ncTableColumns: TableColumn[] = [
     { key: this.ncSelectedKey, label: 'Name' },
     { key: 'description', label: 'Description' },
-    { key: 'created_at', label: 'Created at', align: 'right' },
-    { key: 'updated_at', label: 'Updated at', align: 'right' },
+    { key: 'created_at', label: 'Created at', align: 'right' }, // TODO: format as Dates
+    { key: 'updated_at', label: 'Updated at', align: 'right' }, // TODO: format as Dates
     { key: 'created_by', label: 'Created by' },
     { key: 'updated_by', label: 'Updated by' }
   ];
@@ -36,7 +37,7 @@ export class NominalCompositionManagerComponent implements OnInit {
   showEditForm = false;
 
   // Attributes for '+ Create'/'= Edit' actions
-  selectedName: string | null = null;
+  selectedNCName: string | null = null;
   formName = '';
   formDescription = '';
   formMode: 'create' | 'edit' | null = null; // determines which mode the form is in
@@ -66,13 +67,13 @@ export class NominalCompositionManagerComponent implements OnInit {
 
   selectRow(name: string | null): void {
     
-    if (this.selectedName === name) {
-      this.selectedName = null;
+    if (this.selectedNCName === name) {
+      this.selectedNCName = null;
       this.formMode = null;
       return;
     }
 
-    this.selectedName = name;
+    this.selectedNCName = name;
     const current = this.ncTableData.find(c => c.name === name);
     this.formName = current?.name ?? '';
     this.formDescription = current?.description ?? '';
@@ -86,7 +87,7 @@ export class NominalCompositionManagerComponent implements OnInit {
 
     this.formError = null;
     this.formSuccess = null;
-    this.selectedName = null;
+    this.selectedNCName = null;
     this.formName = '';
     this.formDescription = '';
 
@@ -135,13 +136,13 @@ export class NominalCompositionManagerComponent implements OnInit {
         }
       });
 
-    } else if (this.formMode === 'edit' && this.selectedName) {
+    } else if (this.formMode === 'edit' && this.selectedNCName) {
 
       const payload = { description: this.formDescription };
 
-      this.service.update(this.selectedName, payload).subscribe({
+      this.service.update(this.selectedNCName, payload).subscribe({
         next: () => {
-          this.formSuccess = `'${this.selectedName}' updated.`;
+          this.formSuccess = `'${this.selectedNCName}' updated.`;
           this.fetchCompositions();
         },
         error: (err) => {
@@ -174,12 +175,12 @@ export class NominalCompositionManagerComponent implements OnInit {
 
   deleteSelected(): void {
 
-    if (!this.selectedName) return;
+    if (!this.selectedNCName) return;
 
-    if (confirm(`Are you sure you want to delete '${this.selectedName}'?`)) {
-      this.service.delete(this.selectedName).subscribe({
+    if (confirm(`Are you sure you want to delete '${this.selectedNCName}'?`)) {
+      this.service.delete(this.selectedNCName).subscribe({
         next: () => {
-          this.selectedName = null;
+          this.selectedNCName = null;
           this.formMode = null;
           this.fetchCompositions();
         },

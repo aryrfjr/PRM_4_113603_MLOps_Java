@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { NominalCompositionService } from '../../core/services/nominal-composition.service';
 import { NominalComposition } from '../../core/models/nominal-composition.model';
 import { Run } from '../../core/models/run.model';
+import { TableColumn } from '../../shared/components/datatable/datatable.component';
 
 @Component({
   selector: 'app-pre-deployment-exploration',
@@ -13,10 +14,24 @@ import { Run } from '../../core/models/run.model';
 
 export class PreDeploymentExplorationComponent implements OnInit {
 
+  // Attributes for DataTable component
+  runSelectedKey = "run_number"
+
+  runsTableColumns: TableColumn[] = [
+    { key: this.runSelectedKey, label: 'Run #', align: 'right' },
+    { key: 'status', label: 'Status', align: 'center'  },
+    { key: 'created_at', label: 'Created at', align: 'right' }, // TODO: format as Dates
+    { key: 'completed_at', label: 'Completed at', align: 'right' } // TODO: format as Dates
+  ];
+
+  runsTableData: Run[] = [];
+
+  // Attributes for the rest of UI components
+  selectedRunNumber: string | null = null;
+
   compositions: NominalComposition[] = [];
   selectedCompositionId: number | null = null;
   calculationCount: number = 1;
-  runs: Run[] = [];
 
   activeTab: 'tab1' | 'tab2' = 'tab1';
 
@@ -47,10 +62,10 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
     this.http.get<Run[]>(`http://localhost:8080/api/v1/crud/runs?nominalCompositionId=${this.selectedCompositionId}`)
       .subscribe({
-        next: (data) => this.runs = data,
+        next: (data) => this.runsTableData = data,
         error: (err) => {
           console.error('Failed to fetch runs', err);
-          this.runs = [];
+          this.runsTableData = [];
         }
       });
 
@@ -68,6 +83,17 @@ export class PreDeploymentExplorationComponent implements OnInit {
     if (this.selectedCompositionId) {
       this.fetchRunsForSelectedComposition();
     }
+  }
+
+  selectRow(name: string | null): void {
+    
+    if (this.selectedRunNumber === name) {
+      this.selectedRunNumber = null;
+      return;
+    }
+
+    this.selectedRunNumber = name;
+
   }
 
 }
