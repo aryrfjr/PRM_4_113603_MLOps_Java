@@ -3,7 +3,12 @@
 <div *ngIf="loading">Loading...</div>
 <div *ngIf="error" class="error">{{ error }}</div>
 
-<!-- Reusable HTML table defined in '../../shared/components/datatable/datatable.component' -->
+<!-- 
+NOTE: This is a reusable HTML table defined in '../../shared/components/datatable/datatable.component' 
+  The @Inputs ([inputName]) and @Outputs ((outputName)) are used to parametrize its 
+  behavior. For instance, rowSelected is an @Output (EventEmitter) that emmit an event 
+  when the checkboxes are selected, so that this component can handle it.
+-->
 <data-table
   [columns]="ncTableColumns"
   [data]="ncTableData"
