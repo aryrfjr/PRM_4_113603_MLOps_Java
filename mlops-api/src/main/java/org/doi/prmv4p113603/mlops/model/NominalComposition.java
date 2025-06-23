@@ -30,6 +30,15 @@ public class NominalComposition {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt = Instant.now();
+
+    @Column(name = "created_by", nullable = false)
+    private String createdBy;
+
+    @Column(name = "updated_by", nullable = false)
+    private String updatedBy;
+
     /*
      * NOTE: Lazy-loaded by default (because no fetch = FetchType.EAGER is set).
      *

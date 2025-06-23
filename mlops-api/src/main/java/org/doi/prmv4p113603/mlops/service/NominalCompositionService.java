@@ -26,11 +26,16 @@ public class NominalCompositionService {
      * Returns HTTP 409 if the name already exists.
      */
     public NominalCompositionDto create(NominalCompositionDto dto) {
+
         if (repository.findByName(dto.getName()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Nominal composition already exists");
         }
+
         NominalComposition saved = repository.save(dto.toEntity());
+
+        // TODO: exception?
         return NominalCompositionDto.fromEntity(saved);
+
     }
 
     /**
@@ -57,15 +62,18 @@ public class NominalCompositionService {
      * Returns 404 if the resource does not exist.
      */
     public NominalCompositionDto updateByName(String name, NominalCompositionDto dto) {
+
         NominalComposition nc = repository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        nc.setName(dto.getName());
-        if (dto.getDescription() != null) {
+        if (dto.getDescription() != null) { // TODO: exception?
             nc.setDescription(dto.getDescription());
         }
+
         repository.save(nc);
+
         return NominalCompositionDto.fromEntity(nc);
+
     }
 
     /**
@@ -73,9 +81,13 @@ public class NominalCompositionService {
      * Returns 204 if deleted, 404 if not found.
      */
     public void deleteByName(String name) {
+
         NominalComposition nc = repository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+
+        // TODO: exception?
         repository.delete(nc);
+
     }
 
 }

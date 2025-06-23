@@ -13,6 +13,21 @@ import {
   HttpHandler,
   HttpEvent
 } from '@angular/common/http';
+
+/*
+* NOTE: Observable is not an Angular component, but a type from RxJS (Reactive 
+*       Extensions for JavaScript), which Angular uses heavily for handling 
+*       asynchronous operations like HTTP requests.
+* 
+* NOTE: RxJS is a library for Reactive Programming using observables to make it 
+*       easier to work with asynchronous or event-based code.
+* 
+* NOTE: Reactive Programming is a programming paradigm focused on handling 
+*       asynchronous data streams and the propagation of change. It allows 
+*       the code to react automatically when data changes, especially in 
+*       environments where data comes from events, user inputs, HTTP responses, 
+*       or WebSocket streams.
+*/
 import { Observable } from 'rxjs';
 
 import { AuthService } from '../services/auth.service';
@@ -39,12 +54,12 @@ export class TokenInterceptor implements HttpInterceptor {
 
   /*
    * It intercepts before the request is sent to the server, so that it won't 
-   * be necessary to manually attach the token in every service.
+   * be necessary to manually attach the JWT token in every service.
    */
-  intercept(
-    request: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
+  intercept( // NOTE: This is a method from interface HttpInterceptor
+    request: HttpRequest<any>, // NOTE: The outgoing HTTP request
+    next: HttpHandler // NOTE: The next handler in the HTTP chain, which will actually send the request to the backend
+  ): Observable<HttpEvent<any>> { // NOTE: The return value; a stream of HTTP events (like the response or progress events)
     
     const token = this.authService.getToken();
 
@@ -57,6 +72,10 @@ export class TokenInterceptor implements HttpInterceptor {
       });
     }
 
+    /*
+    * NOTE: Here, the interceptor (the class TokenInterceptor) returns an Observable, 
+    * which Angular will subscribe to internally to process the HTTP call.
+    */
     return next.handle(request);
     
   }
