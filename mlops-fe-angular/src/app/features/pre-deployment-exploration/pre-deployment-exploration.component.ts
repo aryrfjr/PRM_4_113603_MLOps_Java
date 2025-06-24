@@ -20,8 +20,12 @@ export class PreDeploymentExplorationComponent implements OnInit {
   runsTableColumns: TableColumn[] = [
     { key: this.runSelectedKey, label: 'Run #', align: 'right' },
     { key: 'status', label: 'Status', align: 'center'  },
-    { key: 'created_at', label: 'Created at', align: 'right' }, // TODO: format as Dates
-    { key: 'completed_at', label: 'Completed at', align: 'right' } // TODO: format as Dates
+    { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
+    { key: 'created_by', label: 'Created by' },
+    { key: 'updated_at', label: 'Updated at', align: 'right', type: 'date', dateFormat: 'short' },
+    { key: 'updated_by', label: 'Updated by' },
+    { key: 'started_at', label: 'Started at', align: 'right', type: 'date', dateFormat: 'short' },
+    { key: 'completed_at', label: 'Completed at', align: 'right', type: 'date', dateFormat: 'short' }
   ];
 
   runsTableData: Run[] = [];
@@ -85,7 +89,7 @@ export class PreDeploymentExplorationComponent implements OnInit {
     }
   }
 
-  selectRow(name: string | null): void {
+  selectRunRow(name: string | null): void {
     
     if (this.selectedRunNumber === name) {
       this.selectedRunNumber = null;

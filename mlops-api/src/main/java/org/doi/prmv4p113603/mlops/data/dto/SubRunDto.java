@@ -38,8 +38,20 @@ public class SubRunDto {
 
     private SimulationStatus status = SimulationStatus.SCHEDULED;
 
-    @JsonProperty("scheduled_at")
-    private Instant scheduledAt = Instant.now();
+    @JsonProperty("created_at")
+    private Instant createdAt;
+
+    @JsonProperty("updated_at")
+    private Instant updatedAt;
+
+    @JsonProperty("created_by")
+    private String createdBy;
+
+    @JsonProperty("updated_by")
+    private String updatedBy;
+
+    @JsonProperty("started_at")
+    private Instant startedAt;
 
     @JsonProperty("completed_at")
     private Instant completedAt;

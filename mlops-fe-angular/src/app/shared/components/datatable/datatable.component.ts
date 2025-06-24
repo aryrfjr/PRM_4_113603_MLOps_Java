@@ -1,17 +1,21 @@
 // NOTE: This reusable component is declared in AppModule (app.module.ts).
 
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { DatePipe } from '@angular/common';
 
 export interface TableColumn {
   key: string;
   label: string;
   align?: 'left' | 'center' | 'right';
+  type?: 'string' | 'date' | 'number';  // TODO: more?
+  dateFormat?: string;  // e.g. 'short', 'medium', or custom Angular date formats
 }
 
 @Component({
   selector: 'data-table', // defines the reusable <data-table> tag
   templateUrl: './datatable.component.html',
-  styleUrls: ['./datatable.component.css']
+  styleUrls: ['./datatable.component.css'],
+  providers: [DatePipe]
 })
 
 export class DataTableComponent {
@@ -24,6 +28,8 @@ export class DataTableComponent {
   @Input() rowKeyColumn: string | null = null;
   @Input() selectedRowKeyValue: string | null = null;
   @Output() rowSelected = new EventEmitter<string | null>();
+
+  constructor(private datePipe: DatePipe) {}
 
   /*
   * NOTE: In Angular best practices, reusable components should be stateless when 
@@ -38,6 +44,17 @@ export class DataTableComponent {
     } else {
       this.rowSelected.emit(keyValue); // select new
     }
+  }
+
+  formatCell(row: any, col: TableColumn): string {
+    
+    if (col.type === 'date') {
+      return this.datePipe.transform(row[col.key], col.dateFormat || 'medium') || '';
+    }
+
+    // fallback to default string display
+    return row[col.key];
+    
   }
 
 }

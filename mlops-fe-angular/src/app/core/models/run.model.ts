@@ -9,7 +9,11 @@ export interface Run {
   id: number;
   run_number: number;
   status: string;
-  created_at: string;  // TODO: may want to parse to Date
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  updated_by: string;
+  started_at: string;
   completed_at: string;
   
 }

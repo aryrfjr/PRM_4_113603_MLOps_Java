@@ -1,6 +1,6 @@
 .exploration-container {
   padding: 20px;
-  max-width: 800px;
+  max-width: 1200px;
 }
 
 label {
@@ -10,7 +10,7 @@ label {
 }
 
 select, input[type="number"] {
-  width: 50%;
+  width: 30%;
   padding: 6px;
   margin-top: 4px;
   margin-bottom: 12px;

@@ -3,6 +3,11 @@ package org.doi.prmv4p113603.mlops.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.List;
@@ -16,6 +21,7 @@ import java.util.List;
  * having to create new Runs.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "sub_runs", indexes = {
         @Index(name = "idx_sub_runs_run_id", columnList = "run_id"),
         @Index(name = "idx_sub_runs_status", columnList = "status")
@@ -44,8 +50,24 @@ public class SubRun {
     @Column(name = "status", nullable = false, length = 20)
     private SimulationStatus status = SimulationStatus.SCHEDULED;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @CreatedBy
+    @Column(name = "created_by", nullable = false)
+    private String createdBy;
+
+    @LastModifiedBy
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @Column(name = "started_at")
+    private Instant startedAt;
 
     @Column(name = "completed_at")
     private Instant completedAt;

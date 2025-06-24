@@ -33,7 +33,7 @@ TODO: generalize in <datatable> the behavior like this one defined in nominal-co
           'right-align': col.align === 'right'
         }"
       >
-        {{ row[col.key] }}
+        {{ formatCell(row, col) }}
       </td>
     </tr>
   </tbody>

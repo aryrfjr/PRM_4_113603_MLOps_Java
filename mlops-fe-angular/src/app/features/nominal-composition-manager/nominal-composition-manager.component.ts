@@ -22,8 +22,8 @@ export class NominalCompositionManagerComponent implements OnInit {
   ncTableColumns: TableColumn[] = [
     { key: this.ncSelectedKey, label: 'Name' },
     { key: 'description', label: 'Description' },
-    { key: 'created_at', label: 'Created at', align: 'right' }, // TODO: format as Dates
-    { key: 'updated_at', label: 'Updated at', align: 'right' }, // TODO: format as Dates
+    { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
+    { key: 'updated_at', label: 'Updated at', align: 'right', type: 'date', dateFormat: 'short' },
     { key: 'created_by', label: 'Created by' },
     { key: 'updated_by', label: 'Updated by' }
   ];
