@@ -90,14 +90,12 @@ public class DataOpsService {
                     .nominalComposition(nominalComposition)
                     .runNumber(runDir.getNumber())
                     .status(SimulationStatus.SCHEDULED)
-                    .createdAt(Instant.now())
                     .build();
 
             SubRun subRun = SubRun.builder() // A Run is created with a reference structure as SubRun 0
                     .run(run)
                     .subRunNumber(0)
                     .status(SimulationStatus.SCHEDULED)
-                    .createdAt(Instant.now())
                     .build();
 
             run.setSubRuns(List.of(subRun));

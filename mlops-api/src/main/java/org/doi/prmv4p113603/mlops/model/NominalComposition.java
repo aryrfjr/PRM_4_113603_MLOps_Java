@@ -2,11 +2,17 @@ package org.doi.prmv4p113603.mlops.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.List;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "nominal_compositions", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"name"})
 })
@@ -27,16 +33,20 @@ public class NominalComposition {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 
+    @CreatedBy
     @Column(name = "created_by", nullable = false)
     private String createdBy;
 
-    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    @Column(name = "updated_by")
     private String updatedBy;
 
     /*

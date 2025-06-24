@@ -1,5 +1,6 @@
 package org.doi.prmv4p113603.mlops.repository;
 
+import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import org.doi.prmv4p113603.mlops.model.Run;
 import org.doi.prmv4p113603.mlops.model.SubRun;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -47,7 +48,18 @@ public interface RunRepository extends JpaRepository<Run, Long> {
      *
      * @param ids the list of {@link Run} IDs to retrieve
      * @return a list of {@link Run} entities with their subRuns preloaded
-     */    @EntityGraph(attributePaths = "subRuns")
+     */
+    @EntityGraph(attributePaths = "subRuns")
     List<Run> findAllByIdIn(List<Long> ids);
+
+    /**
+     * Retrieves all {@link Run} entities with the given NominalComposition ID.
+     * <p>
+     * This method's name allows JPA to derive the query by naming convention.
+     *
+     * @param nominalCompositionId the ID of a given {@link NominalComposition}.
+     * @return a list of {@link Run} entities.
+     */
+    List<Run> findAllByNominalCompositionId(Long nominalCompositionId);
 
 }

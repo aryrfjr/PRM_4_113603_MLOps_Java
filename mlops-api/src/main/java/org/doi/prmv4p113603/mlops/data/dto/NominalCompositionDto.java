@@ -2,10 +2,8 @@ package org.doi.prmv4p113603.mlops.data.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import lombok.*;
-import org.doi.prmv4p113603.mlops.model.Run;
 
 import java.time.Instant;
 import java.util.List;
@@ -43,7 +41,7 @@ public class NominalCompositionDto {
     private Instant createdAt;
 
     @JsonProperty("updated_at")
-    private Instant updatedAt = Instant.now();
+    private Instant updatedAt;
 
     @JsonProperty("created_by")
     private String createdBy;
@@ -70,10 +68,6 @@ public class NominalCompositionDto {
         return NominalComposition.builder()
                 .name(this.name)
                 .description(this.description)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .createdBy("admin") // TODO: this is the only user for now
-                .updatedBy("admin") // TODO: this is the only user for now
                 .build();
     }
 
@@ -87,13 +81,13 @@ public class NominalCompositionDto {
                                 .runNumber(run.getRunNumber())
                                 .status(run.getStatus())
                                 .createdAt(run.getCreatedAt())
-                                .updatedAt(run.getCompletedAt())
+                                .createdBy(run.getCreatedBy())
                                 .subRuns(
                                         run.getSubRuns().stream()
                                                 .map(srun -> SubRunDto.builder()
                                                         .subRunNumber(srun.getSubRunNumber())
                                                         .status(srun.getStatus())
-                                                        .scheduledAt(srun.getCreatedAt())
+                                                        .createdAt(srun.getCreatedAt())
                                                         .completedAt(srun.getCompletedAt())
                                                         .simulationArtifacts(
                                                                 srun.getSimulationArtifacts().stream()
@@ -101,7 +95,6 @@ public class NominalCompositionDto {
                                                                                 .artifactType(sas.getArtifactType())
                                                                                 .filePath(sas.getFilePath())
                                                                                 .fileSize(sas.getFileSize())
-                                                                                .createdAt(sas.getCreatedAt())
                                                                                 .build())
                                                                         .collect(Collectors.toList()))
                                                         .build())

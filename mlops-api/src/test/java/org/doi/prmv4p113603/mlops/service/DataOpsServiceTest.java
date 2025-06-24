@@ -19,6 +19,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -71,11 +73,19 @@ class DataOpsServiceTest {
         System.setProperty("minio.endpoint", localstack.getEndpointOverride(LocalStackContainer.Service.S3).toString());
         System.setProperty("minio.access-key", localstack.getAccessKey());
         System.setProperty("minio.secret-key", localstack.getSecretKey());
+
+        var auth = new UsernamePasswordAuthenticationToken("admin", null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
     }
 
     @AfterAll
     static void stopLocalstack() {
+
         localstack.stop();
+
+        SecurityContextHolder.clearContext();
+        
     }
 
     @Autowired

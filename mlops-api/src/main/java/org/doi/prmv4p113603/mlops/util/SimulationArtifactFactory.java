@@ -124,7 +124,6 @@ public class SimulationArtifactFactory {
                 .filePath(filePath.toString())
                 .fileSize(getFileSize(filePath))
                 .checksum(computeChecksum(filePath))
-                .createdAt(Instant.now())
                 .build();
 
     }

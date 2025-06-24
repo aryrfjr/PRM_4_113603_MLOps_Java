@@ -1,15 +1,26 @@
 <nav>
   <ul>
     <li>
-      <a routerLink="/nominal-composition-manager"
+      <a
+        routerLink="/nominal-composition-manager"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
         >Nominal Composition Manager</a
       >
     </li>
     <li>
-      <a routerLink="/pre-deployment-exploration">Pre-Deployment Exploration</a>
+      <a
+        routerLink="/pre-deployment-exploration"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        >Pre-Deployment Exploration</a
+      >
     </li>
     <li>
-      <a routerLink="/pre-deployment-exploitation"
+      <a
+        routerLink="/pre-deployment-exploitation"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
         >Pre-Deployment Exploitation</a
       >
     </li>
