@@ -6,6 +6,8 @@ import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,14 +61,16 @@ public class NominalCompositionService {
 
     /**
      * Update a Nominal Composition entry identified by its name.
-     * Returns 404 if the resource does not exist.
+     * Returns 404 if a Nominal Composition with the name passed does not exist.
      */
     public NominalCompositionDto updateByName(String name, NominalCompositionDto dto) {
 
         NominalComposition nc = repository.findByName(name)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Nominal Composition '" + name + "' doesn't exist."));
 
-        if (dto.getDescription() != null) { // TODO: exception?
+        if (dto.getDescription() != null) {
             nc.setDescription(dto.getDescription());
         }
 

@@ -6,6 +6,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { NominalCompositionService } from 'src/app/core/services/nominal-composition.service';
 import { NominalComposition } from 'src/app/core/models/nominal-composition.model';
+import { TableColumn } from '../../shared/components/datatable/datatable.component';
 
 @Component({
   selector: 'app-nominal-composition-manager',
@@ -15,9 +16,19 @@ import { NominalComposition } from 'src/app/core/models/nominal-composition.mode
 
 export class NominalCompositionManagerComponent implements OnInit {
 
-  // TODO: Style table with Angular Material or Bootstrap
+  // Attributes for DataTable component
+  ncSelectedKey = "name"
 
-  compositions: NominalComposition[] = [];
+  ncTableColumns: TableColumn[] = [
+    { key: this.ncSelectedKey, label: 'Name' },
+    { key: 'description', label: 'Description' },
+    { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
+    { key: 'updated_at', label: 'Updated at', align: 'right', type: 'date', dateFormat: 'short' },
+    { key: 'created_by', label: 'Created by' },
+    { key: 'updated_by', label: 'Updated by' }
+  ];
+
+  ncTableData: NominalComposition[] = [];
   loading = false;
   error: string | null = null;
 
@@ -26,7 +37,7 @@ export class NominalCompositionManagerComponent implements OnInit {
   showEditForm = false;
 
   // Attributes for '+ Create'/'= Edit' actions
-  selectedName: string | null = null;
+  selectedNCName: string | null = null;
   formName = '';
   formDescription = '';
   formMode: 'create' | 'edit' | null = null; // determines which mode the form is in
@@ -54,16 +65,16 @@ export class NominalCompositionManagerComponent implements OnInit {
 
   }
 
-  selectRow(name: string): void {
+  selectRow(name: string | null): void {
     
-    if (this.selectedName === name) {
-      this.selectedName = null;
+    if (this.selectedNCName === name) {
+      this.selectedNCName = null;
       this.formMode = null;
       return;
     }
 
-    this.selectedName = name;
-    const current = this.compositions.find(c => c.name === name);
+    this.selectedNCName = name;
+    const current = this.ncTableData.find(c => c.name === name);
     this.formName = current?.name ?? '';
     this.formDescription = current?.description ?? '';
     this.formMode = 'edit';
@@ -76,7 +87,7 @@ export class NominalCompositionManagerComponent implements OnInit {
 
     this.formError = null;
     this.formSuccess = null;
-    this.selectedName = null;
+    this.selectedNCName = null;
     this.formName = '';
     this.formDescription = '';
 
@@ -102,7 +113,7 @@ export class NominalCompositionManagerComponent implements OnInit {
 
     if (this.formMode === 'create') {
       
-      const nameExists = this.compositions.some(
+      const nameExists = this.ncTableData.some(
         c => c.name.toLowerCase() === trimmedName.toLowerCase()
       );
 
@@ -125,13 +136,13 @@ export class NominalCompositionManagerComponent implements OnInit {
         }
       });
 
-    } else if (this.formMode === 'edit' && this.selectedName) {
+    } else if (this.formMode === 'edit' && this.selectedNCName) {
 
       const payload = { description: this.formDescription };
 
-      this.service.update(this.selectedName, payload).subscribe({
+      this.service.update(this.selectedNCName, payload).subscribe({
         next: () => {
-          this.formSuccess = `'${this.selectedName}' updated.`;
+          this.formSuccess = `'${this.selectedNCName}' updated.`;
           this.fetchCompositions();
         },
         error: (err) => {
@@ -150,7 +161,7 @@ export class NominalCompositionManagerComponent implements OnInit {
 
     this.service.getAll().subscribe({
       next: (data) => {
-        this.compositions = data;
+        this.ncTableData = data;
         this.loading = false;
       },
       error: (err) => {
@@ -164,12 +175,12 @@ export class NominalCompositionManagerComponent implements OnInit {
 
   deleteSelected(): void {
 
-    if (!this.selectedName) return;
+    if (!this.selectedNCName) return;
 
-    if (confirm(`Are you sure you want to delete '${this.selectedName}'?`)) {
-      this.service.delete(this.selectedName).subscribe({
+    if (confirm(`Are you sure you want to delete '${this.selectedNCName}'?`)) {
+      this.service.delete(this.selectedNCName).subscribe({
         next: () => {
-          this.selectedName = null;
+          this.selectedNCName = null;
           this.formMode = null;
           this.fetchCompositions();
         },

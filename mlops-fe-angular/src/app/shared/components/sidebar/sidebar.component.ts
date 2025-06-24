@@ -1,10 +1,12 @@
+// NOTE: This reusable component is declared in AppModule (app.module.ts)
+
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from 'src/app/core/services/auth.service';
 
 @Component({
-  selector: 'app-sidebar',
+  selector: 'side-bar', // defines the reusable <side-bar> tag
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
