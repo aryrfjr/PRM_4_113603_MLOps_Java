@@ -23,24 +23,31 @@
     </button>
   </div>
 
-  <!-- Tab Contents -->
+  <!-- Tab Schedule calculations runs -->
   <div *ngIf="activeTab === 'tab1'">
     <label for="calc-count">Number of Calculations:</label>
     <div class="counter">
       <button (click)="decrement()">−</button>
-      <input type="number" [value]="calculationCount" readonly />
+      <input type="number" [value]="nRunsToSchedule" readonly />
       <button (click)="increment()">+</button>
     </div>
   </div>
 
   <!-- 
+
+  View all scheduled runs
+  
   TODO: *ngIf="runs.length > 0; else noRuns" was in <table> ... extract to generic table such a behavior? 
 
   <ng-template #noRuns>
       <p>No runs available for the selected nominal composition.</p>
   </ng-template>
   -->
+
   <div *ngIf="activeTab === 'tab2'">
+    <h3>
+      All Runs that have already been scheduled for that Nominal Composition
+    </h3>
     <data-table
       [columns]="runsTableColumns"
       [data]="runsTableData"

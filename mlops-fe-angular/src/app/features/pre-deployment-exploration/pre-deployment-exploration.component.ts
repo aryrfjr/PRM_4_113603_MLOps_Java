@@ -14,7 +14,12 @@ import { TableColumn } from '../../shared/components/datatable/datatable.compone
 
 export class PreDeploymentExplorationComponent implements OnInit {
 
-  // Attributes for DataTable component
+  // Attributes related to the drop-down with Nominal Compositions
+  compositions: NominalComposition[] = [];
+  selectedComposition: string | null = null;
+  selectedCompositionId: number | null = null;
+  
+  // Attributes related to the DataTable component for Runs
   runSelectedKey = "run_number"
 
   runsTableColumns: TableColumn[] = [
@@ -30,20 +35,29 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
   runsTableData: Run[] = [];
 
-  // Attributes for the rest of UI components
   selectedRunNumber: string | null = null;
 
-  compositions: NominalComposition[] = [];
-  selectedCompositionId: number | null = null;
-  calculationCount: number = 1;
+  // Attributes for the rest of UI components
+
+  nRunsToSchedule: number = 1;
 
   activeTab: 'tab1' | 'tab2' = 'tab1';
+
+  //
+  // Methods
+  //
+  //////////////////////////////////////////////////////
 
   constructor(
     private compositionService: NominalCompositionService,
     private http: HttpClient
   ) {}
 
+  /* 
+   * NOTE: This method is a lifecycle hook defined by the OnInit interface. It is 
+   *       automatically called by Angular once, just after the component is 
+   *       created and initialized, but before it's displayed.
+  */
   ngOnInit(): void {
     this.compositionService.getAll().subscribe({
       next: (data) => this.compositions = data,
@@ -51,15 +65,17 @@ export class PreDeploymentExplorationComponent implements OnInit {
     });
   }
 
+  // Increases the number of Runs to schedule
   increment(): void {
-    if (this.calculationCount < 5) this.calculationCount++;
+    if (this.nRunsToSchedule < 5) this.nRunsToSchedule++;
   }
 
+  // Decreases the number of Runs to schedule
   decrement(): void {
-    if (this.calculationCount > 1) this.calculationCount--;
+    if (this.nRunsToSchedule > 1) this.nRunsToSchedule--;
   }  
 
-    // Called when switching to Tab 2 or selecting a new composition
+  // Called when switching to Tab 2 or selecting a new composition
   fetchRunsForSelectedComposition(): void {
 
     if (!this.selectedCompositionId) return;
@@ -76,17 +92,25 @@ export class PreDeploymentExplorationComponent implements OnInit {
   }
 
   onCompositionSelected(nominalId: number): void {
+
+    // TODO: get the NC name
+
     this.selectedCompositionId = nominalId;
+
     if (this.activeTab === 'tab2') {
       this.fetchRunsForSelectedComposition();
     }
+
   }
 
   activateTab2(): void {
+
     this.activeTab = 'tab2';
+
     if (this.selectedCompositionId) {
       this.fetchRunsForSelectedComposition();
     }
+
   }
 
   selectRunRow(name: string | null): void {

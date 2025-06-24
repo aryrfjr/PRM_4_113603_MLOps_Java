@@ -2,6 +2,7 @@ package org.doi.prmv4p113603.mlops.controller.v1;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import org.doi.prmv4p113603.mlops.data.dto.RunDto;
 import org.doi.prmv4p113603.mlops.service.RunService;
 import org.springframework.validation.annotation.Validated;
@@ -17,21 +18,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/crud/runs")
 @Validated
+@AllArgsConstructor
 public class RunController {
 
     private final RunService service;
 
-    public RunController(RunService service) {
-        this.service = service;
-    }
-
     /**
-     * Lists all Runs filtered by (NominalComposition/Run) ID and ordered by Run ID.
+     * Retrieves a list with a set of Runs filtered by NominalComposition ID or
+     * with a single Run by its ID.
      */
     @GetMapping
     @Operation(
-            summary = "Lists all Runs filtered by (NominalComposition/Run) ID and ordered by Run ID.",
-            description = "Lists all Runs filtered by (NominalComposition/Run) ID and ordered by Run ID."
+            summary = "Retrieves a list with a set of Runs filtered by NominalComposition ID or with a single Run filtered by its ID.",
+            description = "Retrieves a list with a set of Runs filtered by NominalComposition ID or with a single Run filtered by its ID."
     )
     public List<RunDto> handleRunsQuery(@RequestParam(required = false) Long nominalCompositionId,
                                         @RequestParam(required = false) Long runId) {
