@@ -1,1 +1,28 @@
-/* Global styles can be added to this file, and also import other style files */
+button {
+  margin-top: 20px;
+  padding: 8px 16px;
+  font-weight: bold;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+}
+
+.error {
+  color: red;
+  margin-top: 1rem;
+}
+
+.success {
+  color: green;
+  margin-top: 1rem;
+}

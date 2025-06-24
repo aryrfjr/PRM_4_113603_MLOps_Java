@@ -16,6 +16,9 @@ import { TableColumn } from '../../shared/components/datatable/datatable.compone
 
 export class NominalCompositionManagerComponent implements OnInit {
 
+  loadingData = false;
+  dataError: string | null = null;
+
   // Attributes for DataTable component
   ncSelectedKey = "name"
 
@@ -29,8 +32,6 @@ export class NominalCompositionManagerComponent implements OnInit {
   ];
 
   ncTableData: NominalComposition[] = [];
-  loading = false;
-  error: string | null = null;
 
   // Forms States
   showCreateForm = false;
@@ -65,15 +66,17 @@ export class NominalCompositionManagerComponent implements OnInit {
 
   }
 
-  selectRow(name: string | null): void {
+  selectRow(name: number | string | null): void {
     
+    // This is to make the table single-selection
     if (this.selectedNCName === name) {
       this.selectedNCName = null;
-      this.formMode = null;
+      this.formMode = null; // closes the create form
       return;
     }
 
-    this.selectedNCName = name;
+    // Defining current state
+    this.selectedNCName = name as string;
     const current = this.ncTableData.find(c => c.name === name);
     this.formName = current?.name ?? '';
     this.formDescription = current?.description ?? '';
@@ -157,16 +160,16 @@ export class NominalCompositionManagerComponent implements OnInit {
 
   fetchCompositions(): void {
 
-    this.loading = true;
+    this.loadingData = true;
 
     this.service.getAll().subscribe({
       next: (data) => {
         this.ncTableData = data;
-        this.loading = false;
+        this.loadingData = false;
       },
       error: (err) => {
-        this.error = 'Failed to load data';
-        this.loading = false;
+        this.dataError = 'Failed to load data';
+        this.loadingData = false;
         console.error(err);
       }
     });
@@ -185,7 +188,7 @@ export class NominalCompositionManagerComponent implements OnInit {
           this.fetchCompositions();
         },
         error: (err) => {
-          this.error = 'Failed to delete.';
+          this.dataError = 'Failed to delete.';
           console.error(err);
         }
       });

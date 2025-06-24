@@ -7,6 +7,8 @@ import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
 import org.doi.prmv4p113603.mlops.util.FileSystemUtils;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -54,6 +56,9 @@ public class SimulationDirectories {
     public void load() {
 
         String nominalCompositionDirName = FileSystemUtils.join(dataRoot, nominalCompositionName);
+
+        System.out.println("=========>" + nominalCompositionDirName);
+        System.out.println("=========>" + Files.exists(Path.of(nominalCompositionDirName)));
 
         if (!FileSystemUtils.pathExists(nominalCompositionDirName) ||
                 !FileSystemUtils.pathExists(nominalCompositionDirName + "-SOAPS")) {
