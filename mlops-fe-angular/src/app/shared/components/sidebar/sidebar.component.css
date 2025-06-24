@@ -32,6 +32,6 @@ a:hover {
 
 /* Optional: style for active link (requires adding logic in TS or routerLinkActive) */
 a.active {
-  background-color: #1abc9c;
+  background-color: #47627c;
   color: white;
 }

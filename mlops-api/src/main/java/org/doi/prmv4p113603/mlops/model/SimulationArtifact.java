@@ -5,8 +5,6 @@ import lombok.*;
 import org.doi.prmv4p113603.mlops.domain.SimulationArtifactRole;
 import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
 
-import java.time.Instant;
-
 @Entity
 @Table(name = "simulation_artifacts", indexes = {
         @Index(name = "idx_artifact_sub_run", columnList = "sub_run_id"),
@@ -45,8 +43,5 @@ public class SimulationArtifact {
 
     @Column(name = "checksum", length = 64)
     private String checksum; // TODO: Index this column for lookup; use it to detect duplicate artifacts
-
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
 
 }

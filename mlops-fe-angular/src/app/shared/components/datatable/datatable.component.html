@@ -1,0 +1,40 @@
+<!--
+
+TODO: generalize in <datatable> the behavior like this one defined in nominal-composition-manager.component.html
+
+  <table
+  *ngIf="!loading && nominalCompositions.length > 0"
+  border="1"
+  cellpadding="8"
+>
+
+-->
+<table border="1" cellpadding="8">
+  <thead>
+    <tr>
+      <th></th>
+      <th *ngFor="let col of columns" class="left-align">{{ col.label }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of data">
+      <td *ngIf="rowKeyColumn !== null">
+        <input
+          type="checkbox"
+          [checked]="row[rowKeyColumn] === selectedRowKeyValue"
+          (change)="onCheckboxChange(row[rowKeyColumn])"
+        />
+      </td>
+      <td
+        *ngFor="let col of columns"
+        [ngClass]="{
+          'left-align': col.align === 'left',
+          'center-align': col.align === 'center',
+          'right-align': col.align === 'right'
+        }"
+      >
+        {{ formatCell(row, col) }}
+      </td>
+    </tr>
+  </tbody>
+</table>
