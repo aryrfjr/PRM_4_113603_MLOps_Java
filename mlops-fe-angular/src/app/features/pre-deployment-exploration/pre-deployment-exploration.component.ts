@@ -178,8 +178,9 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
   onNominalCompositionSelected(nominalId: number): void {
 
+    // NOTE: The + coerces nominalId to a number
     this.selectedNominalCompositionId = nominalId;
-    this.selectedNominalCompositionName = this.allNominalCompositions.find(nc => nc.id === 1)?.name ?? null;
+    this.selectedNominalCompositionName = this.allNominalCompositions.find(nc => nc.id === +nominalId)?.name ?? null;
 
     if (this.activeTab === 'tab2') {
       this.fetchRunsForSelectedComposition();
