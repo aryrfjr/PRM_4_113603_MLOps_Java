@@ -113,7 +113,8 @@ public class DataOpsService {
 
         }
 
-        nominalComposition.setRuns(runs);
+        nominalComposition.getRuns().clear();
+        nominalComposition.getRuns().addAll(runs);
 
         /*
          * NOTE: Regarding exception handling here, the application has an exception handler
@@ -129,7 +130,7 @@ public class DataOpsService {
         // TODO: trigger the Airflow DAG
 
         // Returning only DTOs
-        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
+        return NominalCompositionDto.fromScheduleExploreRequest(nominalComposition);
 
     }
 
@@ -246,11 +247,11 @@ public class DataOpsService {
 
             }
 
-            run.setSubRuns(allNewSubRuns); // Just to build the DTO, not going to be persisted
-
         }
 
-        nominalComposition.setRuns(existingRequestedRuns); // Just to build the DTO, not going to be persisted
+        // Just to build the DTO, not going to be persisted
+        nominalComposition.getRuns().clear();
+        nominalComposition.getRuns().addAll(existingRequestedRuns);
 
         // ... persisting ensuring atomicity ...
         subRunRepo.saveAll(allNewSubRuns);
@@ -260,8 +261,11 @@ public class DataOpsService {
 
         // TODO: trigger the Airflow DAG
 
+        // Group new sub-runs by run ID
+        Map<Long, List<SubRun>> newSubRunsByRunId = allNewSubRuns.stream()
+                .collect(Collectors.groupingBy(sr -> sr.getRun().getId()));
         // Returning only DTOs
-        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
+        return NominalCompositionDto.fromScheduleExploitRequest(nominalComposition, newSubRunsByRunId);
 
     }
 

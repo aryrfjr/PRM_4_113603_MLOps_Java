@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.model.SubRun;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -72,7 +74,7 @@ public class NominalCompositionDto {
     }
 
     // Used in the DataOps service when an exploration is requested
-    public static NominalCompositionDto fromScheduleExploreExploitRequest(NominalComposition nc) {
+    public static NominalCompositionDto fromScheduleExploreRequest(NominalComposition nc) {
 
         return NominalCompositionDto.builder()
                 .name(nc.getName())
@@ -103,6 +105,41 @@ public class NominalCompositionDto {
                         .collect(Collectors.toList()))
                 .build();
 
+    }
+
+    // Used in the DataOps service when an exploitation is requested
+    public static NominalCompositionDto fromScheduleExploitRequest(
+            NominalComposition nc,
+            Map<Long, List<SubRun>> newSubRunsByRunId) {
+
+        return NominalCompositionDto.builder()
+                .name(nc.getName())
+                .runs(nc.getRuns().stream()
+                        .map(run -> RunDto.builder()
+                                .runNumber(run.getRunNumber())
+                                .status(run.getStatus())
+                                .createdAt(run.getCreatedAt())
+                                .createdBy(run.getCreatedBy())
+                                .subRuns(
+                                        newSubRunsByRunId.getOrDefault(run.getId(), List.of()).stream()
+                                                .map(srun -> SubRunDto.builder()
+                                                        .subRunNumber(srun.getSubRunNumber())
+                                                        .status(srun.getStatus())
+                                                        .createdAt(srun.getCreatedAt())
+                                                        .completedAt(srun.getCompletedAt())
+                                                        .simulationArtifacts(
+                                                                srun.getSimulationArtifacts().stream()
+                                                                        .map(sas -> SimulationArtifactDto.builder()
+                                                                                .artifactType(sas.getArtifactType())
+                                                                                .filePath(sas.getFilePath())
+                                                                                .fileSize(sas.getFileSize())
+                                                                                .build())
+                                                                        .collect(Collectors.toList()))
+                                                        .build())
+                                                .collect(Collectors.toList()))
+                                .build())
+                        .collect(Collectors.toList()))
+                .build();
     }
 
 }
