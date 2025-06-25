@@ -3,7 +3,9 @@ package org.doi.prmv4p113603.mlops.data.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.domain.SimulationArtifactRole;
 import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
 import org.doi.prmv4p113603.mlops.model.SimulationArtifact;
 import org.doi.prmv4p113603.mlops.model.SubRun;
@@ -34,6 +36,9 @@ public class SimulationArtifactDto {
 
     @JsonProperty("artifact_type")
     private SimulationArtifactType artifactType;
+
+    @JsonProperty("artifact_role")
+    private SimulationArtifactRole artifactRole;
 
     @JsonProperty("file_path")
     private String filePath;
