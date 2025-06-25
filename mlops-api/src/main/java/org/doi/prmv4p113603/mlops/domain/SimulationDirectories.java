@@ -57,9 +57,6 @@ public class SimulationDirectories {
 
         String nominalCompositionDirName = FileSystemUtils.join(dataRoot, nominalCompositionName);
 
-        System.out.println("=========>" + nominalCompositionDirName);
-        System.out.println("=========>" + Files.exists(Path.of(nominalCompositionDirName)));
-
         if (!FileSystemUtils.pathExists(nominalCompositionDirName) ||
                 !FileSystemUtils.pathExists(nominalCompositionDirName + "-SOAPS")) {
             throw new SimulationDirectoryNotFoundException("Directory not found: " + nominalCompositionDirName + "(-SOAPS)");

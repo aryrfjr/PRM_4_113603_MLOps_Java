@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * This class is used hold the value set in the property 'mlops-api.data-root'
+ * This class is used to hold the value set in the property 'mlops-api.data-root'
  * in the file 'application.properties'.
  */
 @Configuration
