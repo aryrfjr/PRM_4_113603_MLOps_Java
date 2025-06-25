@@ -1,8 +1,8 @@
 package org.doi.prmv4p113603.mlops.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -13,6 +13,7 @@ import java.util.Map;
  * This is a class that implements a way to apply cross-cutting concern logic
  * (like error handling) across multiple controllers without repeating code.
  */
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -21,12 +22,12 @@ public class GlobalExceptionHandler {
      *  @ExceptionHandler methods), model attributes (via @ModelAttribute), and
      *  binding logic (via @InitBinder) for all controllers.
      *
-     *  It doesn't require additional configuration, when DataIntegrityViolationException
-     *  is thrown anywhere in any of the controllers, Spring will route it to the matching
-     *  method in GlobalExceptionHandler.
+     *  It doesn't require additional configuration, when an exception, like
+     *  NominalCompositionDeletionException, is thrown anywhere in any of the
+     *  controllers, Spring will route it to the matching method in GlobalExceptionHandler.
      *
-     * NOTE: Since it modularizes exception handling across controllers — a classic
-     *  cross-cutting concern — and applies it declaratively, without changing the
+     * NOTE: Since it will modularize exception handling across controllers - a classic
+     *  cross-cutting concern - and applies it declaratively, without changing the
      *  controllers themselves, it is related to the principles of AOP
      *  (Aspect-Oriented Programming), although it's not implemented using classical AOP
      *  mechanisms in Spring like proxies or @Aspect.
@@ -38,36 +39,33 @@ public class GlobalExceptionHandler {
      * TODO: Return problem details using RFC 7807 (application/problem+json).
      */
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+    @ExceptionHandler(DeletionNotAllowedException.class)
+    public ResponseEntity<Map<String, Object>> handleDeletionNotAllowed(DeletionNotAllowedException ex) {
+
+        /*
+         *
+         */
+        log.warn("Deletion denied: {}", ex.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of(
                         "timestamp", LocalDateTime.now(),
-                        "error", "Data integrity violation",
-                        "message", ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage()
+                        "error", "Deletion not allowed",
+                        "message", ex.getMessage()
                 ));
+
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException ex) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.NOT_FOUND)
                 .body(Map.of(
                         "timestamp", LocalDateTime.now(),
-                        "error", "Bad request",
+                        "error", "Entity not found",
                         "message", ex.getMessage()
                 ));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
-                        "error", "Internal server error",
-                        "message", ex.getMessage()
-                ));
-    }
 }

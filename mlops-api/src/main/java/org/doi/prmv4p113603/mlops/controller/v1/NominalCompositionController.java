@@ -3,6 +3,7 @@ package org.doi.prmv4p113603.mlops.controller.v1;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.doi.prmv4p113603.mlops.data.dto.*;
 import org.doi.prmv4p113603.mlops.service.NominalCompositionService;
 import org.springframework.http.*;
@@ -19,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/crud/nominal_compositions")
 @Validated
+@AllArgsConstructor
 public class NominalCompositionController {
 
     /*
@@ -33,10 +35,6 @@ public class NominalCompositionController {
      *  unit/integration tests.
      */
     private final NominalCompositionService service;
-
-    public NominalCompositionController(NominalCompositionService service) {
-        this.service = service;
-    }
 
     /**
      * Creates a Nominal Composition entry.
@@ -95,11 +93,11 @@ public class NominalCompositionController {
     @DeleteMapping("/{name}")
     @Operation(
             summary = "Deletes a NominalComposition by name.",
-            description = "Deletes a NominalComposition by name."
+            description = "Deletes a NominalComposition by name if no associated Runs exist. Returns 204 on success, 400 if deletion is not allowed."
     )
-    public ResponseEntity<?> deleteByName(@PathVariable String name) {
+    public ResponseEntity<Void> deleteByName(@PathVariable String name) {
         service.deleteByName(name);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // 204 No Content
     }
 
 }
