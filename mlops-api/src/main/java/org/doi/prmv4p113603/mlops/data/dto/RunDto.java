@@ -31,9 +31,6 @@ public class RunDto {
 
     private Long id;
 
-    @JsonIgnore
-    private NominalComposition nominalComposition;
-
     @JsonProperty("run_number")
     private int runNumber;
 

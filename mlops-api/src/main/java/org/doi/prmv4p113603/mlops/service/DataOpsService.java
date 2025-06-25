@@ -114,9 +114,6 @@ public class DataOpsService {
 
         }
 
-        nominalComposition.getRuns().clear();
-        nominalComposition.getRuns().addAll(runs);
-
         /*
          * NOTE: Regarding exception handling here, the application has an exception handler
          *  annotated with @ControllerAdvice. Since this service is expose via a REST controller,
@@ -126,7 +123,7 @@ public class DataOpsService {
         runRepo.saveAll(runs);
 
         // Creating a DTO
-        NominalCompositionDto ncDto = NominalCompositionDto.fromScheduleExploreRequest(nominalComposition);
+        NominalCompositionDto ncDto = NominalCompositionDto.fromScheduleExplorationRequest(nominalComposition, runs);
 
         // Finally uploading to MinIO
         uploadSimulationInputFilesToS3(ncDto);
@@ -253,19 +250,11 @@ public class DataOpsService {
 
         }
 
-        // Just to build the DTO, not going to be persisted
-        nominalComposition.getRuns().clear();
-        nominalComposition.getRuns().addAll(existingRequestedRuns);
-
         // Persisting ensuring atomicity
         subRunRepo.saveAll(allNewSubRuns);
 
-        // Group new sub-runs by run ID
-        Map<Long, List<SubRun>> newSubRunsByRunId = allNewSubRuns.stream()
-                .collect(Collectors.groupingBy(sr -> sr.getRun().getId()));
-
         // Creating a DTO
-        NominalCompositionDto ncDto = NominalCompositionDto.fromScheduleExploitRequest(nominalComposition, newSubRunsByRunId);
+        NominalCompositionDto ncDto = NominalCompositionDto.fromScheduleExploitationRequest(nominalComposition, existingRequestedRuns, allNewSubRuns);
 
         // Finally uploading to MinIO
         uploadSimulationInputFilesToS3(ncDto);
