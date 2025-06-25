@@ -5,10 +5,10 @@
   <label for="composition-select">Select Nominal Composition:</label>
   <select
     id="composition-select"
-    [(ngModel)]="selectedCompositionId"
-    (ngModelChange)="onCompositionSelected($event)"
+    [(ngModel)]="selectedNominalCompositionId"
+    (ngModelChange)="onNominalCompositionSelected($event)"
   >
-    <option *ngFor="let comp of compositions" [value]="comp.id">
+    <option *ngFor="let comp of allNominalCompositions" [value]="comp.id">
       {{ comp.name }}
     </option>
   </select>
@@ -23,30 +23,82 @@
     </button>
   </div>
 
-  <!-- Tab Contents -->
+  <!-- Tab Schedule calculations runs -->
+
+  <div *ngIf="scheduleError" class="error">{{ scheduleError }}</div>
+  <div *ngIf="scheduleSuccess" class="success">{{ scheduleSuccess }}</div>
+
   <div *ngIf="activeTab === 'tab1'">
-    <label for="calc-count">Number of Calculations:</label>
-    <div class="counter">
-      <button (click)="decrement()">−</button>
-      <input type="number" [value]="calculationCount" readonly />
-      <button (click)="increment()">+</button>
+    <p *ngIf="!loadingData && selectedNominalCompositionId === null">
+      Select a Nominal Composition to schedule Runs for.
+    </p>
+
+    <div *ngIf="!loadingData && selectedNominalCompositionId != null">
+      <label for="calc-count"
+        >Number of Run calculations to be scheduled:</label
+      >
+      <div class="counter">
+        <button (click)="decrementNRuns()">−</button>
+        <input type="number" [value]="nRunsToSchedule" readonly />
+        <button (click)="incrementNRuns()">+</button>
+      </div>
+      <button (click)="scheduleRuns()">Schedule</button>
     </div>
   </div>
 
   <!-- 
+
+  View all scheduled runs
+  
   TODO: *ngIf="runs.length > 0; else noRuns" was in <table> ... extract to generic table such a behavior? 
 
   <ng-template #noRuns>
       <p>No runs available for the selected nominal composition.</p>
   </ng-template>
   -->
+
   <div *ngIf="activeTab === 'tab2'">
+    <p *ngIf="!loadingData && selectedNominalCompositionId === null">
+      Select a Nominal Composition.
+    </p>
+
+    <h3 *ngIf="runsTableData.length > 0">
+      All Runs that have already been scheduled for Nominal Composition "{{
+        selectedNominalCompositionName
+      }}"
+    </h3>
     <data-table
+      *ngIf="runsTableData.length > 0"
       [columns]="runsTableColumns"
       [data]="runsTableData"
       [rowKeyColumn]="runSelectedKey"
-      [selectedRowKeyValue]="selectedRunNumber"
-      (rowSelected)="selectRunRow($event)"
+      [selectedRowKeyValue]="selectedRunId"
+      (rowSelected)="onRunsTableRowSelected($event)"
+    >
+    </data-table>
+
+    <h3 *ngIf="subRunsTableData.length > 0">
+      All SubRuns that have already been scheduled for Run # "{{
+        selectedRunNumber
+      }}"
+    </h3>
+    <data-table
+      *ngIf="subRunsTableData.length > 0"
+      [columns]="subRunsTableColumns"
+      [data]="subRunsTableData"
+      [rowKeyColumn]="subRunSelectedKey"
+      [selectedRowKeyValue]="selectedSubRunId"
+      (rowSelected)="onSubRunsTableRowSelected($event)"
+    >
+    </data-table>
+
+    <h3 *ngIf="simulationArtifactsTableData.length > 0">
+      All Simulation Archetypes SubRun # "{{ selectedSubRunNumber }}"
+    </h3>
+    <data-table
+      *ngIf="simulationArtifactsTableData.length > 0"
+      [columns]="simulationArtifactsTableColumns"
+      [data]="simulationArtifactsTableData"
     >
     </data-table>
   </div>

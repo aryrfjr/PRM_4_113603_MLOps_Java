@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
 import org.doi.prmv4p113603.mlops.model.Run;
+import org.doi.prmv4p113603.mlops.model.SubRun;
 
 import java.time.Instant;
 import java.util.List;
@@ -62,5 +63,20 @@ public class SubRunDto {
     /*
      * TODO: List<BondInteractionDto> bonds; List<DescriptorFileDto> descriptorFiles;
      */
+
+    // Used in CRUD actions for SubRun entity
+    public static SubRunDto fromEntity(SubRun subRun) {
+        return SubRunDto.builder()
+                .id(subRun.getId())
+                .subRunNumber(subRun.getSubRunNumber())
+                .status(subRun.getStatus())
+                .createdAt(subRun.getCreatedAt())
+                .updatedAt(subRun.getUpdatedAt())
+                .createdBy(subRun.getCreatedBy())
+                .updatedBy(subRun.getUpdatedBy())
+                .startedAt(subRun.getCompletedAt())
+                .completedAt(subRun.getCompletedAt())
+                .build();
+    }
 
 }

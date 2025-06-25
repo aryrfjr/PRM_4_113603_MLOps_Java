@@ -85,7 +85,7 @@ class DataOpsServiceTest {
         localstack.stop();
 
         SecurityContextHolder.clearContext();
-        
+
     }
 
     @Autowired

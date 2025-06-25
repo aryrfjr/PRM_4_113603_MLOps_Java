@@ -12,7 +12,7 @@ TODO: generalize in <datatable> the behavior like this one defined in nominal-co
 <table border="1" cellpadding="8">
   <thead>
     <tr>
-      <th></th>
+      <th *ngIf="rowKeyColumn !== null"></th>
       <th *ngFor="let col of columns" class="left-align">{{ col.label }}</th>
     </tr>
   </thead>

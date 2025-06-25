@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -57,6 +58,7 @@ public class NominalComposition {
      * - It is explicitly fetched it in the query.
      */
     @OneToMany(mappedBy = "nominalComposition", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Run> runs;
+    @Builder.Default
+    private List<Run> runs = new ArrayList<>();
 
 }

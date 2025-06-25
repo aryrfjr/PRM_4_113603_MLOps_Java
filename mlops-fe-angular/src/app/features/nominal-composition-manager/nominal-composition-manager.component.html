@@ -1,7 +1,7 @@
 <h2>Nominal Compositions</h2>
 
-<div *ngIf="loading">Loading...</div>
-<div *ngIf="error" class="error">{{ error }}</div>
+<div *ngIf="loadingData">Loading...</div>
+<div *ngIf="dataError" class="error">{{ dataError }}</div>
 
 <!-- 
 NOTE: This is a reusable HTML table defined in '../../shared/components/datatable/datatable.component' 
@@ -10,6 +10,7 @@ NOTE: This is a reusable HTML table defined in '../../shared/components/datatabl
   when the checkboxes are selected, so that this component can handle it.
 -->
 <data-table
+  *ngIf="ncTableData.length > 0"
   [columns]="ncTableColumns"
   [data]="ncTableData"
   [rowKeyColumn]="ncSelectedKey"
@@ -18,7 +19,7 @@ NOTE: This is a reusable HTML table defined in '../../shared/components/datatabl
 >
 </data-table>
 
-<p *ngIf="!loading && ncTableData.length === 0">
+<p *ngIf="!loadingData && ncTableData.length === 0">
   No Nominal Compositions found.
 </p>
 
@@ -41,12 +42,12 @@ NOTE: This is a reusable HTML table defined in '../../shared/components/datatabl
   <div *ngIf="formSuccess" class="success">{{ formSuccess }}</div>
 
   <label>
-    Name *
+    Name*:
     <input [(ngModel)]="formName" [disabled]="formMode === 'edit'" />
   </label>
 
   <label>
-    Description
+    Description:
     <textarea [(ngModel)]="formDescription"></textarea>
   </label>
 

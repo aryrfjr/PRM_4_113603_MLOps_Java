@@ -3,10 +3,12 @@ package org.doi.prmv4p113603.mlops.data.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.domain.SimulationArtifactRole;
 import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
+import org.doi.prmv4p113603.mlops.model.SimulationArtifact;
 import org.doi.prmv4p113603.mlops.model.SubRun;
-import java.time.Instant;
 
 /**
  * DTO representing a detected simulation artifact like files generated and
@@ -35,6 +37,9 @@ public class SimulationArtifactDto {
     @JsonProperty("artifact_type")
     private SimulationArtifactType artifactType;
 
+    @JsonProperty("artifact_role")
+    private SimulationArtifactRole artifactRole;
+
     @JsonProperty("file_path")
     private String filePath;
 
@@ -43,7 +48,13 @@ public class SimulationArtifactDto {
 
     private String checksum; // TODO: Index this column for lookup; use it to detect duplicate artifacts
 
-    @JsonProperty("created_at")
-    private Instant createdAt = Instant.now();
+    // Used in CRUD actions for SubRun entity
+    public static SimulationArtifactDto fromEntity(SimulationArtifact simulationArtifact) {
+        return SimulationArtifactDto.builder()
+                .id(simulationArtifact.getId())
+                .artifactType(simulationArtifact.getArtifactType())
+                .filePath(simulationArtifact.getFilePath())
+                .build();
+    }
 
 }
