@@ -42,9 +42,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DeletionNotAllowedException.class)
     public ResponseEntity<Map<String, Object>> handleDeletionNotAllowed(DeletionNotAllowedException ex) {
 
-        /*
-         *
-         */
         log.warn("Deletion denied: {}", ex.getMessage());
 
         return ResponseEntity

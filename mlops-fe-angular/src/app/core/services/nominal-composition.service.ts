@@ -5,7 +5,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 
 import { NominalComposition } from '../models/nominal-composition.model';
 
@@ -42,7 +42,17 @@ export class NominalCompositionService {
   }
 
   delete(name: string): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/${name}`);
+    return this.http.delete<void>(`${API_URL}/${name}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(err: any): Observable<never> {
+
+    console.error('API error:', err);
+
+    return throwError(() => err);
+    
   }
 
 }
