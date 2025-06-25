@@ -1,5 +1,5 @@
 /*
-* Service to fetch Nominal Compositions.
+* Singleton service for CRUD operations for Nominal Compositions.
 */
 
 import { Injectable } from '@angular/core';

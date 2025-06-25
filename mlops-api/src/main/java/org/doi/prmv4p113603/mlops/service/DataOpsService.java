@@ -3,6 +3,7 @@ package org.doi.prmv4p113603.mlops.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
+import org.doi.prmv4p113603.mlops.data.dto.SimulationArtifactDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.domain.*;
@@ -113,23 +114,27 @@ public class DataOpsService {
 
         }
 
-        nominalComposition.setRuns(runs);
+        nominalComposition.getRuns().clear();
+        nominalComposition.getRuns().addAll(runs);
 
         /*
          * NOTE: Regarding exception handling here, the application has an exception handler
          *  annotated with @ControllerAdvice. Since this service is expose via a REST controller,
          *  that exception handler ensures consistent API error responses.
          */
-        // ... persisting ensuring atomicity ...
+        // Persisting ensuring atomicity
         runRepo.saveAll(runs);
 
-        // ... and finally uploading to MinIO
-        uploadSimulationInputFilesToS3(nominalComposition);
+        // Creating a DTO
+        NominalCompositionDto ncDto = NominalCompositionDto.fromScheduleExploreRequest(nominalComposition);
+
+        // Finally uploading to MinIO
+        uploadSimulationInputFilesToS3(ncDto);
 
         // TODO: trigger the Airflow DAG
 
         // Returning only DTOs
-        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
+        return ncDto;
 
     }
 
@@ -246,22 +251,29 @@ public class DataOpsService {
 
             }
 
-            run.setSubRuns(allNewSubRuns); // Just to build the DTO, not going to be persisted
-
         }
 
-        nominalComposition.setRuns(existingRequestedRuns); // Just to build the DTO, not going to be persisted
+        // Just to build the DTO, not going to be persisted
+        nominalComposition.getRuns().clear();
+        nominalComposition.getRuns().addAll(existingRequestedRuns);
 
-        // ... persisting ensuring atomicity ...
+        // Persisting ensuring atomicity
         subRunRepo.saveAll(allNewSubRuns);
 
-        // ... and finally uploading to MinIO
-        uploadSimulationInputFilesToS3(nominalComposition);
+        // Group new sub-runs by run ID
+        Map<Long, List<SubRun>> newSubRunsByRunId = allNewSubRuns.stream()
+                .collect(Collectors.groupingBy(sr -> sr.getRun().getId()));
+
+        // Creating a DTO
+        NominalCompositionDto ncDto = NominalCompositionDto.fromScheduleExploitRequest(nominalComposition, newSubRunsByRunId);
+
+        // Finally uploading to MinIO
+        uploadSimulationInputFilesToS3(ncDto);
 
         // TODO: trigger the Airflow DAG
 
         // Returning only DTOs
-        return NominalCompositionDto.fromScheduleExploreExploitRequest(nominalComposition);
+        return ncDto;
 
     }
 
@@ -269,13 +281,13 @@ public class DataOpsService {
      * Helpers
      */
 
-    private void uploadSimulationInputFilesToS3(NominalComposition nominalComposition) {
+    private void uploadSimulationInputFilesToS3(NominalCompositionDto nominalCompositionDto) {
 
-        nominalComposition.getRuns().stream()
-                .flatMap(run -> run.getSubRuns().stream())
-                .flatMap(subRun -> subRun.getSimulationArtifacts().stream())
-                .filter(artifact -> artifact.getArtifactRole().isInput())
-                .map(SimulationArtifact::getFilePath)
+        nominalCompositionDto.getRuns().stream()
+                .flatMap(runDto -> runDto.getSubRuns().stream())
+                .flatMap(subRunDto -> subRunDto.getSimulationArtifacts().stream())
+                .filter(artifactDto -> artifactDto.getArtifactRole().isInput())
+                .map(SimulationArtifactDto::getFilePath)
                 .forEach(path -> minioStorageService.uploadFile(MinioUtils.pathToKey(path), path));
     }
 

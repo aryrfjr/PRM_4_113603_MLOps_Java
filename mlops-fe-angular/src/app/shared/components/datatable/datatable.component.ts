@@ -25,9 +25,9 @@ export class DataTableComponent {
   // Inputs that are passed in by the parent component
   @Input() columns: TableColumn[] = [];
   @Input() data: any[] = [];
-  @Input() rowKeyColumn: string | null = null;
-  @Input() selectedRowKeyValue: string | null = null;
-  @Output() rowSelected = new EventEmitter<string | null>();
+  @Input() rowKeyColumn: string | null = null; // The field used to identify rows
+  @Input() selectedRowKeyValue: number | string | null = null; // Currently selected value
+  @Output() rowSelected = new EventEmitter<number | string | null>();
 
   constructor(private datePipe: DatePipe) {}
 
@@ -38,7 +38,7 @@ export class DataTableComponent {
   *   used to establish communication with the parent component so that it can 
   *   handle any specific busines logic.
   */
-  onCheckboxChange(keyValue: string): void {
+  onCheckboxChange(keyValue: number | string): void {
     if (this.rowKeyColumn === keyValue) {
       this.rowSelected.emit(null); // deselect
     } else {

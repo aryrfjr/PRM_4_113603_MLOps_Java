@@ -36,6 +36,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
     networks:
       - mlopsnet
+    volumes:
+      - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
 
   # MinIO Object Storage
   minio:

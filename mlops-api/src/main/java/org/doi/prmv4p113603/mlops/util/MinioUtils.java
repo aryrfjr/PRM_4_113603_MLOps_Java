@@ -3,11 +3,9 @@ package org.doi.prmv4p113603.mlops.util;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -74,10 +72,18 @@ public class MinioUtils {
 
     public static String pathToKey(String path) {
 
-        Path fullPath = Path.of(path);
-        Path baseDir = Paths.get("/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/"); // TODO: to configuration
+        Path base = Path.of("/data").toAbsolutePath().normalize();
+        Path file = Path.of(path).toAbsolutePath().normalize();
 
-        return baseDir.relativize(fullPath).toString().replace(File.separator, "/");
+        // TODO: working OK with complete Spring Book context but failing in integration test
+        //  The key created is:
+        //  ../home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/Zr49Cu49Al2/c/md/lammps/100/1/Zr49Cu49Al2.lmp.inp
+        if (!file.startsWith(base)) {
+            throw new IllegalArgumentException("File path is outside of dataRoot: " + path);
+        }
+
+        Path relative = base.relativize(file);
+        return relative.toString().replace("\\", "/"); // Windows compatibility
 
     }
 
