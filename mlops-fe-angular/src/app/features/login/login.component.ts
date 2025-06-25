@@ -43,15 +43,11 @@ export class LoginComponent {
   // with username and password the ids of corresponding tags <input>
   onSubmit() {
 
-    console.log('ARYLOG: Login form submitted');
-
     this.authService.login(this.username, this.password).subscribe({
       next: () => { // As per definition in AppRoutingModule (app-routing.module.ts) goes to /nominal-composition-manager
         this.router.navigate(['/']);
       },
       error: (err) => {
-
-        console.log('ARYLOG: Login failed:', err);
 
         this.errorMessage = 'Invalid username or password';
 
