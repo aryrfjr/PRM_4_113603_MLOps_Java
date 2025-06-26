@@ -2,7 +2,7 @@ package org.doi.prmv4p113603.mlops.exception;
 
 public class NominalCompositionDeletionException extends DeletionNotAllowedException {
 
-    public NominalCompositionDeletionException(Long id) {
-        super("Cannot delete NominalComposition with ID " + id + " because it has associated Runs.");
+    public NominalCompositionDeletionException(String name) {
+        super("Cannot delete NominalComposition " + name + " because it has associated Runs.");
     }
 }

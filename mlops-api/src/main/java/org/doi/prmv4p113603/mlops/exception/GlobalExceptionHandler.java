@@ -56,6 +56,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException ex) {
+
+        log.warn("Entity not found: {}", ex.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(Map.of(
@@ -63,6 +66,37 @@ public class GlobalExceptionHandler {
                         "error", "Entity not found",
                         "message", ex.getMessage()
                 ));
+
+    }
+
+    @ExceptionHandler(InsertionNotAllowedException.class)
+    public ResponseEntity<Map<String, Object>> handleInsertionNotAllowed(InsertionNotAllowedException ex) {
+
+        log.warn("Insertion denied: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "error", "Insertion not allowed",
+                        "message", ex.getMessage()
+                ));
+
+    }
+
+    @ExceptionHandler(DataOpsInternalInconsistencyException.class)
+    public ResponseEntity<Map<String, Object>> handleDataOpsInternalInconsistency(DataOpsInternalInconsistencyException ex) {
+
+        log.warn("Internal inconsistency found for DataOps: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "error", "Internal inconsistency found for DataOps",
+                        "message", ex.getMessage()
+                ));
+
     }
 
 }

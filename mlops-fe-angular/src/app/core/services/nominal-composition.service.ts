@@ -34,7 +34,9 @@ export class NominalCompositionService {
   }
 
   create(data: { name: string; description?: string }): Observable<NominalComposition> {
-    return this.http.post<NominalComposition>(API_URL, data);
+    return this.http.post<NominalComposition>(API_URL, data).pipe(
+      catchError(this.handleError)
+    );
   }
 
   update(name: string, data: { description?: string }): Observable<NominalComposition> {

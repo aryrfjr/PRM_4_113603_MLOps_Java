@@ -2,13 +2,13 @@ package org.doi.prmv4p113603.mlops.service;
 
 import lombok.AllArgsConstructor;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
+import org.doi.prmv4p113603.mlops.exception.DuplicatedNominalCompositionException;
 import org.doi.prmv4p113603.mlops.exception.NominalCompositionDeletionException;
+import org.doi.prmv4p113603.mlops.exception.NominalCompositionNotFoundException;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 import org.doi.prmv4p113603.mlops.repository.RunRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +30,7 @@ public class NominalCompositionService {
     public NominalCompositionDto create(NominalCompositionDto dto) {
 
         if (nominalCompositionRepository.findByName(dto.getName()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Nominal composition already exists");
+            throw new DuplicatedNominalCompositionException(dto.getName());
         }
 
         NominalComposition saved = nominalCompositionRepository.save(dto.toEntity());
@@ -47,7 +47,7 @@ public class NominalCompositionService {
     public NominalCompositionDto getByName(String name) {
         return nominalCompositionRepository.findByName(name)
                 .map(NominalCompositionDto::fromEntity)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+                .orElseThrow(() -> new NominalCompositionNotFoundException(name));
     }
 
     /**
@@ -66,9 +66,7 @@ public class NominalCompositionService {
     public NominalCompositionDto updateByName(String name, NominalCompositionDto dto) {
 
         NominalComposition nc = nominalCompositionRepository.findByName(name)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Nominal Composition '" + name + "' doesn't exist."));
+                .orElseThrow(() -> new NominalCompositionNotFoundException(name));
 
         if (dto.getDescription() != null) {
             nc.setDescription(dto.getDescription());
@@ -87,10 +85,10 @@ public class NominalCompositionService {
     public void deleteByName(String name) {
 
         NominalComposition nc = nominalCompositionRepository.findByName(name)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+                .orElseThrow(() -> new NominalCompositionNotFoundException(name));
 
         if (runRepository.existsByNominalCompositionId(nc.getId())) {
-            throw new NominalCompositionDeletionException(nc.getId());
+            throw new NominalCompositionDeletionException(nc.getName());
         }
 
         nominalCompositionRepository.delete(nc);

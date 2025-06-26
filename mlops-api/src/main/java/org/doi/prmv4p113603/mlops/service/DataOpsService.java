@@ -7,8 +7,7 @@ import org.doi.prmv4p113603.mlops.data.dto.SimulationArtifactDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.domain.*;
-import org.doi.prmv4p113603.mlops.exception.SimulationArtifactNotFoundException;
-import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
+import org.doi.prmv4p113603.mlops.exception.NominalCompositionNotFoundException;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.*;
 import org.doi.prmv4p113603.mlops.util.MinioUtils;
@@ -65,7 +64,7 @@ public class DataOpsService {
 
         // Check that the NominalComposition exists and that its directory exists
         NominalComposition nominalComposition = compositionRepo.findByName(nominalCompositionName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nominal Composition not found"));
+                .orElseThrow(() -> new NominalCompositionNotFoundException(nominalCompositionName));
 
         // Now loading and checking the consistency of directories
 
@@ -77,11 +76,7 @@ public class DataOpsService {
                 nextRunNumber,
                 request.getNumSimulations());
 
-        try {
-            simulationDirectories.load();
-        } catch (SimulationDirectoryNotFoundException ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
-        }
+        simulationDirectories.load();
 
         // Since everything is OK with the folders, persisting the Runs to DB ...
         List<Run> runs = new ArrayList<>();
@@ -101,14 +96,10 @@ public class DataOpsService {
 
             run.setSubRuns(List.of(subRun));
 
-            try {
-                subRun.setSimulationArtifacts(SimulationArtifactFactory.load(
-                        nominalCompositionName,
-                        subRun,
-                        runDir.getChildren().get(0))); // passing the SubRun directory
-            } catch (SimulationArtifactNotFoundException ex) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
-            }
+            subRun.setSimulationArtifacts(SimulationArtifactFactory.load(
+                    nominalCompositionName,
+                    subRun,
+                    runDir.getChildren().get(0))); // passing the SubRun directory
 
             runs.add(run);
 
@@ -167,7 +158,7 @@ public class DataOpsService {
 
         // Check that the NominalComposition exists and that its directory exists
         NominalComposition nominalComposition = compositionRepo.findByName(nominalCompositionName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nominal Composition not found"));
+                .orElseThrow(() -> new NominalCompositionNotFoundException(nominalCompositionName));
 
         /*
          * Validate the input payload against the database. Checking if
@@ -211,11 +202,7 @@ public class DataOpsService {
                 nominalCompositionName,
                 request.getRuns());
 
-        try {
-            simulationDirectories.load();
-        } catch (SimulationDirectoryNotFoundException ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
-        }
+        simulationDirectories.load();
 
         // Since everything is OK with the folders, persisting the Runs to DB ...
         Map<Integer, Run> existingRequestedRunsByNumber = existingRequestedRuns.stream()
@@ -235,14 +222,10 @@ public class DataOpsService {
                         .createdAt(Instant.now())
                         .build();
 
-                try {
-                    subRun.setSimulationArtifacts(SimulationArtifactFactory.load(
-                            nominalCompositionName,
-                            subRun,
-                            subRunDir));
-                } catch (SimulationArtifactNotFoundException ex) {
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
-                }
+                subRun.setSimulationArtifacts(SimulationArtifactFactory.load(
+                        nominalCompositionName,
+                        subRun,
+                        subRunDir));
 
                 allNewSubRuns.add(subRun);
 

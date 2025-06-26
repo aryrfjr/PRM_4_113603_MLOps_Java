@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -100,8 +99,7 @@ public class SimulationArtifactFactory {
                     Path resolvedPath = subRunDirPath.resolve(resolvedFileName);
 
                     if (!Files.exists(resolvedPath)) {
-                        throw new SimulationArtifactNotFoundException("Simulation artifact file '" +
-                                resolvedPath.toAbsolutePath() + "',  not found");
+                        throw new SimulationArtifactNotFoundException(resolvedPath.toAbsolutePath().toString());
                     }
 
                     return buildArtifact(resolvedPath, subRun, type, role);

@@ -68,6 +68,7 @@ public class NominalCompositionController {
             summary = "Lists all NominalCompositions ordered by name.",
             description = "Lists all NominalCompositions ordered by name."
     )
+    // TODO: return ResponseEntity
     public List<NominalCompositionDto> listAll() {
         return service.listAll();
     }

@@ -156,17 +156,18 @@ export class PreDeploymentExplorationComponent implements OnInit {
     const payload = { numSimulations: this.nRunsToSchedule };
 
       this.dataOpsService.generate(this.selectedNominalCompositionName ?? "", payload).subscribe({
+
         next: () => {
-          this.scheduleSuccess = `'${this.nRunsToSchedule}' Runs have been scheduled for 
+          this.scheduleSuccess = `'${this.nRunsToSchedule}' Run(s) have been scheduled for 
           Nominal Composition '${this.selectedNominalCompositionName}'. 
           Check in the tab 'View all scheduled runs'.`;
-          // TODO: display the scheduled results in a Data Table?
         },
         error: (err) => {
-          this.scheduleError = `Failed to schedule Runs for 
+          this.scheduleError = err?.error?.message || `Failed to schedule Runs for 
           Nominal Composition '${this.selectedNominalCompositionName}'.`;
-          console.error(err);
+          console.error('Pre-Deployment Exploration error:', err);
         }
+
       });
 
   }

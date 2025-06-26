@@ -5,7 +5,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 
 import { Run } from '../models/run.model';
 
@@ -21,7 +21,17 @@ export class DataOpsService {
   constructor(private http: HttpClient) {}
 
   generate(nominalCompositionName: string, data: { numSimulations: number }): Observable<Run[]> {
-    return this.http.post<Run[]>(`${API_URL}/${nominalCompositionName}`, data);
+    return this.http.post<Run[]>(`${API_URL}/${nominalCompositionName}`, data).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(err: any): Observable<never> {
+
+    console.error('API error:', err);
+
+    return throwError(() => err);
+    
   }
 
 }

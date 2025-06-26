@@ -95,7 +95,7 @@ export class NominalCompositionManagerComponent implements OnInit {
     this.selectedNCName = null;
     this.formName = '';
     this.formDescription = '';
-
+    this.dataError = null; // Clear any previous error
   }
 
   //
@@ -189,24 +189,25 @@ export class NominalCompositionManagerComponent implements OnInit {
 
     this.loadingData = true;
 
+    /*
+    * NOTE: This is a subscription to an Observable in Angular (powered by RxJS).
+    */
     this.service.delete(this.selectedNCName).subscribe({
 
       next: () => {
         this.selectedNCName = null;
         this.formMode = null;
         this.fetchCompositions(); // Refresh list
-        this.dataError = null;    // Clear any previous error
+        this.dataError = null; // Clear any previous error
       },
       error: (err) => {
-        // Optional: display backend error message, if provided
         this.dataError = err?.error?.message || 'Failed to delete nominal composition.';
         console.error('Deletion error:', err);
-      },
-      complete: () => {
-        this.loadingData = false;
       }
 
     });
+
+    this.loadingData = false;
 
   }
 

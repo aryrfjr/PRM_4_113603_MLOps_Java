@@ -8,7 +8,4 @@ public abstract class DeletionNotAllowedException extends RuntimeException {
         super(message);
     }
 
-    public DeletionNotAllowedException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }
