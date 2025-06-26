@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
+import { finalize } from 'rxjs/operators';
+
 import { NominalCompositionService } from '../../core/services/nominal-composition.service';
 import { RunService } from '../../core/services/run.service';
 import { SubRunService } from '../../core/services/sub-run.service';
@@ -19,11 +21,33 @@ import { TableColumn } from '../../shared/components/datatable/datatable.compone
 
 export class PreDeploymentExplorationComponent implements OnInit {
 
-  // Messages related to data operations
-  dataError: string | null = null;
-  loadingData = false;
-  scheduleError: string | null = null;
-  scheduleSuccess: string | null = null;
+  //
+  // Support to a kind of ViewModel from MVVM (Model-View-ViewModel) approach
+  //
+  //////////////////////////////////////////////////////
+
+  get uiState() {
+
+    return {
+      displayLoadingMessage: this.serviceRequestOn,
+      displayScheduleForm: !this.serviceRequestOn && this.selectedNominalCompositionId != null,
+      displayRunsTable: this.runsTableData.length > 0,
+      displaySubRunsTable: this.subRunsTableData.length > 0,
+      displaySimulationArtifactsTable: this.simulationArtifactsTableData.length > 0,
+      suggestNominalCompositionSelection: !this.serviceRequestOn && this.selectedNominalCompositionId === null,
+      isTabScheduleActive: this.activeTab === 'tab1',
+      isTabViewActive: this.activeTab === 'tab2',
+      displayAlertMessage: this.serviceRequestErrorMessage != null || this.scheduleSuccessMessage != null,
+      alertMessageType: this.serviceRequestErrorMessage != null ? "error" : this.scheduleSuccessMessage != null ? "success" : null,
+      alertMessage: this.serviceRequestErrorMessage ?? this.scheduleSuccessMessage ?? null
+    };
+
+  }
+
+  // Messages and flags related to data operations
+  serviceRequestOn = false;
+  serviceRequestErrorMessage: string | null = null;
+  scheduleSuccessMessage: string | null = null;
 
   //
   // Attributes related to the drop-down with Nominal Compositions
@@ -112,6 +136,20 @@ export class PreDeploymentExplorationComponent implements OnInit {
     private dataOpsService: DataOpsService
   ) {}
 
+  cleanMessages(): void {
+    this.serviceRequestErrorMessage = null;
+    this.scheduleSuccessMessage = null;
+  }
+
+  startedServiceRequest(): void {
+    this.serviceRequestOn = true;
+    this.cleanMessages();
+  }
+
+  finalizedServiceRequest(): void {
+    this.serviceRequestOn = false;
+  }
+
   /* 
    * NOTE: This method is a lifecycle hook defined by the OnInit interface. It is 
    *       automatically called by Angular once, just after the component is 
@@ -119,17 +157,20 @@ export class PreDeploymentExplorationComponent implements OnInit {
   */
   ngOnInit(): void {
 
-    this.loadingData = true;
+    this.startedServiceRequest()
 
-    this.nominalCompositionService.getAll().subscribe({
+    // Loading the Nominal Compositions for the corresponding drop-down
+    this.nominalCompositionService.getAll().pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
       next: (data) => {
         this.allNominalCompositions = data
-        this.loadingData = false;
       },
       error: (err) => {
-        console.error('Failed to load Nominal Compositions', err)
-        this.dataError = 'Failed to load Nominal Compositions';
-        this.loadingData = false;
+        console.error('Failed to fetch Nominal Compositions', err)
+        this.serviceRequestErrorMessage = `Failed to fetch Nominal Compositions. Error: ${err?.error?.message}`;
       }
     });
 
@@ -153,22 +194,26 @@ export class PreDeploymentExplorationComponent implements OnInit {
   // Schedule Runs
   scheduleRuns(): void {
 
+    this.startedServiceRequest();
+
     const payload = { numSimulations: this.nRunsToSchedule };
 
-      this.dataOpsService.generate(this.selectedNominalCompositionName ?? "", payload).subscribe({
-
-        next: () => {
-          this.scheduleSuccess = `'${this.nRunsToSchedule}' Run(s) have been scheduled for 
-          Nominal Composition '${this.selectedNominalCompositionName}'. 
-          Check in the tab 'View all scheduled runs'.`;
-        },
-        error: (err) => {
-          this.scheduleError = err?.error?.message || `Failed to schedule Runs for 
-          Nominal Composition '${this.selectedNominalCompositionName}'.`;
-          console.error('Pre-Deployment Exploration error:', err);
-        }
-
-      });
+    this.dataOpsService.generate_explore(this.selectedNominalCompositionName ?? "", payload).pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
+      next: () => {
+        this.scheduleSuccessMessage = `'${this.nRunsToSchedule}' Run(s) have been scheduled for 
+        Nominal Composition '${this.selectedNominalCompositionName}'. 
+        Check in the tab 'View all scheduled runs'.`;
+      },
+      error: (err) => {
+        this.serviceRequestErrorMessage = `Failed to schedule Runs for 
+        Nominal Composition '${this.selectedNominalCompositionName}'. Error: ${err?.error?.message}`;
+        console.error('Pre-Deployment Exploration error:', err);
+      }
+    });
 
   }
 
@@ -186,6 +231,7 @@ export class PreDeploymentExplorationComponent implements OnInit {
     if (this.activeTab === 'tab2') {
       this.fetchRunsForSelectedComposition();
       this.cleanRunsInfo();
+      this.cleanMessages();
     }
 
   }
@@ -194,19 +240,20 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
     if (!this.selectedNominalCompositionId) return;
 
-    this.loadingData = true;
+    this.startedServiceRequest();
 
-    this.runService.getAll(this.selectedNominalCompositionId)
-      .subscribe({
+    this.runService.getAll(this.selectedNominalCompositionId).pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
         next: (data) => {
           this.runsTableData = data
-          this.loadingData = false;
         },
         error: (err) => {
           console.error('Failed to fetch Runs', err);
-          this.dataError = 'Failed to fetch Runs';
-          this.runsTableData = [];
-          this.loadingData = false;
+          this.serviceRequestErrorMessage = `Failed to fetch Runs. Error: ${err?.error?.message}`;
+          this.cleanRunsInfo();
         }
       });
 
@@ -232,6 +279,7 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
     if (this.selectedNominalCompositionId) {
       this.fetchRunsForSelectedComposition();
+      this.cleanMessages();
     }
 
   }
@@ -263,19 +311,20 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
     if (!this.selectedRunId) return;
 
-    this.loadingData = true;
+    this.startedServiceRequest();
 
-    this.subRunService.getAll(this.selectedRunId)
-      .subscribe({
+    this.subRunService.getAll(this.selectedRunId).pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
         next: (data) => {
           this.subRunsTableData = data
-          this.loadingData = false;
         },
         error: (err) => {
           console.error('Failed to fetch SubRuns', err);
-          this.dataError = 'Failed to fetch SubRuns';
-          this.subRunsTableData = [];
-          this.loadingData = false;
+          this.serviceRequestErrorMessage = `Failed to fetch SubRuns. Error: ${err?.error?.message}`;
+          this.cleanSubRunsInfo();
         }
       });
 
@@ -286,7 +335,6 @@ export class PreDeploymentExplorationComponent implements OnInit {
       this.subRunsTableData = [];
       this.selectedSubRunId = null;
       this.selectedSubRunNumber = null;
-      this.simulationArtifactsTableData = [];
       this.cleanSimulationArtifactsInfo();
 
   }
@@ -296,23 +344,20 @@ export class PreDeploymentExplorationComponent implements OnInit {
   //
   //////////////////////////////////////////////////////
 
-  onSubRunsTableRowSelected(genericSubRunId: number | string | null): void {
-    
-    const subRunId = typeof genericSubRunId === 'string' ? +genericSubRunId : genericSubRunId;
+  onSubRunsTableRowSelected(subRunId: number | string | null): void {
 
-    // This is to make the table single-selection
+    this.cleanSimulationArtifactsInfo();
+
+    // When user deselects
     if (this.selectedSubRunId === subRunId) {
       this.selectedSubRunId = null;
       this.selectedSubRunNumber = null;
-      this.cleanSimulationArtifactsInfo();
-      return;
+    } else {
+      // When user selects
+      this.selectedSubRunId = subRunId as number;
+      this.selectedSubRunNumber = this.subRunsTableData.find(subRun => subRun.id === subRunId)?.sub_run_number ?? null;
+      this.fetchSimulationArtifactsForSelectedSubRun();
     }
-
-    // Defining current state
-    this.selectedSubRunId = subRunId;
-    this.selectedSubRunNumber = this.subRunsTableData.find(srun => srun.id === subRunId)?.sub_run_number ?? null;
-
-    this.fetchSimulationArtifactsForSelectedSubRun();
 
   }
 
@@ -320,19 +365,20 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
     if (!this.selectedSubRunId) return;
 
-    this.loadingData = true;
+    this.startedServiceRequest();
 
-    this.simulationArtifactService.getAll(this.selectedSubRunId)
-      .subscribe({
+    this.simulationArtifactService.getAll(this.selectedSubRunId).pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
         next: (data) => {
           this.simulationArtifactsTableData = data
-          this.loadingData = false;
         },
         error: (err) => {
           console.error('Failed to fetch Simulation Artifacts', err);
-          this.dataError = 'Failed to fetch Simulation Artifacts';
-          this.simulationArtifactsTableData = [];
-          this.loadingData = false;
+          this.serviceRequestErrorMessage = `Failed to fetch Simulation Artifacts. Error: ${err?.error?.message}`;
+          this.cleanSimulationArtifactsInfo();
         }
       });
 

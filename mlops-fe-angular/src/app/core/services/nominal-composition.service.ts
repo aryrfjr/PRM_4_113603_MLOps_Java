@@ -30,7 +30,9 @@ export class NominalCompositionService {
   *       freezing the browser.
   */
   getAll(): Observable<NominalComposition[]> {
-    return this.http.get<NominalComposition[]>(API_URL);
+    return this.http.get<NominalComposition[]>(API_URL).pipe(
+      catchError(this.handleError)
+    );
   }
 
   create(data: { name: string; description?: string }): Observable<NominalComposition> {
@@ -40,7 +42,9 @@ export class NominalCompositionService {
   }
 
   update(name: string, data: { description?: string }): Observable<NominalComposition> {
-    return this.http.put<NominalComposition>(`${API_URL}/${name}`, data);
+    return this.http.put<NominalComposition>(`${API_URL}/${name}`, data).pipe(
+      catchError(this.handleError)
+    );
   }
 
   delete(name: string): Observable<void> {

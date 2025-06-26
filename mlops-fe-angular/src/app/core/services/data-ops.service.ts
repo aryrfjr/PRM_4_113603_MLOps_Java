@@ -20,7 +20,7 @@ export class DataOpsService {
 
   constructor(private http: HttpClient) {}
 
-  generate(nominalCompositionName: string, data: { numSimulations: number }): Observable<Run[]> {
+  generate_explore(nominalCompositionName: string, data: { numSimulations: number }): Observable<Run[]> {
     return this.http.post<Run[]>(`${API_URL}/${nominalCompositionName}`, data).pipe(
       catchError(this.handleError)
     );
