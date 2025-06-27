@@ -1,17 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 
 import { finalize } from 'rxjs/operators';
 
 import { NominalCompositionService } from '../../core/services/nominal-composition.service';
 import { RunService } from '../../core/services/run.service';
-import { SubRunService } from '../../core/services/sub-run.service';
-import { SimulationArtifactService } from '../../core/services/simulation-artifact.service';
 import { DataOpsService } from '../../core/services/data-ops.service';
 import { NominalComposition } from '../../core/models/nominal-composition.model';
 import { Run } from '../../core/models/run.model';
-import { SubRun } from '../../core/models/sub-run.model';
-import { SimulationArtifact } from '../../core/models/simulation-artifact.model';
 import { TableColumn } from '../../shared/components/datatable/datatable.component';
+import { SubRunsDataTableComponent } from 'src/app/shared/components/sub-runs-datatable/sub-runs-datatable.component';
 
 @Component({
   selector: 'app-pre-deployment-exploration',
@@ -32,8 +29,7 @@ export class PreDeploymentExplorationComponent implements OnInit {
       displayLoadingMessage: this.serviceRequestOn,
       displayScheduleForm: !this.serviceRequestOn && this.selectedNominalCompositionId != null,
       displayRunsTable: this.runsTableData.length > 0,
-      displaySubRunsTable: this.subRunsTableData.length > 0,
-      displaySimulationArtifactsTable: this.simulationArtifactsTableData.length > 0,
+      displaySubRunsTable: this.selectedRunId != null,
       suggestNominalCompositionSelection: !this.serviceRequestOn && this.selectedNominalCompositionId === null,
       isTabScheduleActive: this.activeTab === 'tab1',
       isTabViewActive: this.activeTab === 'tab2',
@@ -43,6 +39,10 @@ export class PreDeploymentExplorationComponent implements OnInit {
     };
 
   }
+
+  // NOTE: a way to clean SubRuns information
+  @ViewChild(SubRunsDataTableComponent)
+  subRunsDataTableComponent!: SubRunsDataTableComponent;
 
   // Messages and flags related to data operations
   serviceRequestOn = false;
@@ -80,41 +80,6 @@ export class PreDeploymentExplorationComponent implements OnInit {
   ];
 
   //
-  // Attributes related to the DataTable component for SubRuns
-  //
-  //////////////////////////////////////////////////////
-
-  subRunsTableData: SubRun[] = [];
-  subRunSelectedKey = "id"
-  selectedSubRunId: number | null = null;
-  selectedSubRunNumber: number | null = null;
-
-  subRunsTableColumns: TableColumn[] = [
-    { key: 'sub_run_number', label: 'sub-Run #', align: 'right' },
-    { key: 'status', label: 'Status', align: 'center'  },
-    { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'created_by', label: 'Created by' },
-    { key: 'updated_at', label: 'Updated at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'updated_by', label: 'Updated by' },
-    { key: 'started_at', label: 'Started at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'completed_at', label: 'Completed at', align: 'right', type: 'date', dateFormat: 'short' }
-  ];
-
-  //
-  // Attributes related to the DataTable component for SimulationArtifacts
-  //
-  //////////////////////////////////////////////////////
-
-  simulationArtifactsTableData: SimulationArtifact[] = [];
-
-  simulationArtifactsTableColumns: TableColumn[] = [
-    { key: 'artifact_type', label: 'Artifact Type', align: 'center'  },
-    { key: 'file_path', label: 'File Path' },
-    { key: 'file_size', label: 'File Size' },
-    { key: 'checksum', label: 'Checksum' }
-  ];
-
-  //
   // Attributes for the rest of UI components
   //
   //////////////////////////////////////////////////////
@@ -131,8 +96,6 @@ export class PreDeploymentExplorationComponent implements OnInit {
   constructor(// NOTE: All these dependencies will be injected.
     private nominalCompositionService: NominalCompositionService,
     private runService: RunService,
-    private subRunService: SubRunService,
-    private simulationArtifactService: SimulationArtifactService,
     private dataOpsService: DataOpsService
   ) {}
 
@@ -282,42 +245,18 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
   onRunsTableRowSelected(runId: number | string | null): void {
 
-    // This also cleans the Simulation Artifact Data Table
-    this.cleanSubRunsInfo();
-
-    // When user deselects
-    if (this.selectedRunId === runId) {
+    if (this.selectedRunId === runId) { // When user deselects
       this.selectedRunId = null;
       this.selectedRunNumber = null;
-    } else {
-      // When user selects
+    } else { // When user selects a different one
+      
       this.selectedRunId = runId as number;
       this.selectedRunNumber = this.runsTableData.find(run => run.id === runId)?.run_number ?? null;
-      this.fetchSubRunsForSelectedRun();
+
+      // NOTE: a way to clean SubRuns information using @ViewChild (see above)
+      this.subRunsDataTableComponent.cleanSubRunsInfo();
+
     }
-
-  }
-
-  private fetchSubRunsForSelectedRun(): void {
-
-    if (!this.selectedRunId) return;
-
-    this.startedServiceRequest();
-
-    this.subRunService.getAll(this.selectedRunId).pipe(
-      finalize(() => {
-        this.finalizedServiceRequest();
-      })
-    ).subscribe({
-        next: (data) => {
-          this.subRunsTableData = data
-        },
-        error: (err) => {
-          console.error('Failed to fetch SubRuns', err);
-          this.serviceRequestErrorMessage = `Failed to fetch SubRuns. Error: ${err?.error?.message}`;
-          this.cleanSubRunsInfo();
-        }
-      });
 
   }
 
@@ -326,66 +265,7 @@ export class PreDeploymentExplorationComponent implements OnInit {
     this.runsTableData = [];
     this.selectedRunId = null;
     this.selectedRunNumber = null;
-    this.cleanSubRunsInfo();
 
-  }
-
-  //
-  // Methods related to the SubRuns DataTable
-  //
-  //////////////////////////////////////////////////////
-
-  onSubRunsTableRowSelected(subRunId: number | string | null): void {
-
-    this.cleanSimulationArtifactsInfo();
-
-    // When user deselects
-    if (this.selectedSubRunId === subRunId) {
-      this.selectedSubRunId = null;
-      this.selectedSubRunNumber = null;
-    } else {
-      // When user selects
-      this.selectedSubRunId = subRunId as number;
-      this.selectedSubRunNumber = this.subRunsTableData.find(subRun => subRun.id === subRunId)?.sub_run_number ?? null;
-      this.fetchSimulationArtifactsForSelectedSubRun();
-    }
-
-  }
-
-  private fetchSimulationArtifactsForSelectedSubRun(): void {
-
-    if (!this.selectedSubRunId) return;
-
-    this.startedServiceRequest();
-
-    this.simulationArtifactService.getAll(this.selectedSubRunId).pipe(
-      finalize(() => {
-        this.finalizedServiceRequest();
-      })
-    ).subscribe({
-        next: (data) => {
-          this.simulationArtifactsTableData = data
-        },
-        error: (err) => {
-          console.error('Failed to fetch Simulation Artifacts', err);
-          this.serviceRequestErrorMessage = `Failed to fetch Simulation Artifacts. Error: ${err?.error?.message}`;
-          this.cleanSimulationArtifactsInfo();
-        }
-      });
-
-  }
-
-    private cleanSubRunsInfo() {
-
-      this.subRunsTableData = [];
-      this.selectedSubRunId = null;
-      this.selectedSubRunNumber = null;
-      this.cleanSimulationArtifactsInfo();
-
-  }
-
-  private cleanSimulationArtifactsInfo() {
-      this.simulationArtifactsTableData = [];
   }
 
 }

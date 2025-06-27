@@ -1,0 +1,19 @@
+<h3>
+  All sub-Runs that have already been scheduled for Run # "{{
+    selectedRunNumber
+  }}"
+</h3>
+<data-table
+  [columns]="subRunsTableColumns"
+  [data]="subRunsTableData"
+  [rowKeyColumn]="subRunSelectedKey"
+  [selectedRowKeyValue]="selectedSubRunId"
+  (rowSelected)="onSubRunsTableRowSelected($event)"
+>
+</data-table>
+
+<simulation-artifacts-data-table
+  *ngIf="uiState.displaySimulationArtifactsTable"
+  [selectedSubRunId]="selectedSubRunId"
+  [selectedSubRunNumber]="selectedSubRunNumber"
+></simulation-artifacts-data-table>
