@@ -8,7 +8,7 @@ import { DataOpsService } from '../../core/services/data-ops.service';
 import { NominalComposition } from '../../core/models/nominal-composition.model';
 import { Run } from '../../core/models/run.model';
 import { TableColumn } from '../../shared/components/datatable/datatable.component';
-import { SubRunsDataTableComponent } from 'src/app/shared/components/sub-runs-datatable/sub-runs-datatable.component';
+import { SubRunsDataTableComponent } from 'src/app/features/shared/components/sub-runs-datatable/sub-runs-datatable.component';
 
 @Component({
   selector: 'app-pre-deployment-exploration',

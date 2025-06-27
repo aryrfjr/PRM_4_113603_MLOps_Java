@@ -4,9 +4,9 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 
 import { finalize } from 'rxjs/operators';
 
-import { SubRun } from '../../../core/models/sub-run.model';
-import { TableColumn } from '../../../shared/components/datatable/datatable.component';
-import { SubRunService } from '../../../core/services/sub-run.service';
+import { SubRun } from '../../../../core/models/sub-run.model';
+import { TableColumn } from '../../../../shared/components/datatable/datatable.component';
+import { SubRunService } from '../../../../core/services/sub-run.service';
 
 @Component({
   selector: 'sub-runs-data-table', // defines the reusable <sub-runs-data-table> tag
