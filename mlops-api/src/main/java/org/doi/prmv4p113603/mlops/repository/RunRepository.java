@@ -62,4 +62,14 @@ public interface RunRepository extends JpaRepository<Run, Long> {
      */
     List<Run> findAllByNominalCompositionId(Long nominalCompositionId);
 
+    /**
+     * Checks if there are any {@link Run} entity associated to a given NominalComposition ID.
+     * <p>
+     * This method's name allows JPA to derive the query by naming convention.
+     *
+     * @param nominalCompositionId the ID of a given {@link NominalComposition}.
+     * @return a boolean indicating if there are or not entities.
+     */
+    boolean existsByNominalCompositionId(Long nominalCompositionId);
+
 }

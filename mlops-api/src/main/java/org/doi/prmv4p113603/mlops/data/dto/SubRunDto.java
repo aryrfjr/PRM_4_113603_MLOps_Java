@@ -31,9 +31,6 @@ public class SubRunDto {
 
     private Long id;
 
-    @JsonIgnore
-    private Run run;
-
     @JsonProperty("sub_run_number")
     private int subRunNumber;
 

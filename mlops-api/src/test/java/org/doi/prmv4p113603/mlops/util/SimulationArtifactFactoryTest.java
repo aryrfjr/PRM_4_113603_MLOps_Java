@@ -1,5 +1,6 @@
 package org.doi.prmv4p113603.mlops.util;
 
+import org.doi.prmv4p113603.mlops.domain.SimulationArtifactRole;
 import org.doi.prmv4p113603.mlops.domain.SimulationDirectories;
 import org.doi.prmv4p113603.mlops.domain.SimulationType;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
@@ -62,7 +63,8 @@ public class SimulationArtifactFactoryTest {
         List<SimulationArtifact> result = SimulationArtifactFactory.load(
                 nc.getName(),
                 subRun,
-                simulationDirectories.getNominalCompositionDir().getChildren().get(0).getChildren().get(0)
+                simulationDirectories.getNominalCompositionDir().getChildren().get(0).getChildren().get(0),
+                SimulationArtifactRole.INPUT
         );
 
         System.out.println(result.get(0).getArtifactType());
