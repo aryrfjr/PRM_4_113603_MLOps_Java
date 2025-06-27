@@ -90,7 +90,7 @@ export class PreDeploymentExplorationComponent implements OnInit {
   selectedSubRunNumber: number | null = null;
 
   subRunsTableColumns: TableColumn[] = [
-    { key: 'sub_run_number', label: 'SubRun #', align: 'right' },
+    { key: 'sub_run_number', label: 'sub-Run #', align: 'right' },
     { key: 'status', label: 'Status', align: 'center'  },
     { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
     { key: 'created_by', label: 'Created by' },
@@ -136,20 +136,6 @@ export class PreDeploymentExplorationComponent implements OnInit {
     private dataOpsService: DataOpsService
   ) {}
 
-  cleanMessages(): void {
-    this.serviceRequestErrorMessage = null;
-    this.scheduleSuccessMessage = null;
-  }
-
-  startedServiceRequest(): void {
-    this.serviceRequestOn = true;
-    this.cleanMessages();
-  }
-
-  finalizedServiceRequest(): void {
-    this.serviceRequestOn = false;
-  }
-
   /* 
    * NOTE: This method is a lifecycle hook defined by the OnInit interface. It is 
    *       automatically called by Angular once, just after the component is 
@@ -176,44 +162,33 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
   }
 
+  cleanMessages(): void {
+    this.serviceRequestErrorMessage = null;
+    this.scheduleSuccessMessage = null;
+  }
+
+  startedServiceRequest(): void {
+    this.serviceRequestOn = true;
+    this.cleanMessages();
+  }
+
+  finalizedServiceRequest(): void {
+    this.serviceRequestOn = false;
+  }
+
   //
-  // Methods related to input "Number of Calculations"
+  // Methods related to the two tabs
   //
   //////////////////////////////////////////////////////
 
-  // Increases the number of Runs to schedule up to 5
-  incrementNRuns(): void {
-    if (this.nRunsToSchedule < 5) this.nRunsToSchedule++;
-  }
+  activateTab2(): void {
 
-  // Decreases the number of Runs to schedule down to 1
-  decrementNRuns(): void {
-    if (this.nRunsToSchedule > 1) this.nRunsToSchedule--;
-  }  
+    this.activeTab = 'tab2';
 
-  // Schedule Runs
-  scheduleRuns(): void {
-
-    this.startedServiceRequest();
-
-    const payload = { numSimulations: this.nRunsToSchedule };
-
-    this.dataOpsService.generate_explore(this.selectedNominalCompositionName ?? "", payload).pipe(
-      finalize(() => {
-        this.finalizedServiceRequest();
-      })
-    ).subscribe({
-      next: () => {
-        this.scheduleSuccessMessage = `'${this.nRunsToSchedule}' Run(s) have been scheduled for 
-        Nominal Composition '${this.selectedNominalCompositionName}'. 
-        Check in the tab 'View all scheduled runs'.`;
-      },
-      error: (err) => {
-        this.serviceRequestErrorMessage = `Failed to schedule Runs for 
-        Nominal Composition '${this.selectedNominalCompositionName}'. Error: ${err?.error?.message}`;
-        console.error('Pre-Deployment Exploration error:', err);
-      }
-    });
+    if (this.selectedNominalCompositionId) {
+      this.fetchRunsForSelectedComposition();
+      this.cleanMessages();
+    }
 
   }
 
@@ -259,28 +234,44 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
   }
 
-  private cleanRunsInfo() {
-
-    this.runsTableData = [];
-    this.selectedRunId = null;
-    this.selectedRunNumber = null;
-    this.cleanSubRunsInfo();
-
-  }
-
   //
-  // Methods related to the two tabs
+  // Methods related to input "Number of Calculations"
   //
   //////////////////////////////////////////////////////
 
-  activateTab2(): void {
+  // Increases the number of Runs to schedule up to 5
+  incrementNRuns(): void {
+    if (this.nRunsToSchedule < 5) this.nRunsToSchedule++;
+  }
 
-    this.activeTab = 'tab2';
+  // Decreases the number of Runs to schedule down to 1
+  decrementNRuns(): void {
+    if (this.nRunsToSchedule > 1) this.nRunsToSchedule--;
+  }  
 
-    if (this.selectedNominalCompositionId) {
-      this.fetchRunsForSelectedComposition();
-      this.cleanMessages();
-    }
+  // Schedule Runs
+  scheduleRuns(): void {
+
+    this.startedServiceRequest();
+
+    const payload = { numSimulations: this.nRunsToSchedule };
+
+    this.dataOpsService.generate_explore(this.selectedNominalCompositionName ?? "", payload).pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
+      next: () => {
+        this.scheduleSuccessMessage = `'${this.nRunsToSchedule}' Run(s) have been scheduled for 
+        Nominal Composition '${this.selectedNominalCompositionName}'. 
+        Check in the tab 'View all scheduled runs'.`;
+      },
+      error: (err) => {
+        this.serviceRequestErrorMessage = `Failed to schedule Runs for 
+        Nominal Composition '${this.selectedNominalCompositionName}'. Error: ${err?.error?.message}`;
+        console.error('Pre-Deployment Exploration error:', err);
+      }
+    });
 
   }
 
@@ -330,12 +321,12 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
   }
 
-  private cleanSubRunsInfo() {
+  private cleanRunsInfo() {
 
-      this.subRunsTableData = [];
-      this.selectedSubRunId = null;
-      this.selectedSubRunNumber = null;
-      this.cleanSimulationArtifactsInfo();
+    this.runsTableData = [];
+    this.selectedRunId = null;
+    this.selectedRunNumber = null;
+    this.cleanSubRunsInfo();
 
   }
 
@@ -381,6 +372,15 @@ export class PreDeploymentExplorationComponent implements OnInit {
           this.cleanSimulationArtifactsInfo();
         }
       });
+
+  }
+
+    private cleanSubRunsInfo() {
+
+      this.subRunsTableData = [];
+      this.selectedSubRunId = null;
+      this.selectedSubRunNumber = null;
+      this.cleanSimulationArtifactsInfo();
 
   }
 

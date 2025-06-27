@@ -99,7 +99,8 @@ public class DataOpsService {
             subRun.setSimulationArtifacts(SimulationArtifactFactory.load(
                     nominalCompositionName,
                     subRun,
-                    runDir.getChildren().get(0))); // passing the SubRun directory
+                    runDir.getChildren().get(0),  // passing the SubRun directory
+                    SimulationArtifactRole.INPUT)); // only input files
 
             runs.add(run);
 
@@ -225,7 +226,8 @@ public class DataOpsService {
                 subRun.setSimulationArtifacts(SimulationArtifactFactory.load(
                         nominalCompositionName,
                         subRun,
-                        subRunDir));
+                        subRunDir,
+                        SimulationArtifactRole.INPUT)); // only input files
 
                 allNewSubRuns.add(subRun);
 
@@ -258,7 +260,7 @@ public class DataOpsService {
         nominalCompositionDto.getRuns().stream()
                 .flatMap(runDto -> runDto.getSubRuns().stream())
                 .flatMap(subRunDto -> subRunDto.getSimulationArtifacts().stream())
-                .filter(artifactDto -> artifactDto.getArtifactRole().isInput())
+                .filter(artifactDto -> artifactDto.getArtifactRole().isInput()) // only input files
                 .map(SimulationArtifactDto::getFilePath)
                 .forEach(path -> minioStorageService.uploadFile(MinioUtils.pathToKey(path), path));
     }

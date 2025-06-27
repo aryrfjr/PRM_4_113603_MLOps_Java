@@ -19,14 +19,14 @@
       [class.active]="uiState.isTabScheduleActive"
       (click)="activeTab = 'tab1'"
     >
-      Schedule calculations runs
+      Schedule calculations Runs
     </button>
     <button [class.active]="uiState.isTabViewActive" (click)="activateTab2()">
-      View all scheduled runs
+      View all scheduled Runs
     </button>
   </div>
 
-  <!-- Tab "Schedule calculations runs" -->
+  <!-- Tab "Schedule calculations Runs" -->
   <div
     *ngIf="uiState.displayAlertMessage"
     class="{{ uiState.alertMessageType }}"
@@ -41,7 +41,7 @@
 
     <div *ngIf="uiState.displayScheduleForm">
       <label for="calc-count"
-        >Number of Run calculations to be scheduled:</label
+        >Number of Run calculations to be scheduled (up to 5):</label
       >
       <div class="counter">
         <button (click)="decrementNRuns()">−</button>
@@ -52,7 +52,7 @@
     </div>
   </div>
 
-  <!-- Tab "View all scheduled runs" -->
+  <!-- Tab "View all scheduled Runs" -->
   <div *ngIf="uiState.isTabViewActive">
     <p *ngIf="uiState.suggestNominalCompositionSelection">
       Select a Nominal Composition.
@@ -62,6 +62,11 @@
       All Runs that have already been scheduled for Nominal Composition "{{
         selectedNominalCompositionName
       }}"
+    </h3>
+    <h3 *ngIf="!uiState.displayRunsTable">
+      No Runs scheduled for Nominal Composition "{{
+        selectedNominalCompositionName
+      }}" so far
     </h3>
     <data-table
       *ngIf="uiState.displayRunsTable"
@@ -74,7 +79,7 @@
     </data-table>
 
     <h3 *ngIf="uiState.displaySubRunsTable">
-      All SubRuns that have already been scheduled for Run # "{{
+      All sub-Runs that have already been scheduled for Run # "{{
         selectedRunNumber
       }}"
     </h3>
@@ -89,7 +94,7 @@
     </data-table>
 
     <h3 *ngIf="uiState.displaySimulationArtifactsTable">
-      All Simulation Artifacts for SubRun # "{{ selectedSubRunNumber }}"
+      All Simulation Artifacts for sub-Run # "{{ selectedSubRunNumber }}"
     </h3>
     <data-table
       *ngIf="uiState.displaySimulationArtifactsTable"
