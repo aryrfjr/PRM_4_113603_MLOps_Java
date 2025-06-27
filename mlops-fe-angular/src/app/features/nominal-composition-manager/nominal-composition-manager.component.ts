@@ -4,6 +4,8 @@
 
 import { Component, OnInit } from '@angular/core';
 
+import { Observable } from 'rxjs';
+
 import { NominalCompositionService } from 'src/app/core/services/nominal-composition.service';
 import { NominalComposition } from 'src/app/core/models/nominal-composition.model';
 import { TableColumn } from '../../shared/components/datatable/datatable.component';
@@ -93,7 +95,7 @@ export class NominalCompositionManagerComponent implements OnInit {
     this.selectedNCName = null;
     this.formName = '';
     this.formDescription = '';
-
+    this.dataError = null; // Clear any previous error
   }
 
   //
@@ -176,23 +178,36 @@ export class NominalCompositionManagerComponent implements OnInit {
 
   }
 
+  // TODO: Use MatSnackBar from Angular Material (https://material.angular.dev/).
   deleteSelected(): void {
 
     if (!this.selectedNCName) return;
 
-    if (confirm(`Are you sure you want to delete '${this.selectedNCName}'?`)) {
-      this.service.delete(this.selectedNCName).subscribe({
-        next: () => {
-          this.selectedNCName = null;
-          this.formMode = null;
-          this.fetchCompositions();
-        },
-        error: (err) => {
-          this.dataError = 'Failed to delete.';
-          console.error(err);
-        }
-      });
-    }
+    const confirmed = window.confirm(`Are you sure you want to delete '${this.selectedNCName}'?`);
+
+    if (!confirmed) return;
+
+    this.loadingData = true;
+
+    /*
+    * NOTE: This is a subscription to an Observable in Angular (powered by RxJS).
+    */
+    this.service.delete(this.selectedNCName).subscribe({
+
+      next: () => {
+        this.selectedNCName = null;
+        this.formMode = null;
+        this.fetchCompositions(); // Refresh list
+        this.dataError = null; // Clear any previous error
+      },
+      error: (err) => {
+        this.dataError = err?.error?.message || 'Failed to delete nominal composition.';
+        console.error('Deletion error:', err);
+      }
+
+    });
+
+    this.loadingData = false;
 
   }
 

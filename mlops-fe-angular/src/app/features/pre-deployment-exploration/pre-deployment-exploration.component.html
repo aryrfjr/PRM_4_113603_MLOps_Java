@@ -15,27 +15,33 @@
 
   <!-- Tabs -->
   <div class="tabs">
-    <button [class.active]="activeTab === 'tab1'" (click)="activeTab = 'tab1'">
-      Schedule calculations runs
+    <button
+      [class.active]="uiState.isTabScheduleActive"
+      (click)="activeTab = 'tab1'"
+    >
+      Schedule calculations Runs
     </button>
-    <button [class.active]="activeTab === 'tab2'" (click)="activateTab2()">
-      View all scheduled runs
+    <button [class.active]="uiState.isTabViewActive" (click)="activateTab2()">
+      View all scheduled Runs
     </button>
   </div>
 
-  <!-- Tab Schedule calculations runs -->
+  <!-- Tab "Schedule calculations Runs" -->
+  <div
+    *ngIf="uiState.displayAlertMessage"
+    class="{{ uiState.alertMessageType }}"
+  >
+    {{ uiState.alertMessage }}
+  </div>
 
-  <div *ngIf="scheduleError" class="error">{{ scheduleError }}</div>
-  <div *ngIf="scheduleSuccess" class="success">{{ scheduleSuccess }}</div>
-
-  <div *ngIf="activeTab === 'tab1'">
-    <p *ngIf="!loadingData && selectedNominalCompositionId === null">
+  <div *ngIf="uiState.isTabScheduleActive">
+    <p *ngIf="uiState.suggestNominalCompositionSelection">
       Select a Nominal Composition to schedule Runs for.
     </p>
 
-    <div *ngIf="!loadingData && selectedNominalCompositionId != null">
+    <div *ngIf="uiState.displayScheduleForm">
       <label for="calc-count"
-        >Number of Run calculations to be scheduled:</label
+        >Number of Run calculations to be scheduled (up to 5):</label
       >
       <div class="counter">
         <button (click)="decrementNRuns()">−</button>
@@ -46,29 +52,24 @@
     </div>
   </div>
 
-  <!-- 
-
-  View all scheduled runs
-  
-  TODO: *ngIf="runs.length > 0; else noRuns" was in <table> ... extract to generic table such a behavior? 
-
-  <ng-template #noRuns>
-      <p>No runs available for the selected nominal composition.</p>
-  </ng-template>
-  -->
-
-  <div *ngIf="activeTab === 'tab2'">
-    <p *ngIf="!loadingData && selectedNominalCompositionId === null">
+  <!-- Tab "View all scheduled Runs" -->
+  <div *ngIf="uiState.isTabViewActive">
+    <p *ngIf="uiState.suggestNominalCompositionSelection">
       Select a Nominal Composition.
     </p>
 
-    <h3 *ngIf="runsTableData.length > 0">
+    <h3 *ngIf="uiState.displayRunsTable">
       All Runs that have already been scheduled for Nominal Composition "{{
         selectedNominalCompositionName
       }}"
     </h3>
+    <h3 *ngIf="!uiState.displayRunsTable">
+      No Runs scheduled for Nominal Composition "{{
+        selectedNominalCompositionName
+      }}" so far
+    </h3>
     <data-table
-      *ngIf="runsTableData.length > 0"
+      *ngIf="uiState.displayRunsTable"
       [columns]="runsTableColumns"
       [data]="runsTableData"
       [rowKeyColumn]="runSelectedKey"
@@ -77,29 +78,10 @@
     >
     </data-table>
 
-    <h3 *ngIf="subRunsTableData.length > 0">
-      All SubRuns that have already been scheduled for Run # "{{
-        selectedRunNumber
-      }}"
-    </h3>
-    <data-table
-      *ngIf="subRunsTableData.length > 0"
-      [columns]="subRunsTableColumns"
-      [data]="subRunsTableData"
-      [rowKeyColumn]="subRunSelectedKey"
-      [selectedRowKeyValue]="selectedSubRunId"
-      (rowSelected)="onSubRunsTableRowSelected($event)"
-    >
-    </data-table>
-
-    <h3 *ngIf="simulationArtifactsTableData.length > 0">
-      All Simulation Archetypes SubRun # "{{ selectedSubRunNumber }}"
-    </h3>
-    <data-table
-      *ngIf="simulationArtifactsTableData.length > 0"
-      [columns]="simulationArtifactsTableColumns"
-      [data]="simulationArtifactsTableData"
-    >
-    </data-table>
+    <sub-runs-data-table
+      *ngIf="uiState.displaySubRunsTable"
+      [selectedRunId]="selectedRunId"
+      [selectedRunNumber]="selectedRunNumber"
+    ></sub-runs-data-table>
   </div>
 </div>

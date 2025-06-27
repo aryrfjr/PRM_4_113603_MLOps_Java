@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,42 +30,49 @@ public class SimulationArtifactFactory {
          */
     }
 
-    public static List<SimulationArtifact> load(String nominalCompositionName, SubRun subRun, SimulationDirectory subRunDir) {
+    public static List<SimulationArtifact> load(String nominalCompositionName,
+                                                SubRun subRun,
+                                                SimulationDirectory subRunDir,
+                                                SimulationArtifactRole role) {
 
         List<SimulationArtifact> loaded = new ArrayList<>();
 
         // SubRun 0 is the reference structure and also contains the Runs inputs/outputs as artifacts
         if (subRun.getSubRunNumber() == 0) {
 
-            loaded.addAll(loadExpectedSimulationArtifacts(
-                    ExpectedSimulationArtifacts.RUN_INPUTS,
-                    nominalCompositionName,
-                    subRun,
-                    subRunDir.getParent().getPath(),
-                    SimulationArtifactRole.INPUT));
-
-            loaded.addAll(loadExpectedSimulationArtifacts(
-                    ExpectedSimulationArtifacts.RUN_OUTPUTS,
-                    nominalCompositionName,
-                    subRun,
-                    subRunDir.getParent().getPath(),
-                    SimulationArtifactRole.OUTPUT));
+            if (role == SimulationArtifactRole.INPUT) {
+                loaded.addAll(loadExpectedSimulationArtifacts(
+                        ExpectedSimulationArtifacts.RUN_INPUTS,
+                        nominalCompositionName,
+                        subRun,
+                        subRunDir.getParent().getPath(),
+                        SimulationArtifactRole.INPUT));
+            } else if (role == SimulationArtifactRole.OUTPUT) {
+                loaded.addAll(loadExpectedSimulationArtifacts(
+                        ExpectedSimulationArtifacts.RUN_OUTPUTS,
+                        nominalCompositionName,
+                        subRun,
+                        subRunDir.getParent().getPath(),
+                        SimulationArtifactRole.OUTPUT));
+            }
 
         }
 
-        loaded.addAll(loadExpectedSimulationArtifacts(
-                ExpectedSimulationArtifacts.SUB_RUN_INPUTS,
-                nominalCompositionName,
-                subRun,
-                subRunDir.getPath(),
-                SimulationArtifactRole.INPUT));
-
-        loaded.addAll(loadExpectedSimulationArtifacts(
-                ExpectedSimulationArtifacts.SUB_RUN_OUTPUTS,
-                nominalCompositionName,
-                subRun,
-                subRunDir.getPath(),
-                SimulationArtifactRole.OUTPUT));
+        if (role == SimulationArtifactRole.INPUT) {
+            loaded.addAll(loadExpectedSimulationArtifacts(
+                    ExpectedSimulationArtifacts.SUB_RUN_INPUTS,
+                    nominalCompositionName,
+                    subRun,
+                    subRunDir.getPath(),
+                    SimulationArtifactRole.INPUT));
+        } else if (role == SimulationArtifactRole.OUTPUT) {
+            loaded.addAll(loadExpectedSimulationArtifacts(
+                    ExpectedSimulationArtifacts.SUB_RUN_OUTPUTS,
+                    nominalCompositionName,
+                    subRun,
+                    subRunDir.getPath(),
+                    SimulationArtifactRole.OUTPUT));
+        }
 
         return loaded;
 
@@ -100,8 +106,7 @@ public class SimulationArtifactFactory {
                     Path resolvedPath = subRunDirPath.resolve(resolvedFileName);
 
                     if (!Files.exists(resolvedPath)) {
-                        throw new SimulationArtifactNotFoundException("Simulation artifact file '" +
-                                resolvedPath.toAbsolutePath() + "',  not found");
+                        throw new SimulationArtifactNotFoundException(resolvedPath.toAbsolutePath().toString());
                     }
 
                     return buildArtifact(resolvedPath, subRun, type, role);
