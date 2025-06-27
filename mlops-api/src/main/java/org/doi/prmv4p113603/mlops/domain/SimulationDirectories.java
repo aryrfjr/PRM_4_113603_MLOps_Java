@@ -4,11 +4,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
+import org.doi.prmv4p113603.mlops.exception.DataOpsInternalInconsistencyException;
 import org.doi.prmv4p113603.mlops.exception.SimulationDirectoryNotFoundException;
 import org.doi.prmv4p113603.mlops.util.FileSystemUtils;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -43,7 +42,8 @@ public class SimulationDirectories {
     public SimulationDirectory getNominalCompositionDir() {
 
         if (nominalCompositionDir == null) {
-            throw new IllegalStateException("The method load() must be called before use.");
+            throw new DataOpsInternalInconsistencyException(
+                    "The method load() must be called before the method getNominalCompositionDir().");
         }
 
         return nominalCompositionDir;
@@ -59,7 +59,7 @@ public class SimulationDirectories {
 
         if (!FileSystemUtils.pathExists(nominalCompositionDirName) ||
                 !FileSystemUtils.pathExists(nominalCompositionDirName + "-SOAPS")) {
-            throw new SimulationDirectoryNotFoundException("Directory not found: " + nominalCompositionDirName + "(-SOAPS)");
+            throw new SimulationDirectoryNotFoundException(nominalCompositionDirName + "(-SOAPS)");
         } else {
 
             nominalCompositionDir = new SimulationDirectory(
@@ -69,7 +69,7 @@ public class SimulationDirectories {
             if (simulationType.isExploration()) {
 
                 if (exploreNextRunNumber == -1 || exploreNumSimulations == -1) {
-                    throw new IllegalStateException("nextRunNumber and numSimulations not set.");
+                    throw new DataOpsInternalInconsistencyException("Attributes nextRunNumber and numSimulations not set.");
                 }
 
                 // Checking the consistency of directories for all requested Runs and SubRuns
@@ -79,9 +79,10 @@ public class SimulationDirectories {
                     String runDirName = FileSystemUtils.join(nominalCompositionDirName, "c/md/lammps/100", String.valueOf(runNumber));
                     String subRunDirName = FileSystemUtils.join(runDirName, "2000/0");
 
-                    if (!FileSystemUtils.pathExists(runDirName) || !FileSystemUtils.pathExists(subRunDirName)) {
-                        throw new SimulationDirectoryNotFoundException("Directory for ID_RUN '" + runNumber +
-                                "' or for SUB_RUN '0' not found for Nominal Composition '" + nominalCompositionName + "'");
+                    if (!FileSystemUtils.pathExists(runDirName)) {
+                        throw new SimulationDirectoryNotFoundException(runDirName);
+                    } else if (!FileSystemUtils.pathExists(subRunDirName)) {
+                        throw new SimulationDirectoryNotFoundException(subRunDirName);
                     } else {
 
                         SimulationDirectory runDir = new SimulationDirectory(runDirName, SimulationArtifactScope.RUN, runNumber);
@@ -99,7 +100,7 @@ public class SimulationDirectories {
             } else if (simulationType.isExploitation()) {
 
                 if (exploitRuns == null) {
-                    throw new IllegalStateException("exploitRuns not set.");
+                    throw new DataOpsInternalInconsistencyException("Attribute exploitRuns not set.");
                 }
 
                 for (ScheduleExploitationRequest.RunInput runInput : exploitRuns) {
@@ -107,8 +108,7 @@ public class SimulationDirectories {
                     String runDirName = FileSystemUtils.join(nominalCompositionDirName, "c/md/lammps/100", String.valueOf(runInput.getRunNumber()));
 
                     if (!FileSystemUtils.pathExists(runDirName)) {
-                        throw new SimulationDirectoryNotFoundException("Directory for ID_RUN '" + runInput.getRunNumber() +
-                                "' not found for Nominal Composition '" + nominalCompositionName + "'");
+                        throw new SimulationDirectoryNotFoundException(runDirName);
                     }
 
                     SimulationDirectory runDir = new SimulationDirectory(runDirName,
@@ -119,8 +119,7 @@ public class SimulationDirectories {
                         String subRunDirName = FileSystemUtils.join(runDirName, "2000/", String.valueOf(subRunId));
 
                         if (!FileSystemUtils.pathExists(subRunDirName)) {
-                            throw new SimulationDirectoryNotFoundException("Directory for SUB_RUN '" + runInput.getRunNumber() +
-                                    "' not found for Nominal Composition '" + nominalCompositionName + "'");
+                            throw new SimulationDirectoryNotFoundException(subRunDirName);
                         }
 
                         SimulationDirectory subRunDir = new SimulationDirectory(subRunDirName,

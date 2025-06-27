@@ -5,7 +5,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 
 import { NominalComposition } from '../models/nominal-composition.model';
 
@@ -30,19 +30,35 @@ export class NominalCompositionService {
   *       freezing the browser.
   */
   getAll(): Observable<NominalComposition[]> {
-    return this.http.get<NominalComposition[]>(API_URL);
+    return this.http.get<NominalComposition[]>(API_URL).pipe(
+      catchError(this.handleError)
+    );
   }
 
   create(data: { name: string; description?: string }): Observable<NominalComposition> {
-    return this.http.post<NominalComposition>(API_URL, data);
+    return this.http.post<NominalComposition>(API_URL, data).pipe(
+      catchError(this.handleError)
+    );
   }
 
   update(name: string, data: { description?: string }): Observable<NominalComposition> {
-    return this.http.put<NominalComposition>(`${API_URL}/${name}`, data);
+    return this.http.put<NominalComposition>(`${API_URL}/${name}`, data).pipe(
+      catchError(this.handleError)
+    );
   }
 
   delete(name: string): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/${name}`);
+    return this.http.delete<void>(`${API_URL}/${name}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(err: any): Observable<never> {
+
+    console.error('API error:', err);
+
+    return throwError(() => err);
+    
   }
 
 }

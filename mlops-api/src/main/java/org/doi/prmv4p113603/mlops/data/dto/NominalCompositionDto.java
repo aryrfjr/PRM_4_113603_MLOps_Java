@@ -4,11 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
 import lombok.*;
+import org.doi.prmv4p113603.mlops.model.Run;
 import org.doi.prmv4p113603.mlops.model.SubRun;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -74,11 +75,13 @@ public class NominalCompositionDto {
     }
 
     // Used in the DataOps service when an exploration is requested
-    public static NominalCompositionDto fromScheduleExploreRequest(NominalComposition nc) {
+    public static NominalCompositionDto fromScheduleExplorationRequest(NominalComposition nc, List<Run> runs) {
+
+        // TODO: refactor maybe extracting some pieces to SimulationArtifactDto, SubRunDto, or RunDto
 
         return NominalCompositionDto.builder()
                 .name(nc.getName())
-                .runs(nc.getRuns().stream()
+                .runs(runs.stream()
                         .map(run -> RunDto.builder()
                                 .runNumber(run.getRunNumber())
                                 .status(run.getStatus())
@@ -108,40 +111,44 @@ public class NominalCompositionDto {
 
     }
 
-    // Used in the DataOps service when an exploitation is requested
-    public static NominalCompositionDto fromScheduleExploitRequest(
-            NominalComposition nc,
-            Map<Long, List<SubRun>> newSubRunsByRunId) {
+    // Used in the DataOps service when an exploration is requested
+    public static NominalCompositionDto fromScheduleExploitationRequest(NominalComposition nc, List<Run> runs, List<SubRun> subRuns) {
 
-        return NominalCompositionDto.builder()
+        // TODO: refactor maybe extracting some pieces to SimulationArtifactDto, SubRunDto, or RunDto
+
+        NominalCompositionDto ncDto = NominalCompositionDto.builder()
                 .name(nc.getName())
-                .runs(nc.getRuns().stream()
+                .runs(runs.stream()
                         .map(run -> RunDto.builder()
                                 .runNumber(run.getRunNumber())
                                 .status(run.getStatus())
                                 .createdAt(run.getCreatedAt())
                                 .createdBy(run.getCreatedBy())
-                                .subRuns(
-                                        newSubRunsByRunId.getOrDefault(run.getId(), List.of()).stream()
-                                                .map(srun -> SubRunDto.builder()
-                                                        .subRunNumber(srun.getSubRunNumber())
-                                                        .status(srun.getStatus())
-                                                        .createdAt(srun.getCreatedAt())
-                                                        .completedAt(srun.getCompletedAt())
-                                                        .simulationArtifacts(
-                                                                srun.getSimulationArtifacts().stream()
-                                                                        .map(sas -> SimulationArtifactDto.builder()
-                                                                                .artifactType(sas.getArtifactType())
-                                                                                .artifactRole(sas.getArtifactRole())
-                                                                                .filePath(sas.getFilePath())
-                                                                                .fileSize(sas.getFileSize())
-                                                                                .build())
-                                                                        .collect(Collectors.toList()))
-                                                        .build())
-                                                .collect(Collectors.toList()))
+                                .subRuns(subRuns.stream()
+                                        .filter(subRun -> Objects.equals(subRun.getRun().getId(), run.getId()))
+                                        .toList().stream()
+                                        .map(srun -> SubRunDto.builder()
+                                                .subRunNumber(srun.getSubRunNumber())
+                                                .status(srun.getStatus())
+                                                .createdAt(srun.getCreatedAt())
+                                                .completedAt(srun.getCompletedAt())
+                                                .simulationArtifacts(
+                                                        srun.getSimulationArtifacts().stream()
+                                                                .map(sas -> SimulationArtifactDto.builder()
+                                                                        .artifactType(sas.getArtifactType())
+                                                                        .artifactRole(sas.getArtifactRole())
+                                                                        .filePath(sas.getFilePath())
+                                                                        .fileSize(sas.getFileSize())
+                                                                        .build())
+                                                                .collect(Collectors.toList()))
+                                                .build())
+                                        .collect(Collectors.toList()))
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
+
+        return ncDto;
+
     }
 
 }

@@ -1,15 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+
+import { finalize } from 'rxjs/operators';
 
 import { NominalCompositionService } from '../../core/services/nominal-composition.service';
 import { RunService } from '../../core/services/run.service';
-import { SubRunService } from '../../core/services/sub-run.service';
-import { SimulationArtifactService } from '../../core/services/simulation-artifact.service';
 import { DataOpsService } from '../../core/services/data-ops.service';
 import { NominalComposition } from '../../core/models/nominal-composition.model';
 import { Run } from '../../core/models/run.model';
-import { SubRun } from '../../core/models/sub-run.model';
-import { SimulationArtifact } from '../../core/models/simulation-artifact.model';
 import { TableColumn } from '../../shared/components/datatable/datatable.component';
+import { SubRunsDataTableComponent } from 'src/app/shared/components/sub-runs-datatable/sub-runs-datatable.component';
 
 @Component({
   selector: 'app-pre-deployment-exploration',
@@ -19,11 +18,36 @@ import { TableColumn } from '../../shared/components/datatable/datatable.compone
 
 export class PreDeploymentExplorationComponent implements OnInit {
 
-  // Messages related to data operations
-  dataError: string | null = null;
-  loadingData = false;
-  scheduleError: string | null = null;
-  scheduleSuccess: string | null = null;
+  //
+  // Support to a kind of ViewModel from MVVM (Model-View-ViewModel) approach
+  //
+  //////////////////////////////////////////////////////
+
+  get uiState() {
+
+    return {
+      displayLoadingMessage: this.serviceRequestOn,
+      displayScheduleForm: !this.serviceRequestOn && this.selectedNominalCompositionId != null,
+      displayRunsTable: this.runsTableData.length > 0,
+      displaySubRunsTable: this.selectedRunId != null,
+      suggestNominalCompositionSelection: !this.serviceRequestOn && this.selectedNominalCompositionId === null,
+      isTabScheduleActive: this.activeTab === 'tab1',
+      isTabViewActive: this.activeTab === 'tab2',
+      displayAlertMessage: this.serviceRequestErrorMessage != null || this.scheduleSuccessMessage != null,
+      alertMessageType: this.serviceRequestErrorMessage != null ? "error" : this.scheduleSuccessMessage != null ? "success" : null,
+      alertMessage: this.serviceRequestErrorMessage ?? this.scheduleSuccessMessage ?? null
+    };
+
+  }
+
+  // NOTE: a way to clean SubRuns information
+  @ViewChild(SubRunsDataTableComponent)
+  subRunsDataTableComponent!: SubRunsDataTableComponent;
+
+  // Messages and flags related to data operations
+  serviceRequestOn = false;
+  serviceRequestErrorMessage: string | null = null;
+  scheduleSuccessMessage: string | null = null;
 
   //
   // Attributes related to the drop-down with Nominal Compositions
@@ -56,41 +80,6 @@ export class PreDeploymentExplorationComponent implements OnInit {
   ];
 
   //
-  // Attributes related to the DataTable component for SubRuns
-  //
-  //////////////////////////////////////////////////////
-
-  subRunsTableData: SubRun[] = [];
-  subRunSelectedKey = "id"
-  selectedSubRunId: number | null = null;
-  selectedSubRunNumber: number | null = null;
-
-  subRunsTableColumns: TableColumn[] = [
-    { key: 'sub_run_number', label: 'SubRun #', align: 'right' },
-    { key: 'status', label: 'Status', align: 'center'  },
-    { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'created_by', label: 'Created by' },
-    { key: 'updated_at', label: 'Updated at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'updated_by', label: 'Updated by' },
-    { key: 'started_at', label: 'Started at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'completed_at', label: 'Completed at', align: 'right', type: 'date', dateFormat: 'short' }
-  ];
-
-  //
-  // Attributes related to the DataTable component for SimulationArtifacts
-  //
-  //////////////////////////////////////////////////////
-
-  simulationArtifactsTableData: SimulationArtifact[] = [];
-
-  simulationArtifactsTableColumns: TableColumn[] = [
-    { key: 'artifact_type', label: 'Artifact Type', align: 'center'  },
-    { key: 'file_path', label: 'File Path' },
-    { key: 'file_size', label: 'File Size' },
-    { key: 'checksum', label: 'Checksum' }
-  ];
-
-  //
   // Attributes for the rest of UI components
   //
   //////////////////////////////////////////////////////
@@ -107,8 +96,6 @@ export class PreDeploymentExplorationComponent implements OnInit {
   constructor(// NOTE: All these dependencies will be injected.
     private nominalCompositionService: NominalCompositionService,
     private runService: RunService,
-    private subRunService: SubRunService,
-    private simulationArtifactService: SimulationArtifactService,
     private dataOpsService: DataOpsService
   ) {}
 
@@ -119,19 +106,94 @@ export class PreDeploymentExplorationComponent implements OnInit {
   */
   ngOnInit(): void {
 
-    this.loadingData = true;
+    this.startedServiceRequest()
 
-    this.nominalCompositionService.getAll().subscribe({
+    // Loading the Nominal Compositions for the corresponding drop-down
+    this.nominalCompositionService.getAll().pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
       next: (data) => {
         this.allNominalCompositions = data
-        this.loadingData = false;
       },
       error: (err) => {
-        console.error('Failed to load Nominal Compositions', err)
-        this.dataError = 'Failed to load Nominal Compositions';
-        this.loadingData = false;
+        console.error('Failed to fetch Nominal Compositions', err)
+        this.serviceRequestErrorMessage = `Failed to fetch Nominal Compositions. Error: ${err?.error?.message}`;
       }
     });
+
+  }
+
+  cleanMessages(): void {
+    this.serviceRequestErrorMessage = null;
+    this.scheduleSuccessMessage = null;
+  }
+
+  startedServiceRequest(): void {
+    this.serviceRequestOn = true;
+    this.cleanMessages();
+  }
+
+  finalizedServiceRequest(): void {
+    this.serviceRequestOn = false;
+  }
+
+  //
+  // Methods related to the two tabs
+  //
+  //////////////////////////////////////////////////////
+
+  activateTab2(): void {
+
+    this.activeTab = 'tab2';
+
+    if (this.selectedNominalCompositionId) {
+      this.fetchRunsForSelectedComposition();
+      this.cleanMessages();
+    }
+
+  }
+
+  //
+  // Methods related to input "Select Nominal Composition"
+  //
+  //////////////////////////////////////////////////////
+
+  onNominalCompositionSelected(nominalId: number): void {
+
+    // NOTE: The + coerces nominalId to a number
+    this.selectedNominalCompositionId = nominalId;
+    this.selectedNominalCompositionName = this.allNominalCompositions.find(nc => nc.id === +nominalId)?.name ?? null;
+
+    if (this.activeTab === 'tab2') {
+      this.fetchRunsForSelectedComposition();
+      this.cleanRunsInfo();
+      this.cleanMessages();
+    }
+
+  }
+
+  private fetchRunsForSelectedComposition(): void {
+
+    if (!this.selectedNominalCompositionId) return;
+
+    this.startedServiceRequest();
+
+    this.runService.getAll(this.selectedNominalCompositionId).pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
+        next: (data) => {
+          this.runsTableData = data
+        },
+        error: (err) => {
+          console.error('Failed to fetch Runs', err);
+          this.serviceRequestErrorMessage = `Failed to fetch Runs. Error: ${err?.error?.message}`;
+          this.cleanRunsInfo();
+        }
+      });
 
   }
 
@@ -153,84 +215,26 @@ export class PreDeploymentExplorationComponent implements OnInit {
   // Schedule Runs
   scheduleRuns(): void {
 
+    this.startedServiceRequest();
+
     const payload = { numSimulations: this.nRunsToSchedule };
 
-      this.dataOpsService.generate(this.selectedNominalCompositionName ?? "", payload).subscribe({
-        next: () => {
-          this.scheduleSuccess = `'${this.nRunsToSchedule}' Runs have been scheduled for 
-          Nominal Composition '${this.selectedNominalCompositionName}'. 
-          Check in the tab 'View all scheduled runs'.`;
-          // TODO: display the scheduled results in a Data Table?
-        },
-        error: (err) => {
-          this.scheduleError = `Failed to schedule Runs for 
-          Nominal Composition '${this.selectedNominalCompositionName}'.`;
-          console.error(err);
-        }
-      });
-
-  }
-
-  //
-  // Methods related to input "Select Nominal Composition"
-  //
-  //////////////////////////////////////////////////////
-
-  onNominalCompositionSelected(nominalId: number): void {
-
-    this.selectedNominalCompositionId = nominalId;
-    this.selectedNominalCompositionName = this.allNominalCompositions.find(nc => nc.id === 1)?.name ?? null;
-
-    if (this.activeTab === 'tab2') {
-      this.fetchRunsForSelectedComposition();
-      this.cleanRunsInfo();
-    }
-
-  }
-
-  private fetchRunsForSelectedComposition(): void {
-
-    if (!this.selectedNominalCompositionId) return;
-
-    this.loadingData = true;
-
-    this.runService.getAll(this.selectedNominalCompositionId)
-      .subscribe({
-        next: (data) => {
-          this.runsTableData = data
-          this.loadingData = false;
-        },
-        error: (err) => {
-          console.error('Failed to fetch Runs', err);
-          this.dataError = 'Failed to fetch Runs';
-          this.runsTableData = [];
-          this.loadingData = false;
-        }
-      });
-
-  }
-
-  private cleanRunsInfo() {
-
-    this.runsTableData = [];
-    this.selectedRunId = null;
-    this.selectedRunNumber = null;
-    this.cleanSubRunsInfo();
-
-  }
-
-  //
-  // Methods related to the two tabs
-  //
-  //////////////////////////////////////////////////////
-
-  activateTab2(): void {
-
-    this.activeTab = 'tab2';
-
-    if (this.selectedNominalCompositionId) {
-      this.fetchRunsForSelectedComposition();
-    }
+    this.dataOpsService.generate_explore(this.selectedNominalCompositionName ?? "", payload).pipe(
+      finalize(() => {
+        this.finalizedServiceRequest();
+      })
+    ).subscribe({
+      next: () => {
+        this.scheduleSuccessMessage = `'${this.nRunsToSchedule}' Run(s) have been scheduled for 
+        Nominal Composition '${this.selectedNominalCompositionName}'. 
+        Check in the tab 'View all scheduled runs'.`;
+      },
+      error: (err) => {
+        this.serviceRequestErrorMessage = `Failed to schedule Runs for 
+        Nominal Composition '${this.selectedNominalCompositionName}'. Error: ${err?.error?.message}`;
+        console.error('Pre-Deployment Exploration error:', err);
+      }
+    });
 
   }
 
@@ -241,103 +245,27 @@ export class PreDeploymentExplorationComponent implements OnInit {
 
   onRunsTableRowSelected(runId: number | string | null): void {
 
-    // This also cleans the Simulation Artifact Data Table
-    this.cleanSubRunsInfo();
-
-    // When user deselects
-    if (this.selectedRunId === runId) {
+    if (this.selectedRunId === runId) { // When user deselects
       this.selectedRunId = null;
       this.selectedRunNumber = null;
-    } else {
-      // When user selects
+    } else { // When user selects a different one
+      
       this.selectedRunId = runId as number;
       this.selectedRunNumber = this.runsTableData.find(run => run.id === runId)?.run_number ?? null;
-      this.fetchSubRunsForSelectedRun();
+
+      // NOTE: a way to clean SubRuns information using @ViewChild (see above)
+      this.subRunsDataTableComponent.cleanSubRunsInfo();
+
     }
 
   }
 
-  private fetchSubRunsForSelectedRun(): void {
+  private cleanRunsInfo() {
 
-    if (!this.selectedRunId) return;
+    this.runsTableData = [];
+    this.selectedRunId = null;
+    this.selectedRunNumber = null;
 
-    this.loadingData = true;
-
-    this.subRunService.getAll(this.selectedRunId)
-      .subscribe({
-        next: (data) => {
-          this.subRunsTableData = data
-          this.loadingData = false;
-        },
-        error: (err) => {
-          console.error('Failed to fetch SubRuns', err);
-          this.dataError = 'Failed to fetch SubRuns';
-          this.subRunsTableData = [];
-          this.loadingData = false;
-        }
-      });
-
-  }
-
-  private cleanSubRunsInfo() {
-
-      this.subRunsTableData = [];
-      this.selectedSubRunId = null;
-      this.selectedSubRunNumber = null;
-      this.simulationArtifactsTableData = [];
-      this.cleanSimulationArtifactsInfo();
-
-  }
-
-  //
-  // Methods related to the SubRuns DataTable
-  //
-  //////////////////////////////////////////////////////
-
-  onSubRunsTableRowSelected(genericSubRunId: number | string | null): void {
-    
-    const subRunId = typeof genericSubRunId === 'string' ? +genericSubRunId : genericSubRunId;
-
-    // This is to make the table single-selection
-    if (this.selectedSubRunId === subRunId) {
-      this.selectedSubRunId = null;
-      this.selectedSubRunNumber = null;
-      this.cleanSimulationArtifactsInfo();
-      return;
-    }
-
-    // Defining current state
-    this.selectedSubRunId = subRunId;
-    this.selectedSubRunNumber = this.subRunsTableData.find(srun => srun.id === subRunId)?.sub_run_number ?? null;
-
-    this.fetchSimulationArtifactsForSelectedSubRun();
-
-  }
-
-  private fetchSimulationArtifactsForSelectedSubRun(): void {
-
-    if (!this.selectedSubRunId) return;
-
-    this.loadingData = true;
-
-    this.simulationArtifactService.getAll(this.selectedSubRunId)
-      .subscribe({
-        next: (data) => {
-          this.simulationArtifactsTableData = data
-          this.loadingData = false;
-        },
-        error: (err) => {
-          console.error('Failed to fetch Simulation Artifacts', err);
-          this.dataError = 'Failed to fetch Simulation Artifacts';
-          this.simulationArtifactsTableData = [];
-          this.loadingData = false;
-        }
-      });
-
-  }
-
-  private cleanSimulationArtifactsInfo() {
-      this.simulationArtifactsTableData = [];
   }
 
 }
