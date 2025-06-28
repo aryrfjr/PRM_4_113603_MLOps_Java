@@ -4,9 +4,9 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 
 import { finalize } from 'rxjs/operators';
 
-import { SimulationArtifact } from '../../../core/models/simulation-artifact.model';
-import { TableColumn } from '../../../shared/components/datatable/datatable.component';
-import { SimulationArtifactService } from '../../../core/services/simulation-artifact.service';
+import { SimulationArtifact } from '../../../../core/models/simulation-artifact.model';
+import { TableColumn } from '../../../../shared/components/datatable/datatable.component';
+import { SimulationArtifactService } from '../../../../core/services/simulation-artifact.service';
 
 @Component({
   selector: 'simulation-artifacts-data-table', // defines the reusable <simulation-artifacts-data-table> tag
