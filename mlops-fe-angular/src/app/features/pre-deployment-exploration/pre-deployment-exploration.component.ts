@@ -254,7 +254,13 @@ export class PreDeploymentExplorationComponent implements OnInit {
       this.selectedRunNumber = this.runsTableData.find(run => run.id === runId)?.run_number ?? null;
 
       // NOTE: a way to clean SubRuns information using @ViewChild (see above)
-      this.subRunsDataTableComponent.cleanSubRunsInfo();
+      setTimeout(() => { // Delay execution to ensure child is rendered
+        if (this.subRunsDataTableComponent) {
+          this.subRunsDataTableComponent.cleanSubRunsInfo();
+        } else {
+          console.warn('subRunsDataTableComponent not available yet');
+        }
+      });
 
     }
 

@@ -90,6 +90,8 @@ export class SubRunsDataTableComponent implements OnChanges {
     this.serviceRequestOn = false;
   }
 
+  // TODO: in Pre-Deployment Exploitation this same GET is beind done
+  //  to load sub-Runs that have already been selected
   private fetchSubRunsForSelectedRun(): void {
 
     if (!this.selectedRunId) return;
