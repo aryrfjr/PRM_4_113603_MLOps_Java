@@ -16,8 +16,8 @@ import { AppComponent } from './app.component'; // @Component
 import { AppRoutingModule } from './app-routing.module'; // @NgModule
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component'; // @Component
 import { DataTableComponent } from './shared/components/datatable/datatable.component'; // @Component
-import { SubRunsDataTableComponent } from './shared/components/sub-runs-datatable/sub-runs-datatable.component'; // @Component
-import { SimulationArtifactsDataTableComponent } from './shared/components/simulation-artifacts-datatable/simulation-artifacts-datatable.component'; // @Component
+import { SubRunsDataTableComponent } from './features/shared/components/sub-runs-datatable/sub-runs-datatable.component'; // @Component
+import { SimulationArtifactsDataTableComponent } from './features/shared/components/simulation-artifacts-datatable/simulation-artifacts-datatable.component'; // @Component
 import { NominalCompositionManagerComponent } from './features/nominal-composition-manager/nominal-composition-manager.component'; // @Component
 import { PreDeploymentExplorationComponent } from './features/pre-deployment-exploration/pre-deployment-exploration.component'; // @Component
 import { PreDeploymentExploitationComponent } from './features/pre-deployment-exploitation/pre-deployment-exploitation.component'; // @Component
