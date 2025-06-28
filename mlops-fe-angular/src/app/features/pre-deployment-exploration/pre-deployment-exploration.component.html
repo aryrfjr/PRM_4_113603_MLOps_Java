@@ -48,6 +48,7 @@
         <input type="number" [value]="nRunsToSchedule" readonly />
         <button (click)="incrementNRuns()">+</button>
       </div>
+
       <button (click)="scheduleRuns()">Schedule</button>
     </div>
   </div>
@@ -63,7 +64,11 @@
         selectedNominalCompositionName
       }}"
     </h3>
-    <h3 *ngIf="!uiState.displayRunsTable">
+    <h3
+      *ngIf="
+        !uiState.suggestNominalCompositionSelection && !uiState.displayRunsTable
+      "
+    >
       No Runs scheduled for Nominal Composition "{{
         selectedNominalCompositionName
       }}" so far
