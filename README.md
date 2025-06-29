@@ -16,7 +16,9 @@ This repository provides a **Java-based** counterpart for the controller layer t
 
 ## Notes for DEV:
 
-- REST API documentation: http://localhost:8080/swagger-ui.html
+- MLOps REST API documentation: http://localhost:8080/swagger-ui.html
+
+- SimOps REST API documentation: http://localhost:8082/swagger-ui.html
   
 - MinIO console UI: http://localhost:9001
 

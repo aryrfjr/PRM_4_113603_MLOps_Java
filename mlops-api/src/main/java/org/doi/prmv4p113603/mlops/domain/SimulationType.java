@@ -5,15 +5,20 @@ package org.doi.prmv4p113603.mlops.domain;
  */
 public enum SimulationType {
 
-    EXPLORATION,
-    EXPLOITATION;
+    GENERATE_EXPLORATION,
+    GENERATE_EXPLOITATION,
+    ETL;
 
-    public boolean isExploration() {
-        return this == EXPLORATION;
+    public boolean isGenerateExploration() {
+        return this == GENERATE_EXPLORATION;
     }
 
-    public boolean isExploitation() {
-        return this == EXPLOITATION;
+    public boolean isGenerateExploitation() {
+        return this == GENERATE_EXPLOITATION;
+    }
+
+    public boolean isEtl() {
+        return this == GENERATE_EXPLOITATION;
     }
 
 }

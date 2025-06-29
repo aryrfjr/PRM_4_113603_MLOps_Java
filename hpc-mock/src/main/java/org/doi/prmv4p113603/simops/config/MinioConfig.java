@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import java.net.URI;
 
-// TODO: this class is Replicated in service ml-ops
+// TODO: this class is replicated in service mlops-api.
 @Configuration
 @RequiredArgsConstructor
 public class MinioConfig {
