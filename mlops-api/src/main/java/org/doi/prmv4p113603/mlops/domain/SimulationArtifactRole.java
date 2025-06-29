@@ -16,5 +16,4 @@ public enum SimulationArtifactRole {
         return this == OUTPUT;
     }
 
-
 }
