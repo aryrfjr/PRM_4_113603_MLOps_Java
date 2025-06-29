@@ -2,6 +2,7 @@ package org.doi.prmv4p113603.simops.controller.v1;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.doi.prmv4p113603.simops.data.dto.SimulationJobDto;
 import org.doi.prmv4p113603.simops.data.request.SimulationJobRequest;
 import org.doi.prmv4p113603.simops.domain.SimulationJobStatus;
 import org.doi.prmv4p113603.simops.model.SimulationJob;
@@ -25,17 +26,17 @@ public class SimOpsController {
     private final SimOpsService jobService;
 
     @PostMapping
-    public SimulationJob submitJob(@Valid @RequestBody SimulationJobRequest request) {
+    public SimulationJobDto submitJob(@Valid @RequestBody SimulationJobRequest request) {
         return jobService.submitJob(request);
     }
 
     @GetMapping("/{id}")
-    public SimulationJob getJob(@PathVariable Long id) {
+    public SimulationJobDto getJob(@PathVariable Long id) {
         return jobService.getJob(id);
     }
 
     @GetMapping("/squeue")
-    public Page<SimulationJob> listJobsByStatus(
+    public Page<SimulationJobDto> listJobsByStatus(
             @RequestParam SimulationJobStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -44,7 +45,7 @@ public class SimOpsController {
     }
 
     @GetMapping
-    public Page<SimulationJob> listAllJobs(
+    public Page<SimulationJobDto> listAllJobs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);

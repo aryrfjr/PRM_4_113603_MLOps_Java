@@ -1,6 +1,7 @@
 package org.doi.prmv4p113603.simops.service;
 
 import lombok.AllArgsConstructor;
+import org.doi.prmv4p113603.simops.data.dto.SimulationJobDto;
 import org.doi.prmv4p113603.simops.data.request.SimulationJobRequest;
 import org.doi.prmv4p113603.simops.domain.SimulationJobStatus;
 import org.doi.prmv4p113603.simops.model.SimulationJob;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Mocking an HPC service.
@@ -24,7 +26,7 @@ public class SimOpsService {
     private final SimulationJobRepository repository;
     private final ThreadPoolTaskExecutor taskExecutor;
 
-    public SimulationJob submitJob(SimulationJobRequest request) {
+    public SimulationJobDto submitJob(SimulationJobRequest request) {
 
         SimulationJob job = SimulationJob.builder()
                 .inputFile(request.getInputFile())
@@ -59,13 +61,13 @@ public class SimOpsService {
          */
         taskExecutor.execute(() -> simulateJobExecution(savedJob.getId()));
 
-        return savedJob;
+        return SimulationJobDto.fromEntity(savedJob);
 
     }
 
     private void simulateJobExecution(Long jobId) {
 
-        SimulationJob job = repository.findById(jobId).orElseThrow();
+        SimulationJob job = repository.findByIdWithOutputFiles(jobId).orElseThrow();
 
         // Wait for dependency to complete, if any
         if (job.getDependsOn() != null) {
@@ -147,16 +149,16 @@ public class SimOpsService {
 
     }
 
-    public SimulationJob getJob(Long id) {
-        return repository.findById(id).orElseThrow();
+    public SimulationJobDto getJob(Long id) {
+        return SimulationJobDto.fromEntity(repository.findById(id).orElseThrow());
     }
 
-    public Page<SimulationJob> getJobsByStatus(SimulationJobStatus status, Pageable pageable) {
-        return repository.findByStatus(status, pageable);
+    public Page<SimulationJobDto> getJobsByStatus(SimulationJobStatus status, Pageable pageable) {
+        return repository.findByStatus(status, pageable).map(SimulationJobDto::fromEntity);
     }
 
-    public Page<SimulationJob> getAllJobs(Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<SimulationJobDto> getAllJobs(Pageable pageable) {
+        return repository.findAll(pageable).map(SimulationJobDto::fromEntity);
     }
 
     public int getRunningJobCount() {
