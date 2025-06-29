@@ -5,15 +5,25 @@ package org.doi.prmv4p113603.mlops.domain;
  */
 public enum SimulationArtifactRole {
 
-    INPUT,
-    OUTPUT;
+    GENERATE_INPUT,
+    GENERATE_OUTPUT,
+    ETL_INPUT,
+    ETL_OUTPUT;
 
-    public boolean isInput() {
-        return this == INPUT;
+    public boolean isGenerateInput() {
+        return this == GENERATE_INPUT;
     }
 
-    public boolean isOutput() {
-        return this == OUTPUT;
+    public boolean isGenerateOutput() {
+        return this == GENERATE_OUTPUT;
+    }
+
+    public boolean isEtlInput() {
+        return this == ETL_INPUT;
+    }
+
+    public boolean isEtlOutput() {
+        return this == ETL_OUTPUT;
     }
 
 }
