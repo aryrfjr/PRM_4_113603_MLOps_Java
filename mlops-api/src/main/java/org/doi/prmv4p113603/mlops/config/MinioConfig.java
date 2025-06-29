@@ -26,4 +26,5 @@ public class MinioConfig {
                 .forcePathStyle(true) // Important for MinIO
                 .build();
     }
+
 }

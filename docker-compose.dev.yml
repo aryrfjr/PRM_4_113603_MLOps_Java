@@ -39,6 +39,18 @@ services:
     volumes:
       - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
 
+  # Simulated HPC service
+  mlops-hpc:
+    build: ./hpc-mock
+    depends_on:
+      - minio
+    ports:
+      - "8082:8080"
+    networks:
+      - mlopsnet
+    volumes:
+      - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
+
   # MinIO Object Storage
   minio:
     image: minio/minio
