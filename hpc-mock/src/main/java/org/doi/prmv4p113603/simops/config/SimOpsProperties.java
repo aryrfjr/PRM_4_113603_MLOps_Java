@@ -17,7 +17,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @Getter
 @Setter
-public class SimopsProperties {
+public class SimOpsProperties {
 
     @NotBlank
     private String dataRoot;

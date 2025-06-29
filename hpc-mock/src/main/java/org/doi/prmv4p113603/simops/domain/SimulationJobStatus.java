@@ -8,6 +8,7 @@ public enum SimulationJobStatus {
     QUEUED,
     RUNNING,
     COMPLETED,
+    CANCELLED,
     FAILED;
 
     public boolean isQueued() {
@@ -20,6 +21,10 @@ public enum SimulationJobStatus {
 
     public boolean isCompleted() {
         return this == COMPLETED;
+    }
+
+    public boolean isCancelled() {
+        return this == CANCELLED;
     }
 
     public boolean isFailed() {

@@ -45,7 +45,7 @@ public class SimulationArtifactFactoryTest {
         // Testing exploration scenario
 
         SimulationDirectories simulationDirectories = new SimulationDirectories(
-                SimulationType.EXPLORATION,
+                SimulationType.GENERATE_EXPLORATION,
                 nc.getName(),
                 "/home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR/ML/big-data-full/");
 
@@ -64,7 +64,7 @@ public class SimulationArtifactFactoryTest {
                 nc.getName(),
                 subRun,
                 simulationDirectories.getNominalCompositionDir().getChildren().get(0).getChildren().get(0),
-                SimulationArtifactRole.INPUT
+                SimulationArtifactRole.GENERATE_INPUT
         );
 
         System.out.println(result.get(0).getArtifactType());

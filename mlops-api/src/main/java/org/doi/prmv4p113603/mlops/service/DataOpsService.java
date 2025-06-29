@@ -71,7 +71,7 @@ public class DataOpsService {
         int nextRunNumber = runRepo.findMaxRunNumberByNominalCompositionId(nominalComposition.getId()).orElse(0) + 1;
 
         SimulationDirectories simulationDirectories = simulationDirectoriesFactory.create(
-                SimulationType.EXPLORATION,
+                SimulationType.GENERATE_EXPLORATION,
                 nominalCompositionName,
                 nextRunNumber,
                 request.getNumSimulations());
@@ -100,7 +100,7 @@ public class DataOpsService {
                     nominalCompositionName,
                     subRun,
                     runDir.getChildren().get(0),  // passing the SubRun directory
-                    SimulationArtifactRole.INPUT)); // only input files
+                    SimulationArtifactRole.GENERATE_INPUT)); // only input files
 
             runs.add(run);
 
@@ -120,7 +120,22 @@ public class DataOpsService {
         // Finally uploading to MinIO
         uploadSimulationInputFilesToS3(ncDto);
 
-        // TODO: trigger the Airflow DAG
+        /*
+         * TODO: trigger the Airflow DAG passing three different jobs with inputs/outputs:
+         *
+         *  - SimulationArtifactType.LAMMPS_INPUT (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/Zr47Cu47Al6.lmp.inp):
+         *   -- SimulationArtifactType.LAMMPS_DUMP; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/zca-th300.dump)
+         *   -- SimulationArtifactType.LAMMPS_LOG; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/log.lammps)
+         *   -- SimulationArtifactType.LAMMPS_OUTPUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/Zr47Cu47Al6.lmp.out)
+         *
+         *  - SimulationArtifactType.QE_SCF_IN: (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.scf.in)
+         *   -- SimulationArtifactType.QE_SCF_OUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.scf.out)
+         *
+         *  - SimulationArtifactType.LOBSTER_INPUT: (e.g., /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/lobsterin)
+         *   -- SimulationArtifactType.LOBSTER_OUTPUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.lb.out)
+         *   -- SimulationArtifactType.LOBSTER_RUN_OUTPUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/lobsterout)
+         *   -- SimulationArtifactType.ICOHPLIST; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/ICOHPLIST.lobster)
+         */
 
         // Returning only DTOs
         return ncDto;
@@ -199,7 +214,7 @@ public class DataOpsService {
         // Checking the consistency of directories
 
         SimulationDirectories simulationDirectories = simulationDirectoriesFactory.create(
-                SimulationType.EXPLOITATION,
+                SimulationType.GENERATE_EXPLOITATION,
                 nominalCompositionName,
                 request.getRuns());
 
@@ -227,7 +242,7 @@ public class DataOpsService {
                         nominalCompositionName,
                         subRun,
                         subRunDir,
-                        SimulationArtifactRole.INPUT)); // only input files
+                        SimulationArtifactRole.GENERATE_INPUT)); // only input files
 
                 allNewSubRuns.add(subRun);
 
@@ -260,7 +275,7 @@ public class DataOpsService {
         nominalCompositionDto.getRuns().stream()
                 .flatMap(runDto -> runDto.getSubRuns().stream())
                 .flatMap(subRunDto -> subRunDto.getSimulationArtifacts().stream())
-                .filter(artifactDto -> artifactDto.getArtifactRole().isInput()) // only input files
+                .filter(artifactDto -> artifactDto.getArtifactRole().isGenerateInput()) // only input files
                 .map(SimulationArtifactDto::getFilePath)
                 .forEach(path -> minioStorageService.uploadFile(MinioUtils.pathToKey(path), path));
     }

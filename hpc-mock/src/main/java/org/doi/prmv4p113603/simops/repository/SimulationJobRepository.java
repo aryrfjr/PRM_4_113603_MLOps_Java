@@ -12,4 +12,6 @@ public interface SimulationJobRepository extends JpaRepository<SimulationJob, Lo
 
     Page<SimulationJob> findAll(Pageable pageable);
 
+    Integer countByStatus(SimulationJobStatus status);
+
 }
