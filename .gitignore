@@ -48,6 +48,10 @@ out/
 mlops-api/.mvn/wrapper/maven-wrapper-download/
 mlops-api/target/
 mlops-api/.m2/
+!hpc-mock/.mvn/wrapper/maven-wrapper-*.jar
+hpc-mock/.mvn/wrapper/maven-wrapper-download/
+hpc-mock/target/
+hpc-mock/.m2/
 
 # Ignore build artifacts and cache inside Angular frontend;
 # Trying to follow container best practices
