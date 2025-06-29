@@ -57,16 +57,18 @@ public class SimulationDirectories {
 
         String nominalCompositionDirName = FileSystemUtils.join(dataRoot, nominalCompositionName);
 
-        if (!FileSystemUtils.pathExists(nominalCompositionDirName) ||
-                !FileSystemUtils.pathExists(nominalCompositionDirName + "-SOAPS")) {
-            throw new SimulationDirectoryNotFoundException(nominalCompositionDirName + "(-SOAPS)");
+        if ((simulationType.isGenerateExploration() || simulationType.isGenerateExploitation())
+                && !FileSystemUtils.pathExists(nominalCompositionDirName)) {
+            throw new SimulationDirectoryNotFoundException(nominalCompositionDirName);
+        } else if (simulationType.isEtl() && !FileSystemUtils.pathExists(nominalCompositionDirName + "-SOAPS")) {
+            throw new SimulationDirectoryNotFoundException(nominalCompositionDirName + "-SOAPS");
         } else {
 
             nominalCompositionDir = new SimulationDirectory(
                     nominalCompositionDirName,
                     SimulationArtifactScope.NOMINAL_COMPOSITION);
 
-            if (simulationType.isExploration()) {
+            if (simulationType.isGenerateExploration()) {
 
                 if (exploreNextRunNumber == -1 || exploreNumSimulations == -1) {
                     throw new DataOpsInternalInconsistencyException("Attributes nextRunNumber and numSimulations not set.");
@@ -97,7 +99,7 @@ public class SimulationDirectories {
 
                 }
 
-            } else if (simulationType.isExploitation()) {
+            } else if (simulationType.isGenerateExploitation()) {
 
                 if (exploitRuns == null) {
                     throw new DataOpsInternalInconsistencyException("Attribute exploitRuns not set.");
@@ -133,7 +135,7 @@ public class SimulationDirectories {
 
                 }
 
-            }
+            } // TODO: ETL
 
         }
 

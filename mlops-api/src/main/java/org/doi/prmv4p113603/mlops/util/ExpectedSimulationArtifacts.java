@@ -9,25 +9,34 @@ import java.util.Map;
  */
 public class ExpectedSimulationArtifacts {
 
-    public static final Map<String, SimulationArtifactType> RUN_INPUTS = Map.of(
+    public static final Map<String, SimulationArtifactType> GENERATE_RUN_INPUTS = Map.of(
             "{NC}.lmp.inp", SimulationArtifactType.LAMMPS_INPUT
     );
 
-    public static final Map<String, SimulationArtifactType> RUN_OUTPUTS = Map.of(
+    public static final Map<String, SimulationArtifactType> GENERATE_RUN_OUTPUTS = Map.of(
             "zca-th300.dump", SimulationArtifactType.LAMMPS_DUMP,
             "log.lammps", SimulationArtifactType.LAMMPS_LOG,
             "{NC}.lmp.out", SimulationArtifactType.LAMMPS_OUTPUT
     );
 
-    public static final Map<String, SimulationArtifactType> SUB_RUN_INPUTS = Map.of(
+    public static final Map<String, SimulationArtifactType> GENERATE_SUB_RUN_INPUTS = Map.of(
             "{NC}.scf.in", SimulationArtifactType.QE_SCF_IN,
-            "lobsterin", SimulationArtifactType.LOBSTER_INPUT
+            "lobsterin", SimulationArtifactType.LOBSTER_INPUT // NOTE: SimulationArtifactType.LOBSTER_INPUT_BND won't go to MinIO
     );
 
-    public static final Map<String, SimulationArtifactType> SUB_RUN_OUTPUTS = Map.of(
-            "{NC}.xyz", SimulationArtifactType.LAMMPS_DUMP_XYZ,
-            "SOAPS.vec", SimulationArtifactType.SOAP_VECTORS,
+    public static final Map<String, SimulationArtifactType> GENERATE_SUB_RUN_OUTPUTS = Map.of(
+            "{NC}.scf.out", SimulationArtifactType.QE_SCF_OUT,
+            "{NC}.lb.out", SimulationArtifactType.LOBSTER_OUTPUT,
+            "lobsterout", SimulationArtifactType.LOBSTER_RUN_OUTPUT,
             "ICOHPLIST.lobster", SimulationArtifactType.ICOHPLIST
+    );
+
+    public static final Map<String, SimulationArtifactType> ETL_INPUTS = Map.of(
+            "{NC}.xyz", SimulationArtifactType.LAMMPS_DUMP_XYZ
+    );
+
+    public static final Map<String, SimulationArtifactType> ETL_OUTPUTS = Map.of(
+            "SOAPS.vec", SimulationArtifactType.SOAP_VECTORS
     );
 
 }
