@@ -1,12 +1,13 @@
 package org.doi.prmv4p113603.simops.service;
 
 import lombok.AllArgsConstructor;
+import org.doi.prmv4p113603.common.service.MinioStorageService;
 import org.doi.prmv4p113603.simops.data.dto.SimulationJobDto;
 import org.doi.prmv4p113603.simops.data.request.SimulationJobRequest;
 import org.doi.prmv4p113603.simops.domain.SimulationJobStatus;
 import org.doi.prmv4p113603.simops.model.SimulationJob;
 import org.doi.prmv4p113603.simops.repository.SimulationJobRepository;
-import org.doi.prmv4p113603.simops.util.MinioUtils;
+import org.doi.prmv4p113603.common.util.MinioUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;

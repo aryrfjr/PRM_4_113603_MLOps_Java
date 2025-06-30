@@ -1,4 +1,4 @@
-package org.doi.prmv4p113603.simops.config;
+package org.doi.prmv4p113603.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +10,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import java.net.URI;
 
-// TODO: this class is replicated in service mlops-api.
 @Configuration
 @RequiredArgsConstructor
 public class MinioConfig {
