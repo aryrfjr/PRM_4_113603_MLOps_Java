@@ -11,7 +11,6 @@ import org.springframework.validation.annotation.Validated;
  * This class is used to hold the value set in the property 'mlops-api.data-root'
  * in the file 'application.properties'.
  */
-// TODO: this class is replicated in service mlops-api.
 @Configuration
 @ConfigurationProperties(prefix = "mlops-api")
 @Validated

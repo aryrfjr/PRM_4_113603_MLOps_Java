@@ -1,7 +1,7 @@
 package org.doi.prmv4p113603.mlops.init;
 
 import jakarta.annotation.PostConstruct;
-import org.doi.prmv4p113603.mlops.config.MinioProperties;
+import org.doi.prmv4p113603.common.config.MinioProperties;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;

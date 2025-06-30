@@ -11,8 +11,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *  - Injecting dependencies (via @Autowired, constructor injection).
  *  - Managing lifecycle (e.g., initialization, shutdown hooks).
  */
-@SpringBootApplication
-public class PRMMLOpsApplication {
+@SpringBootApplication(scanBasePackages = {
+        "org.doi.prmv4p113603.mlops",
+        "org.doi.prmv4p113603.common"
+})public class PRMMLOpsApplication {
     public static void main(String[] args) {
         SpringApplication.run(PRMMLOpsApplication.class, args);
     }

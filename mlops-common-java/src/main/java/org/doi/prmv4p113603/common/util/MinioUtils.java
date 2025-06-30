@@ -1,4 +1,4 @@
-package org.doi.prmv4p113603.mlops.util;
+package org.doi.prmv4p113603.common.util;
 
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
