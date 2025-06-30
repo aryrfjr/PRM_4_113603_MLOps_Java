@@ -1,7 +1,7 @@
-package org.doi.prmv4p113603.simops.service;
+package org.doi.prmv4p113603.common.service;
 
-import org.doi.prmv4p113603.simops.config.MinioProperties;
-import org.doi.prmv4p113603.simops.util.MinioUtils;
+import org.doi.prmv4p113603.common.config.MinioProperties;
+import org.doi.prmv4p113603.common.util.MinioUtils;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -14,7 +14,6 @@ import java.nio.file.Paths;
  * High-level, reusable S3 interface for domain services. This
  * is the injectable abstraction that other @Service classes will use.
  */
-// TODO: this class is Replicated in service mlops-api.
 @Service
 public class MinioStorageService {
 

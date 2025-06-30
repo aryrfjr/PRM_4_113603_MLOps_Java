@@ -2,6 +2,7 @@ package org.doi.prmv4p113603.mlops.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.doi.prmv4p113603.common.service.MinioStorageService;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.data.dto.SimulationArtifactDto;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
@@ -10,7 +11,7 @@ import org.doi.prmv4p113603.mlops.domain.*;
 import org.doi.prmv4p113603.mlops.exception.NominalCompositionNotFoundException;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.*;
-import org.doi.prmv4p113603.mlops.util.MinioUtils;
+import org.doi.prmv4p113603.common.util.MinioUtils;
 import org.doi.prmv4p113603.mlops.util.SimulationArtifactFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

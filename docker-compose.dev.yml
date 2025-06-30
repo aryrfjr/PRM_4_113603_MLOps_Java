@@ -25,7 +25,11 @@ services:
 
   # MLOps Gateway REST API with Spring Framework
   mlops-api:
-    build: ./mlops-api
+    build:
+      context: ./mlops-api
+      args:
+        GITHUB_USERNAME: aryrfjr
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     depends_on:
       - postgres
     ports:
@@ -38,10 +42,15 @@ services:
       - mlopsnet
     volumes:
       - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
+      - /home/aryjr/.m2/settings.xml:/root/.m2/settings.xml
 
   # Simulated HPC service
   mlops-hpc:
-    build: ./hpc-mock
+    build:
+      context: ./hpc-mock
+      args:
+        GITHUB_USERNAME: aryrfjr
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     depends_on:
       - minio
     ports:
@@ -50,6 +59,7 @@ services:
       - mlopsnet
     volumes:
       - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
+      - /home/aryjr/.m2/settings.xml:/root/.m2/settings.xml
 
   # MinIO Object Storage
   minio:
