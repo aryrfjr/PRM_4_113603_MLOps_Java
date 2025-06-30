@@ -6,6 +6,7 @@ import org.doi.prmv4p113603.simops.data.request.SimulationJobRequest;
 import org.doi.prmv4p113603.simops.domain.SimulationJobStatus;
 import org.doi.prmv4p113603.simops.model.SimulationJob;
 import org.doi.prmv4p113603.simops.repository.SimulationJobRepository;
+import org.doi.prmv4p113603.simops.util.MinioUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -13,8 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Mocking an HPC service.
@@ -25,6 +26,7 @@ public class SimOpsService {
 
     private final SimulationJobRepository repository;
     private final ThreadPoolTaskExecutor taskExecutor;
+    private final MinioStorageService minioStorageService;
 
     public SimulationJobDto submitJob(SimulationJobRequest request) {
 
@@ -65,6 +67,42 @@ public class SimOpsService {
 
     }
 
+    public SimulationJobDto getJob(Long id) {
+        return SimulationJobDto.fromEntity(repository.findById(id).orElseThrow());
+    }
+
+    public Page<SimulationJobDto> getJobsByStatus(SimulationJobStatus status, Pageable pageable) {
+        return repository.findByStatus(status, pageable).map(SimulationJobDto::fromEntity);
+    }
+
+    public Page<SimulationJobDto> getAllJobs(Pageable pageable) {
+        return repository.findAll(pageable).map(SimulationJobDto::fromEntity);
+    }
+
+    public int getRunningJobCount() {
+        return taskExecutor.getActiveCount();
+    }
+
+    public int getQueuedJobCount() {
+        return taskExecutor.getThreadPoolExecutor().getQueue().size();
+    }
+
+    public Map<String, Integer> getJobExecutionStatus() {
+        Map<String, Integer> stats = new HashMap<>();
+
+        stats.put("runningJobs", getRunningJobCount());
+        stats.put("queuedJobs", getQueuedJobCount());
+        stats.put("dbStatusCount", repository.countByStatus(SimulationJobStatus.RUNNING)); // TODO: review usage
+
+        return stats;
+    }
+
+    // TODO: Add Job Cancellation Logic
+
+    /*
+     * Helpers
+     */
+
     private void simulateJobExecution(Long jobId) {
 
         SimulationJob job = repository.findByIdWithOutputFiles(jobId).orElseThrow();
@@ -76,6 +114,10 @@ public class SimOpsService {
 
             // TODO: Can be configurable (e.g., wait even on FAILED, allow retry, etc.).
             while (true) {
+
+                // TODO: Not working exactly as expected. The issue is that if two chains of
+                //  dependent jobs are submitted, the next head job only starts running after
+                //  the tail job of the previous run started.
 
                 SimulationJob parent = repository.findById(parentId).orElse(null);
 
@@ -134,8 +176,8 @@ public class SimOpsService {
             job.setStatus(SimulationJobStatus.COMPLETED);
             job.setCompletedAt(Instant.now());
 
-            // TODO: simulate writing a file to MinIO
-            System.out.println("====> Job " + job.getId() + " FINISHED and wrote: " + job.getOutputFiles());
+            // Writing the (pre-existing) output files to MinIO
+            uploadSimulationOutputFilesToS3(job.getOutputFiles());
 
         } catch (InterruptedException e) {
 
@@ -149,36 +191,8 @@ public class SimOpsService {
 
     }
 
-    public SimulationJobDto getJob(Long id) {
-        return SimulationJobDto.fromEntity(repository.findById(id).orElseThrow());
+    private void uploadSimulationOutputFilesToS3(List<String> outputFilePaths) {
+        outputFilePaths.forEach(path -> minioStorageService.uploadFile(MinioUtils.pathToKey(path), path));
     }
-
-    public Page<SimulationJobDto> getJobsByStatus(SimulationJobStatus status, Pageable pageable) {
-        return repository.findByStatus(status, pageable).map(SimulationJobDto::fromEntity);
-    }
-
-    public Page<SimulationJobDto> getAllJobs(Pageable pageable) {
-        return repository.findAll(pageable).map(SimulationJobDto::fromEntity);
-    }
-
-    public int getRunningJobCount() {
-        return taskExecutor.getActiveCount();
-    }
-
-    public int getQueuedJobCount() {
-        return taskExecutor.getThreadPoolExecutor().getQueue().size();
-    }
-
-    public Map<String, Integer> getJobExecutionStatus() {
-        Map<String, Integer> stats = new HashMap<>();
-
-        stats.put("runningJobs", getRunningJobCount());
-        stats.put("queuedJobs", getQueuedJobCount());
-        stats.put("dbStatusCount", repository.countByStatus(SimulationJobStatus.RUNNING)); // TODO: review usage
-
-        return stats;
-    }
-
-    // TODO: Add Job Cancellation Logic
 
 }
