@@ -1,4 +1,4 @@
-package org.doi.prmv4p113603.simops.config;
+package org.doi.prmv4p113603.common.config;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -10,7 +10,6 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Holds MinIO configuration values from application.properties entries with prefix 'minio'.
  */
-// TODO: this class is replicated in service mlops-api.
 @Configuration
 @ConfigurationProperties(prefix = "minio")
 @Validated

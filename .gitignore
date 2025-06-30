@@ -32,6 +32,10 @@ hpc-mock/.idea/*
 !hpc-mock/.idea/inspectionProfiles
 !hpc-mock/.idea/runConfigurations
 !hpc-mock/.idea/codeStyles
+mlops-common-java/.idea/*
+!mlops-common-java/.idea/inspectionProfiles
+!mlops-common-java/.idea/runConfigurations
+!mlops-common-java/.idea/codeStyles
 
 # Ignore workspace-specific files
 .idea/workspace.xml
@@ -52,6 +56,7 @@ mlops-api/.m2/
 hpc-mock/.mvn/wrapper/maven-wrapper-download/
 hpc-mock/target/
 hpc-mock/.m2/
+mlops-common-java/target/
 
 # Ignore build artifacts and cache inside Angular frontend;
 # Trying to follow container best practices
@@ -69,4 +74,7 @@ mlops-fe-angular/Thumbs.db
 
 # Optional: ignore Docker-specific or temp files
 *.tmp
+
+# Docker related
+.env
 

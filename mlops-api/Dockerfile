@@ -4,8 +4,17 @@ FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /mlops-api
 
+# GitHub authentication for packages
+ARG GITHUB_USERNAME
+ARG GITHUB_TOKEN
+
+# To allow Maven to use in settings.xml
+ENV MAVEN_USERNAME=${GITHUB_USERNAME}
+ENV MAVEN_PASSWORD=${GITHUB_TOKEN}
+
 # Copy everything from the context (mlops-api/)
 COPY . .
+COPY settings.xml /root/.m2/settings.xml
 
 # Make Maven wrapper executable and cache dependencies
 RUN chmod +x mvnw && ./mvnw dependency:go-offline
