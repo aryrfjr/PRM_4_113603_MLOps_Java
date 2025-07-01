@@ -19,7 +19,11 @@ This repository provides a **Java-based** counterpart for the controller layer t
 - MLOps REST API documentation: http://localhost:8080/swagger-ui.html
 
 - SimOps REST API documentation: http://localhost:8082/swagger-ui.html
-  
+
+- Microservices (DataOps and MLOps) REST API documentation: http://localhost:8000/docs
+
 - MinIO console UI: http://localhost:9001
 
 - Angular (Dev Container): http://localhost:4200
+
+- Airflow: http://localhost:8084
