@@ -78,3 +78,17 @@ mlops-fe-angular/Thumbs.db
 # Docker related
 .env
 
+# Python artifacts
+mlops-ms-api/.venv/
+airflow/.venv/
+**/__pycache__/
+*.pyc
+
+# Airflow logs (keep folder structure)
+airflow/.vscode/
+airflow/logs/*
+!airflow/logs/.gitkeep
+
+# MLflow artifacts (tracking models)
+mlflow/artifacts/
+
