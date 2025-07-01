@@ -44,6 +44,21 @@ services:
       - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
       - /home/aryjr/.m2/settings.xml:/root/.m2/settings.xml
 
+  # MLOps Microservices REST API
+  mlops-ms-api:
+    build: ./mlops-ms-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mlops-ms-api:/app  # <--- only for DEV, remove for PROD
+      - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data  # raw data accessible to the API
+    networks:
+      - mlopsnet
+    environment:
+      - PYTHONUNBUFFERED=1 # logs and print() statements will flush instantly ... more reliable debugging
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
   # Simulated HPC service
   mlops-hpc:
     build:
@@ -75,6 +90,81 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+    networks:
+      - mlopsnet
+
+  # Airflow Webserver UI
+  # Uses the official Airflow image (no build needed)
+  airflow-webserver:
+    image: apache/airflow:2.8.1
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
+      API_URL: http://mlops-api:8000  # Internal Docker network communication
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    command: webserver
+    networks:
+      - mlopsnet
+
+  # Airflow Scheduler
+  # Uses the official Airflow image (no build needed)
+  airflow-scheduler:
+    image: apache/airflow:2.8.1
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
+      API_URL: http://mlops-api:8000  # Internal Docker network communication
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    command: scheduler
+    networks:
+      - mlopsnet
+
+  # Airflow Init - runs DB migrations and creates the admin user
+  # Uses the official Airflow image (no build needed)
+  airflow-init:
+    image: apache/airflow:2.8.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    entrypoint: bash
+    command: -c "
+      airflow db migrate && \
+      airflow users create \
+      --username admin \
+      --password admin \
+      --firstname Admin \
+      --lastname User \
+      --role Admin \
+      --email admin@example.com"
     networks:
       - mlopsnet
 
