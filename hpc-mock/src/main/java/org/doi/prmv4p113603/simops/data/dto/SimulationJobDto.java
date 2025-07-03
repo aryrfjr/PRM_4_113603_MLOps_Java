@@ -29,7 +29,7 @@ public class SimulationJobDto {
     @JsonProperty("input_file")
     private String inputFile;
 
-    @JsonProperty("input_files")
+    @JsonProperty("output_files")
     private List<String> outputFiles;
 
     private SimulationJobStatus status;
@@ -43,8 +43,8 @@ public class SimulationJobDto {
     @JsonProperty("completed_at")
     private Instant completedAt;
 
-    @JsonProperty("dependsOn_id")
-    private Long dependsOnId;
+    @JsonProperty("depends_on_job_id")
+    private Long dependsOnJobId;
 
     public static SimulationJobDto fromEntity(SimulationJob job) {
         return new SimulationJobDto(
