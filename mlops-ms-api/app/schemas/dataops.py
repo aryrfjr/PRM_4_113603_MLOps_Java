@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from app.schemas import GenericStatusResponse
+from pydantic import BaseModel, Field, conint
+from typing import List
 
 ########################################################################
 #
@@ -8,7 +8,16 @@ from app.schemas import GenericStatusResponse
 ########################################################################
 
 
-class ExtractSoapsRequest(BaseModel):
+class RunWithSubRunNumbers(BaseModel):
+    run_number: int = Field(
+        ..., ge=0, example=1, description="Run number (not ID; e.g., 1)."
+    )
+    sub_run_numbers: List[conint(ge=0, le=14)] = Field(
+        ..., example=[0, 1, 2], description="sub-Run (not ID; between 0 and 14)"
+    )
+
+
+class ExtractSOAPVectorsRequest(BaseModel):
     cutoff: float = Field(
         ..., ge=0, example=3.75, description="A cutoff for local region in angstroms."
     )
@@ -34,5 +43,5 @@ class ExtractSoapsRequest(BaseModel):
     )
 
 
-class ExtractSoapsResponse(GenericStatusResponse):
-    pass
+class CreatePBSSDBRequest(BaseModel):
+    runs: List[RunWithSubRunNumbers]
