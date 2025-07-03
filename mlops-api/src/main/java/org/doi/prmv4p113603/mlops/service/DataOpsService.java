@@ -131,6 +131,7 @@ public class DataOpsService {
          *
          *  - SimulationArtifactType.QE_SCF_IN: (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.scf.in)
          *   -- SimulationArtifactType.QE_SCF_OUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.scf.out)
+         *   -- SimulationArtifactType.QE_SCF_OUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.xyz)
          *
          *  - SimulationArtifactType.LOBSTER_INPUT: (e.g., /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/lobsterin)
          *   -- SimulationArtifactType.LOBSTER_OUTPUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.lb.out)
