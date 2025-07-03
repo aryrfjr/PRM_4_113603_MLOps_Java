@@ -38,6 +38,8 @@ public class SimOpsService {
                 .submittedAt(Instant.now())
                 .build();
 
+        // TODO: check if input file exists in MinIO
+
         // Handle dependency
         if (request.getDependsOnJobId() != null) {
 
