@@ -20,7 +20,7 @@ This repository provides a **Java-based** counterpart for the controller layer t
 
 - SimOps REST API documentation: http://localhost:8082/swagger-ui.html
 
-- Microservices (DataOps and MLOps) REST API documentation: http://localhost:8000/docs
+- Microservices (DataOps and ModelOps) REST API documentation: http://localhost:8000/docs
 
 - MinIO console UI: http://localhost:9001
 
