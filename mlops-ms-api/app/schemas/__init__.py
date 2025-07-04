@@ -1,10 +1,10 @@
 from .shared import Status, GenericStatusResponse, PingResponse
-from .dataops import ExtractSoapsRequest, ExtractSoapsResponse
+from .dataops import ExtractSOAPVectorsRequest, CreatePBSSDBRequest
 
 __all__ = [
     "Status",
     "GenericStatusResponse",
     "PingResponse",
-    "ExtractSoapsRequest",
-    "ExtractSoapsResponse",
+    "ExtractSOAPVectorsRequest",
+    "CreatePBSSDBRequest",
 ]
