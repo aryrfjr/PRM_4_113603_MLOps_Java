@@ -1,10 +1,12 @@
 # Use an official lightweight Python image
 FROM python:3.11-slim
 
-# Install system dependencies (Installs libpq-dev for PostgreSQL; psycopg2 requires it)
+# Install system dependencies including git
 RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
+    build-essential \
+    libopenblas-dev \
+    liblapack-dev \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory inside the container
