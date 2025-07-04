@@ -1,7 +1,6 @@
 fastapi
 uvicorn[standard]
-sqlalchemy>=2.0
-psycopg2-binary
-pydantic
-python-dotenv
 minio
+ase
+git+https://github.com/aryrfjr/theo4m.git@master#egg=theo4m
+

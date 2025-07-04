@@ -21,7 +21,8 @@ public class ExpectedSimulationArtifacts {
 
     public static final Map<String, SimulationArtifactType> GENERATE_SUB_RUN_INPUTS = Map.of(
             "{NC}.scf.in", SimulationArtifactType.QE_SCF_IN,
-            "lobsterin", SimulationArtifactType.LOBSTER_INPUT, // NOTE: SimulationArtifactType.LOBSTER_INPUT_BND won't go to MinIO,
+            "lobsterin", SimulationArtifactType.LOBSTER_INPUT,
+            "lobsterin-quippy", SimulationArtifactType.LOBSTER_INPUT_BND,
             "{NC}.xyz", SimulationArtifactType.LAMMPS_DUMP_XYZ
     );
 
