@@ -10,8 +10,15 @@ import time
 #
 ##########################################################################
 
-# NOTE: the MS_API_URL environment variable was defined in docker-compose.yml
+#
+# Environment variables defined in docker-compose.yml
+#
+##########################################################################
+
+# Internal Docker network communication with the Simulated HPC service
 HPC_API_URL = os.getenv("HPC_API_URL")
+
+# Internal Docker network communication with the MLOps Microservices API
 MS_API_URL = os.getenv("MS_API_URL")
 
 ##########################################################################
@@ -41,13 +48,11 @@ def submit_jobs(dag):
         dag_conf = kwargs["dag_run"].conf
 
         task_conf = dag_conf.get("explore_cells_task", {})
-        # nominal_composition = task_conf.get("nominal_composition") # TODO: must with the Kafka message to mlops-api
         runs_jobs = task_conf.get("runs_jobs", [])
 
         all_job_ids = []
         for run in runs_jobs:
 
-            # run_id = run.get("run_id") # TODO: must with the Kafka message to mlops-api
             previous_job_id = None
 
             for i, job in enumerate(run.get("jobs", [])):
@@ -62,6 +67,7 @@ def submit_jobs(dag):
                     payload["depends_on_job_id"] = previous_job_id
 
                 response = requests.post(f"{HPC_API_URL}/api/v1/jobs", json=payload)
+
                 if response.status_code != 200:
                     raise AirflowFailException(
                         f"Failed to submit job. URL: {HPC_API_URL}/api/v1/jobs\n"
@@ -75,7 +81,7 @@ def submit_jobs(dag):
 
                 previous_job_id = current_job_id  # next job will depend on this one
 
-        # return job_ids -> will go to XCom
+        # return all_job_ids -> will go to XCom
         return all_job_ids
 
     return PythonOperator(task_id="submit_jobs", python_callable=_submit, dag=dag)
@@ -93,8 +99,9 @@ def wait_for_jobs(dag):
 
         # NOTE: xcom_pull is a method on the TaskInstance object (ti) that allows one
         #   to retrieve data shared by a previous task via XCom (short for “Cross-Communication”).
-        job_ids = ti.xcom_pull(task_ids="submit_jobs")
-        if not job_ids:
+        #   In the following, all_job_ids is what the task submit_jobs has returned.
+        all_job_ids = ti.xcom_pull(task_ids="submit_jobs")
+        if not all_job_ids:
             raise AirflowFailException("No job IDs found in XCom")
 
         polling_interval = 10  # seconds; TODO: should go to docker-compose.yml
@@ -103,9 +110,10 @@ def wait_for_jobs(dag):
         for attempt in range(max_retries):
 
             statuses = []
-            for job_id in job_ids:
+            for job_id in all_job_ids:
 
                 response = requests.get(f"{HPC_API_URL}/api/v1/jobs/{job_id}")
+
                 if response.status_code != 200:
                     raise AirflowFailException(
                         f"Failed to submit job. URL: {HPC_API_URL}/api/v1/jobs/{job_id}\n"
@@ -126,10 +134,72 @@ def wait_for_jobs(dag):
 
 
 # ETL model (DataOps phase; Feature Store Lite)
-def etl_model(dag):
+def extract_soap_vectors(dag):
 
-    def _etl():
+    def _extract(**kwargs):
 
-        print(f"_etl")
+        dag_conf = kwargs["dag_run"].conf
 
-    return PythonOperator(task_id="etl_model", python_callable=_etl, dag=dag)
+        task_conf = dag_conf.get("explore_cells_task", {})
+        nominal_composition = task_conf.get("nominal_composition")
+        soap_parameters = task_conf.get("soap_parameters")
+        runs_jobs = task_conf.get("runs_jobs", [])
+
+        for run in runs_jobs:
+
+            run_number = run.get("run_number")
+
+            payload = soap_parameters
+
+            response = requests.post(
+                f"{MS_API_URL}/api/v1/dataops/extract_soap_vectors/{nominal_composition}/{run_number}/0",
+                json=payload,
+            )
+
+            if response.status_code != 200:
+                raise AirflowFailException(
+                    f"Failed to submit job. URL: {MS_API_URL}/api/v1/dataops/extract_soap_vectors/{nominal_composition}/{run_number}/0\n"
+                    f"Payload: {payload}\n"
+                    f"Status Code: {response.status_code}\n"
+                    f"Response: {response.text}"
+                )
+
+    return PythonOperator(
+        task_id="extract_soap_vectors", python_callable=_extract, dag=dag
+    )
+
+
+# ETL model (DataOps phase; Feature Store Lite)
+def create_ssdb(dag):
+
+    def _create_ssdb(**kwargs):
+
+        dag_conf = kwargs["dag_run"].conf
+
+        task_conf = dag_conf.get("explore_cells_task", {})
+        nominal_composition = task_conf.get("nominal_composition")
+        runs_jobs = task_conf.get("runs_jobs", [])
+
+        runs_payload = []
+        for run in runs_jobs:
+
+            run_number = run.get("run_number")
+
+            runs_payload.append({"run_number": run_number, "sub_run_numbers": [0]})
+
+        payload = {"runs": runs_payload}
+
+        response = requests.post(
+            f"{MS_API_URL}/api/v1/dataops/create_ssdb/{nominal_composition}",
+            json=payload,
+        )
+
+        if response.status_code != 200:
+            raise AirflowFailException(
+                f"Failed to submit job. URL: {MS_API_URL}/api/v1/dataops/create_ssdb/{nominal_composition}\n"
+                f"Payload: {payload}\n"
+                f"Status Code: {response.status_code}\n"
+                f"Response: {response.text}"
+            )
+
+    return PythonOperator(task_id="create_ssdb", python_callable=_create_ssdb, dag=dag)

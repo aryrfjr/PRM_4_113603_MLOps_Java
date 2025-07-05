@@ -174,7 +174,7 @@ public class SimOpsService {
 
             repository.save(job);
 
-            Thread.sleep(120000); // Simulate run time (2 minutes)
+            Thread.sleep(10000); // Simulate run time (10 seconds) // TODO: go to docker-compose.dev.yml
 
             job.setStatus(SimulationJobStatus.COMPLETED);
             job.setCompletedAt(Instant.now());

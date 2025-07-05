@@ -28,7 +28,7 @@ MINIO_BUCKET_NAME = "mlops-bucket"
 @router.post(
     "/extract_soap_vectors/{nominal_composition}/{run}/{sub_run}",
     response_model=GenericStatusResponse,
-    status_code=status.HTTP_202_ACCEPTED,
+    status_code=status.HTTP_200_OK,
     summary="Computes the feature vectors for the ML model (SOAP descriptors).",
     tags=["DataOps"],
 )
@@ -83,7 +83,7 @@ def extract_soap_vectors(
 @router.post(
     "/create_ssdb/{nominal_composition}",
     response_model=GenericStatusResponse,
-    status_code=status.HTTP_202_ACCEPTED,
+    status_code=status.HTTP_200_OK,
     summary="Writes to a per-bond single SOAP database (PBSSDB) directory.",
     tags=["DataOps"],
 )
