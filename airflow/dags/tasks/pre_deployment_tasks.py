@@ -1,8 +1,8 @@
-import requests
 from airflow.operators.python import PythonOperator
 from airflow.exceptions import AirflowFailException
 import os
-import logging
+import requests
+import time
 
 ##########################################################################
 #
@@ -10,26 +10,13 @@ import logging
 #
 ##########################################################################
 
-# NOTE: the API_URL environment variable was defined in docker-compose.yml
-API_URL = os.getenv("API_URL")
+# NOTE: the MS_API_URL environment variable was defined in docker-compose.yml
+HPC_API_URL = os.getenv("HPC_API_URL")
+MS_API_URL = os.getenv("MS_API_URL")
 
 ##########################################################################
 #
 # Helpers
-#
-##########################################################################
-
-##########################################################################
-#
-# DAG Tasks for different resources types and scopes
-#
-# TODO: Makes the DAGs configurable via Streamlit triggering. Using
-#   for instance 'nc = dag_run.conf.get("nc", "Zr49Cu49Al2")' and
-#   importing 'from airflow.models import Variable, DagRun'.
-#
-# NOTE: When parameters are passed to an Airflow REST API endpoint,
-#   the conf dictionary is passed via the DAG Run context and can
-#   be retrieved inside any task using the kwargs variable.
 #
 ##########################################################################
 
@@ -43,80 +30,106 @@ API_URL = os.getenv("API_URL")
 ########################################################################
 
 
-def explore_cells(dag):
+# Generate (DataOps phase; exploration/exploitation)
+def submit_jobs(dag):
 
-    def _explore(**kwargs):
+    def _submit(**kwargs):
 
-        # TODO: the default fallback 'NO_NC_SELECTED_IN_FRONTEND' could be a constant telling
-        #   the DataOps REST API that it didn't come from Streamlit
-        nc = kwargs["dag_run"].conf.get(
-            "nominal_composition", "NO_NC_SELECTED_IN_FRONTEND"
-        )
+        # NOTE: When parameters are passed to an Airflow REST API endpoint,
+        #   the conf dictionary is passed via the DAG Run context and can
+        #   be retrieved inside any task using the kwargs variable.
+        dag_conf = kwargs["dag_run"].conf
 
-        nsims = kwargs["dag_run"].conf.get("num_simulations", -1)
+        task_conf = dag_conf.get("explore_cells_task", {})
+        # nominal_composition = task_conf.get("nominal_composition") # TODO: must with the Kafka message to mlops-api
+        runs_jobs = task_conf.get("runs_jobs", [])
 
-        response = requests.post(
-            f"{API_URL}/api/v1/generate/{nc}", json={"num_simulations": nsims}
-        )
+        all_job_ids = []
+        for run in runs_jobs:
 
-        if response.status_code != 202:
+            # run_id = run.get("run_id") # TODO: must with the Kafka message to mlops-api
+            previous_job_id = None
 
-            # TODO: I'm not able to see that message in Airflow UI.
-            #   For instance, it fails for Zr46Cu46Al8 because there are not available folders.
-            error_message = f"Failed to schedule exploration (response status code {response.status_code}): {response.text}"
+            for i, job in enumerate(run.get("jobs", [])):
 
-            logging.error(error_message)
+                payload = {
+                    "input_file": job["input_file"],
+                    "output_files": job["output_files"],
+                }
 
-            raise AirflowFailException(error_message)
+                # Checking dependency
+                if i > 0 and previous_job_id:
+                    payload["depends_on_job_id"] = previous_job_id
 
-    return PythonOperator(task_id="explore_cells", python_callable=_explore, dag=dag)
+                response = requests.post(f"{HPC_API_URL}/api/v1/jobs", json=payload)
+                if response.status_code != 200:
+                    raise AirflowFailException(
+                        f"Failed to submit job. URL: {HPC_API_URL}/api/v1/jobs\n"
+                        f"Payload: {payload}\n"
+                        f"Status Code: {response.status_code}\n"
+                        f"Response: {response.text}"
+                    )
+
+                current_job_id = response.json().get("id")
+                all_job_ids.append(current_job_id)
+
+                previous_job_id = current_job_id  # next job will depend on this one
+
+        # return job_ids -> will go to XCom
+        return all_job_ids
+
+    return PythonOperator(task_id="submit_jobs", python_callable=_submit, dag=dag)
 
 
+# Generate (DataOps phase; exploration/exploitation)
+def wait_for_jobs(dag):
+
+    def _wait(**kwargs):
+
+        # NOTE: Getting access to the Task Instance object. It represents the current
+        #   execution of a task inside a DAG run. It's injected automatically into PythonOperator
+        #   functions that accept **kwargs.
+        ti = kwargs["ti"]
+
+        # NOTE: xcom_pull is a method on the TaskInstance object (ti) that allows one
+        #   to retrieve data shared by a previous task via XCom (short for “Cross-Communication”).
+        job_ids = ti.xcom_pull(task_ids="submit_jobs")
+        if not job_ids:
+            raise AirflowFailException("No job IDs found in XCom")
+
+        polling_interval = 10  # seconds; TODO: should go to docker-compose.yml
+        max_retries = 360  # retry for 1 hour max (360 * 10s); TODO: should go to docker-compose.yml
+
+        for attempt in range(max_retries):
+
+            statuses = []
+            for job_id in job_ids:
+
+                response = requests.get(f"{HPC_API_URL}/api/v1/jobs/{job_id}")
+                if response.status_code != 200:
+                    raise AirflowFailException(
+                        f"Failed to submit job. URL: {HPC_API_URL}/api/v1/jobs/{job_id}\n"
+                        f"Status Code: {response.status_code}\n"
+                        f"Response: {response.text}"
+                    )
+
+                statuses.append(response.json().get("status"))
+
+            if all(status == "COMPLETED" for status in statuses):
+                return
+
+            time.sleep(polling_interval)
+
+        raise AirflowFailException("Timeout waiting for jobs to finish")
+
+    return PythonOperator(task_id="wait_for_jobs", python_callable=_wait, dag=dag)
+
+
+# ETL model (DataOps phase; Feature Store Lite)
 def etl_model(dag):
 
     def _etl():
 
-        # NOTE: The ETL model is a two step process originally implemented with the
-        # scripts 'create_SSDB.py' (for a single NC) and 'mix_SSDBs.py' (for multiple NCs).
-        #
-        # TODO: the request payload of that endpoint with be updated to meet that reality.
-        payload = {
-            "nominal_composition": "Zr49Cu49Al2",  # TODO: parametrize
-            "labeling_type": "ICOHP",
-            "interaction_type": "Zr-Cu",
-        }
-
-        response = requests.post(f"{API_URL}/api/v1/etl_model", json=payload)
-
-        if response.status_code != 202:
-            raise AirflowFailException(f"Failed to schedule ETL model: {response.text}")
+        print(f"_etl")
 
     return PythonOperator(task_id="etl_model", python_callable=_etl, dag=dag)
-
-
-#
-# DAG Tasks scoped to the Model Development (ModelOps) phase,
-# which includes the single step:
-#
-# - Train/Tune (observability or model evaluation in the ModelOps phase)
-#
-########################################################################
-
-
-def evaluate_model(dag):
-
-    def _evaluate():
-
-        payload = {
-            "model_name": "GPR-custom-0.3",  # TODO: parametrize
-            "test_set": "Zr49Cu49Al2",
-        }
-
-        response = requests.post(f"{API_URL}/api/v1/evaluate", json=payload)
-
-        if response.status_code != 202:
-            raise AirflowFailException(
-                f"Failed to schedule model evaluation: {response.text}"
-            )
-
-    return PythonOperator(task_id="evaluate_model", python_callable=_evaluate, dag=dag)
