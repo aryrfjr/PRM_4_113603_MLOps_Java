@@ -1,6 +1,11 @@
 from airflow import DAG
 from datetime import datetime
-from tasks.pre_deployment_tasks import submit_jobs, wait_for_jobs, etl_model
+from tasks.pre_deployment_tasks import (
+    submit_jobs,
+    wait_for_jobs,
+    extract_soap_vectors,
+    create_ssdb,
+)
 
 ########################################################################
 #
@@ -19,11 +24,16 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     schedule_interval=None,
     catchup=False,
-    tags=["explore", "pre-deployment"],
+    tags=[
+        "explore",
+        "pre-deployment",
+    ],  # metadata for  categorization/organization of DAGs in the Airflow UI
 ) as dag:
 
+    # The sequence of tasks execution in this DAG
     step_1 = submit_jobs(dag)
     step_2 = wait_for_jobs(dag)
-    step_3 = etl_model(dag)
+    step_3 = extract_soap_vectors(dag)
+    step_4 = create_ssdb(dag)
 
-    step_1 >> step_2 >> step_3
+    step_1 >> step_2 >> step_3 >> step_4
