@@ -3,7 +3,6 @@ package org.doi.prmv4p113603.mlops.data.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import lombok.*;
 import org.doi.prmv4p113603.mlops.domain.SimulationArtifactRole;
 import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
