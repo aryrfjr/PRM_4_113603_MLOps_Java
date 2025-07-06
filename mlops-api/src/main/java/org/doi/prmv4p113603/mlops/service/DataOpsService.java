@@ -5,10 +5,13 @@ import lombok.AllArgsConstructor;
 import org.doi.prmv4p113603.common.service.MinioStorageService;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.data.dto.SimulationArtifactDto;
+import org.doi.prmv4p113603.mlops.data.request.AirflowDagRunRequest;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.domain.*;
+import org.doi.prmv4p113603.mlops.exception.DataOpsInternalInconsistencyException;
 import org.doi.prmv4p113603.mlops.exception.NominalCompositionNotFoundException;
+import org.doi.prmv4p113603.mlops.exception.SimulationArtifactNotFoundException;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.repository.*;
 import org.doi.prmv4p113603.common.util.MinioUtils;
@@ -100,8 +103,8 @@ public class DataOpsService {
             subRun.setSimulationArtifacts(SimulationArtifactFactory.load(
                     nominalCompositionName,
                     subRun,
-                    runDir.getChildren().get(0),  // passing the SubRun directory
-                    SimulationArtifactRole.GENERATE_INPUT)); // only input files
+                    runDir.getChildren().get(0),  // passing the SubRun (reference structure) directory
+                    SimulationArtifactRole.GENERATE_IO));
 
             runs.add(run);
 
@@ -118,29 +121,115 @@ public class DataOpsService {
         // Creating a DTO
         NominalCompositionDto ncDto = NominalCompositionDto.fromScheduleExplorationRequest(nominalComposition, runs);
 
-        // Finally uploading to MinIO
+        // Uploading to MinIO
         uploadSimulationInputFilesToS3(ncDto);
 
-        /*
-         * TODO: trigger the Airflow DAG passing three different jobs with inputs/outputs:
-         *
-         *  - SimulationArtifactType.LAMMPS_INPUT (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/Zr47Cu47Al6.lmp.inp):
-         *   -- SimulationArtifactType.LAMMPS_DUMP; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/zca-th300.dump)
-         *   -- SimulationArtifactType.LAMMPS_LOG; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/log.lammps)
-         *   -- SimulationArtifactType.LAMMPS_OUTPUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/Zr47Cu47Al6.lmp.out)
-         *
-         *  - SimulationArtifactType.QE_SCF_IN: (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.scf.in)
-         *   -- SimulationArtifactType.QE_SCF_OUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.scf.out)
-         *   -- SimulationArtifactType.QE_SCF_OUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.xyz)
-         *
-         *  - SimulationArtifactType.LOBSTER_INPUT: (e.g., /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/lobsterin)
-         *   -- SimulationArtifactType.LOBSTER_OUTPUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/Zr47Cu47Al6.lb.out)
-         *   -- SimulationArtifactType.LOBSTER_RUN_OUTPUT; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/lobsterout)
-         *   -- SimulationArtifactType.ICOHPLIST; (e.g. /data/ML/big-data-full/Zr47Cu47Al6/c/md/lammps/100/1/2000/0/ICOHPLIST.lobster)
-         */
+        // Finally triggering the Airflow DAG asynchronously
+        // TODO: SOAP parameters in a configuration properties or set in the UI
+        AirflowDagRunRequest.SoapParameters soapParameters = AirflowDagRunRequest.SoapParameters.builder()
+                .cutoff(3.75)
+                .lMax(6)
+                .nMax(8)
+                .nZ(3)
+                .Z("{13 29 40}")
+                .nSpecies(3)
+                .ZSpecies("{13 29 40}")
+                .build();
+
+        // The set of jobs that will be submitted to the HPC service
+        List<AirflowDagRunRequest.RunJob> payloadRuns = new ArrayList<>();
+        runs.stream()
+                .flatMap(run -> run.getSubRuns().stream())
+                .filter(subRun -> subRun.getSubRunNumber() == 0)
+                .forEach(subRun -> {
+
+                    // LAMMPS
+                    SimulationArtifact lammpsInput = getSimulationInput(subRun, SimulationArtifactType.LAMMPS_INPUT);
+
+                    Set<String> matchingLammpsOutputs = getSimulationOutputs(subRun, Set.of(
+                            SimulationArtifactType.LAMMPS_DUMP,
+                            SimulationArtifactType.LAMMPS_LOG,
+                            SimulationArtifactType.LAMMPS_OUTPUT
+                    ));
+
+                    AirflowDagRunRequest.Job jobLammps = AirflowDagRunRequest.Job.builder()
+                            .inputFile(lammpsInput.getFilePath())
+                            .outputFiles(matchingLammpsOutputs.stream().toList())
+                            .build();
+
+                    // Quantum Espresso
+                    SimulationArtifact qeInput = getSimulationInput(subRun, SimulationArtifactType.QE_SCF_IN);
+
+                    Set<String> matchingQeOutputs = getSimulationOutputs(subRun, Set.of(
+                            SimulationArtifactType.QE_SCF_OUT,
+                            SimulationArtifactType.LAMMPS_DUMP_XYZ
+                    ));
+
+                    AirflowDagRunRequest.Job jobQe = AirflowDagRunRequest.Job.builder()
+                            .inputFile(qeInput.getFilePath())
+                            .outputFiles(matchingQeOutputs.stream().toList())
+                            .build();
+
+                    // LOBSTER
+                    SimulationArtifact lobInput = getSimulationInput(subRun, SimulationArtifactType.LOBSTER_INPUT);
+
+                    Set<String> matchingLobOutputs = getSimulationOutputs(subRun, Set.of(
+                            SimulationArtifactType.LOBSTER_OUTPUT,
+                            SimulationArtifactType.LOBSTER_RUN_OUTPUT,
+                            SimulationArtifactType.ICOHPLIST
+                    ));
+
+                    AirflowDagRunRequest.Job jobLob = AirflowDagRunRequest.Job.builder()
+                            .inputFile(lobInput.getFilePath())
+                            .outputFiles(matchingLobOutputs.stream().toList())
+                            .build();
+
+                    AirflowDagRunRequest.RunJob payloadRun = AirflowDagRunRequest.RunJob.builder()
+                            .runNumber(subRun.getRun().getRunNumber())
+                            .jobs(List.of(jobLammps, jobQe, jobLob))
+                            .build();
+
+                    payloadRuns.add(payloadRun);
+
+                });
+
+        AirflowDagRunRequest payload = AirflowDagRunRequest.buildFrom(
+                nominalCompositionName,
+                payloadRuns,
+                soapParameters,
+                "4",
+                "2025-07-05T17:13:14.360Z",
+                "string"
+        );
+
+        try {
+            System.out.println(payload.toJson());
+        } catch (Exception e) {
+            throw new DataOpsInternalInconsistencyException(e.getMessage());
+        }
 
         // Returning only DTOs
         return ncDto;
+
+    }
+
+    private static SimulationArtifact getSimulationInput(SubRun subRun,
+                                                         SimulationArtifactType simulationArtifactType) { // TODO: throws???
+
+        return subRun.getSimulationArtifacts().stream()
+                .filter(artifact -> artifact.getArtifactType() == simulationArtifactType)
+                .findFirst()
+                .orElseThrow(() -> new SimulationArtifactNotFoundException(simulationArtifactType.toString()));
+
+    }
+
+    private static Set<String> getSimulationOutputs(SubRun subRun,
+                                                           Set<SimulationArtifactType> jobLammpsOutputTypes) { // TODO: throws???
+
+        return subRun.getSimulationArtifacts().stream()
+                .filter(artifact -> jobLammpsOutputTypes.contains(artifact.getArtifactType()))
+                .map(SimulationArtifact::getFilePath)
+                .collect(Collectors.toSet());
 
     }
 
@@ -244,7 +333,7 @@ public class DataOpsService {
                         nominalCompositionName,
                         subRun,
                         subRunDir,
-                        SimulationArtifactRole.GENERATE_INPUT)); // only input files
+                        SimulationArtifactRole.GENERATE_IO));
 
                 allNewSubRuns.add(subRun);
 
