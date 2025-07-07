@@ -40,13 +40,27 @@ public class SimulationArtifactFactory {
         // SubRun 0 is the reference structure and also contains the Runs inputs/outputs as artifacts
         if (subRun.getSubRunNumber() == 0) {
 
-            if (role == SimulationArtifactRole.GENERATE_INPUT) {
+            // TODO: refactor
+            if (role == SimulationArtifactRole.GENERATE_IO) {
                 loaded.addAll(loadExpectedSimulationArtifacts(
                         ExpectedSimulationArtifacts.GENERATE_RUN_INPUTS,
                         nominalCompositionName,
                         subRun,
                         subRunDir.getParent().getPath(),
                         SimulationArtifactRole.GENERATE_INPUT));
+                loaded.addAll(loadExpectedSimulationArtifacts(
+                        ExpectedSimulationArtifacts.GENERATE_RUN_OUTPUTS,
+                        nominalCompositionName,
+                        subRun,
+                        subRunDir.getParent().getPath(),
+                        SimulationArtifactRole.GENERATE_OUTPUT));
+            } else if (role == SimulationArtifactRole.GENERATE_INPUT) {
+                    loaded.addAll(loadExpectedSimulationArtifacts(
+                            ExpectedSimulationArtifacts.GENERATE_RUN_INPUTS,
+                            nominalCompositionName,
+                            subRun,
+                            subRunDir.getParent().getPath(),
+                            SimulationArtifactRole.GENERATE_INPUT));
             } else if (role == SimulationArtifactRole.GENERATE_OUTPUT) {
                 loaded.addAll(loadExpectedSimulationArtifacts(
                         ExpectedSimulationArtifacts.GENERATE_RUN_OUTPUTS,
@@ -58,13 +72,27 @@ public class SimulationArtifactFactory {
 
         }
 
-        if (role == SimulationArtifactRole.GENERATE_INPUT) {
+        // TODO: refactor
+        if (role == SimulationArtifactRole.GENERATE_IO) {
             loaded.addAll(loadExpectedSimulationArtifacts(
                     ExpectedSimulationArtifacts.GENERATE_SUB_RUN_INPUTS,
                     nominalCompositionName,
                     subRun,
                     subRunDir.getPath(),
                     SimulationArtifactRole.GENERATE_INPUT));
+            loaded.addAll(loadExpectedSimulationArtifacts(
+                    ExpectedSimulationArtifacts.GENERATE_SUB_RUN_OUTPUTS,
+                    nominalCompositionName,
+                    subRun,
+                    subRunDir.getPath(),
+                    SimulationArtifactRole.GENERATE_OUTPUT));
+        } else if (role == SimulationArtifactRole.GENERATE_INPUT) {
+                loaded.addAll(loadExpectedSimulationArtifacts(
+                        ExpectedSimulationArtifacts.GENERATE_SUB_RUN_INPUTS,
+                        nominalCompositionName,
+                        subRun,
+                        subRunDir.getPath(),
+                        SimulationArtifactRole.GENERATE_INPUT));
         } else if (role == SimulationArtifactRole.GENERATE_OUTPUT) {
             loaded.addAll(loadExpectedSimulationArtifacts(
                     ExpectedSimulationArtifacts.GENERATE_SUB_RUN_OUTPUTS,
