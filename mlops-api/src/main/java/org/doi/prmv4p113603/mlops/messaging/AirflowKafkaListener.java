@@ -21,7 +21,7 @@ public class AirflowKafkaListener {
         return payload -> {
             try {
                 AirflowEventDto dto = objectMapper.readValue(payload, AirflowEventDto.class);
-                eventService.process(dto);  // Do whatever you need here (e.g., persist to PostgreSQL)
+                eventService.process(dto);  // Do something here (e.g., persist to PostgreSQL)
             } catch (Exception e) {
                 System.err.println("Kafka message error: " + e.getMessage());
             }

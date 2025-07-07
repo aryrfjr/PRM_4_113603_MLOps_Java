@@ -40,6 +40,17 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- Hibernate Types (PostgreSQL JSONB) -->
+        <dependency>
+            <groupId>com.vladmihalcea</groupId>
+            <artifactId>hibernate-types-60</artifactId>
+            <version>2.21.1</version>
+        </dependency>
+        <!-- Spring WebFlux dependency, which provides WebClient for calling external REST APIs -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
         <!-- JSON message deserialization -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
