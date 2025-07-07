@@ -10,6 +10,7 @@ import org.doi.prmv4p113603.mlops.data.request.ScheduleExploitationRequest;
 import org.doi.prmv4p113603.mlops.data.request.ScheduleExplorationRequest;
 import org.doi.prmv4p113603.mlops.domain.*;
 import org.doi.prmv4p113603.mlops.model.NominalComposition;
+import org.doi.prmv4p113603.mlops.repository.ExplorationPipelineRunRepository;
 import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 import org.doi.prmv4p113603.mlops.repository.RunRepository;
 import org.doi.prmv4p113603.mlops.repository.SubRunRepository;
@@ -24,6 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -96,6 +98,12 @@ class DataOpsServiceTest {
     NominalCompositionRepository compositionRepo;
 
     @Autowired
+    WebClient airflowWebClient;
+
+    @Autowired
+    ExplorationPipelineRunRepository explorationPipelineRunRepository;
+
+    @Autowired
     RunRepository runRepo;
 
     @Autowired
@@ -118,8 +126,10 @@ class DataOpsServiceTest {
                 compositionRepo,
                 new SimulationDirectoriesFactory(mlopsProperties),
                 minioStorageService,
+                explorationPipelineRunRepository,
                 runRepo,
-                subRunRepo);
+                subRunRepo,
+                airflowWebClient);
 
         NominalCompositionDto result = service.scheduleExploration(nominalCompositionName, request);
 
@@ -167,8 +177,10 @@ class DataOpsServiceTest {
                 compositionRepo,
                 new SimulationDirectoriesFactory(mlopsProperties),
                 minioStorageService,
+                explorationPipelineRunRepository,
                 runRepo,
-                subRunRepo);
+                subRunRepo,
+                airflowWebClient);
 
         NominalCompositionDto result = service.scheduleExploitation(nominalCompositionName, request);
 

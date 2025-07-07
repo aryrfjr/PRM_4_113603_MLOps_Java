@@ -5,10 +5,16 @@ package org.doi.prmv4p113603.mlops.domain;
  */
 public enum SimulationArtifactRole {
 
+    GENERATE_IO,
     GENERATE_INPUT,
     GENERATE_OUTPUT,
+    ETL_IO,
     ETL_INPUT,
     ETL_OUTPUT;
+
+    public boolean isGenerateIo() {
+        return this == GENERATE_IO;
+    }
 
     public boolean isGenerateInput() {
         return this == GENERATE_INPUT;
@@ -16,6 +22,10 @@ public enum SimulationArtifactRole {
 
     public boolean isGenerateOutput() {
         return this == GENERATE_OUTPUT;
+    }
+
+    public boolean isEtlIo() {
+        return this == GENERATE_IO;
     }
 
     public boolean isEtlInput() {
