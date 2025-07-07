@@ -12,21 +12,12 @@ import java.util.List;
 public class AirflowDagRunRequest {
 
     private Conf conf;
-
-    @JsonProperty("dag_run_id")
-    private String dagRunId;
-
-    @JsonProperty("logical_date")
-    private String logicalDate;
-
     private String note;
 
     public static AirflowDagRunRequest buildFrom(
             String nominalComposition,
             List<RunJob> runs,
             SoapParameters soap,
-            String dagRunId,
-            String logicalDate,
             String note
     ) {
         ExploreCellsTask task = ExploreCellsTask.builder()
@@ -41,8 +32,6 @@ public class AirflowDagRunRequest {
 
         return AirflowDagRunRequest.builder()
                 .conf(conf)
-                .dagRunId(dagRunId)
-                .logicalDate(logicalDate)
                 .note(note)
                 .build();
     }
@@ -109,7 +98,8 @@ public class AirflowDagRunRequest {
         @JsonProperty("n_Z")
         private int nZ;
 
-        private String Z;
+        @JsonProperty("Z")
+        private String z;
 
         @JsonProperty("n_species")
         private int nSpecies;
@@ -123,4 +113,5 @@ public class AirflowDagRunRequest {
     public String toJson() throws Exception {
         return new ObjectMapper().writeValueAsString(this);
     }
+
 }
