@@ -172,28 +172,25 @@ services:
     networks:
       - mlopsnet
 
+  # Kafka broker service. Used by Airflow to send events and by Spring Boot (mlops-api) to consume them
   kafka:
     image: bitnami/kafka:latest
     restart: always
     ports:
       - "9092:9092"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9092
-    depends_on:
-      - zookeeper
-    networks:
-      - mlopsnet
-
-  zookeeper:
-    image: bitnami/zookeeper:latest
-    restart: always
-    ports:
-      - "2181:2181"
-    environment:
-      ALLOW_ANONYMOUS_LOGIN: yes
+      - KAFKA_KRAFT_MODE=true
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_LOG_DIRS=/bitnami/kafka/data
+    volumes:
+      - kafka_data:/bitnami/kafka
     networks:
       - mlopsnet
 
@@ -206,3 +203,4 @@ networks:
 volumes:
   postgres_data:
   minio_data:
+  kafka_data:
