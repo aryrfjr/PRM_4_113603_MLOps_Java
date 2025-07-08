@@ -1,8 +1,11 @@
+from datetime import datetime
+from kafka import KafkaProducer
 from airflow.operators.python import PythonOperator
 from airflow.exceptions import AirflowFailException
 import os
 import requests
 import time
+import json
 
 ##########################################################################
 #
@@ -123,8 +126,11 @@ def wait_for_jobs(dag):
 
                 statuses.append(response.json().get("status"))
 
-            if all(status == "COMPLETED" for status in statuses):
-                return
+            # TODO: statuses should be in a enum-like entity.
+            if all(
+                status in {"COMPLETED", "CANCELLED", "FAILED"} for status in statuses
+            ):
+                return  # TODO: return all_job_ids with corresponding satuses-> will go to XCom.
 
             time.sleep(polling_interval)
 
@@ -201,5 +207,22 @@ def create_ssdb(dag):
                 f"Status Code: {response.status_code}\n"
                 f"Response: {response.text}"
             )
+
+        # Notifying the MLOps back-end via Kafka message
+        message = {
+            "event_type": "ssdb_created",
+            "nominal_composition": nominal_composition,
+            "external_pipeline_run_id": kwargs["dag_run"].run_id,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+        producer = KafkaProducer(
+            bootstrap_servers="kafka:9092",
+            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        )
+        producer.send(  # NOTE: see application-properties of service mlops-api
+            "airflow-events", message
+        )
+        producer.flush()
 
     return PythonOperator(task_id="create_ssdb", python_callable=_create_ssdb, dag=dag)

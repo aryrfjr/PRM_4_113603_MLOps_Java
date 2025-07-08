@@ -15,19 +15,17 @@ from tasks.pre_deployment_tasks import (
 # - Generate (DataOps phase; exploration)
 # - ETL model (DataOps phase; Feature Store Lite)
 #
-#
-#
 ########################################################################
 
 with DAG(
     dag_id="pre_deployment_exploration",
-    start_date=datetime(2024, 1, 1),
+    start_date=datetime.utcnow(),
     schedule_interval=None,
     catchup=False,
-    tags=[
+    tags=[  # metadata for  categorization/organization of DAGs in the Airflow UI
         "explore",
         "pre-deployment",
-    ],  # metadata for  categorization/organization of DAGs in the Airflow UI
+    ],
 ) as dag:
 
     # The sequence of tasks execution in this DAG

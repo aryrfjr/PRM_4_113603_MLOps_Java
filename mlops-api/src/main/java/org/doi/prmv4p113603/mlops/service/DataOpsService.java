@@ -166,6 +166,9 @@ public class DataOpsService {
 
         ExplorationPipelineRun epRun = ExplorationPipelineRun.builder()
                 .responsePayload(response)
+                .externalPipelineId(response.getPipelineId())
+                .externalPipelineRunId(response.getPipelineRunId())
+                .status(PipelineRunStatus.SCHEDULED)
                 .runs(runs)
                 .build();
 
@@ -327,7 +330,7 @@ public class DataOpsService {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(ExplorationPipelineRunResponse.class)
-                .doOnNext(res -> System.out.println("DAG Run triggered: {}" + res.getDagId()))
+                .doOnNext(res -> System.out.println("DAG Run triggered: {}" + res.getPipelineId()))
                 .block(); // Only block if in a sync context
 
     }
@@ -339,7 +342,7 @@ public class DataOpsService {
                 .uri(uri)
                 .retrieve()
                 .bodyToMono(ExplorationPipelineRunResponse.class)
-                .doOnNext(res -> System.out.println("DAG Run status: {}" + res.getDagRunId()))
+                .doOnNext(res -> System.out.println("DAG Run status: {}" + res.getPipelineRunId()))
                 .block(); // Only block if in a sync context
 
     }
