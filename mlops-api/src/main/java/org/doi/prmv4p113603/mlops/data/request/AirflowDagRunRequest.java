@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class AirflowDagRunRequest {
+public class AirflowDagRunRequest { // TODO: I think that DAG is Airflow specific; how to generalize?
 
     private Conf conf;
     private String note;

@@ -43,7 +43,7 @@ public class NominalComposition {
     private Instant updatedAt;
 
     @CreatedBy
-    @Column(name = "created_by", nullable = false)
+    @Column(name = "created_by", nullable = false, updatable = false)
     private String createdBy;
 
     @LastModifiedBy
