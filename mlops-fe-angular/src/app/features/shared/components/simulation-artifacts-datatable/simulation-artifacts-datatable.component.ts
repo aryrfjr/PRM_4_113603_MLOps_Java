@@ -41,7 +41,7 @@ export class SimulationArtifactsDataTableComponent implements OnChanges {
   simulationArtifactsTableColumns: TableColumn[] = [
     { key: 'artifact_type', label: 'Artifact Type', align: 'center'  },
     { key: 'file_path', label: 'File Path' },
-    { key: 'file_size', label: 'File Size' },
+    { key: 'file_size', label: 'File Size (MB)', align: 'right', type: 'number', numberFormat: '1.2-2' },
     { key: 'checksum', label: 'Checksum' }
   ];
 
@@ -91,7 +91,10 @@ export class SimulationArtifactsDataTableComponent implements OnChanges {
       })
     ).subscribe({
         next: (data) => {
-          this.simulationArtifactsTableData = data
+          this.simulationArtifactsTableData = data.map(artifact => ({
+            ...artifact,
+            file_size: artifact.file_size / 1024
+          }));
         },
         error: (err) => {
           console.error('Failed to fetch Simulation Artifacts', err);
@@ -102,7 +105,7 @@ export class SimulationArtifactsDataTableComponent implements OnChanges {
 
   }
 
-    private cleanSimulationArtifactsInfo() {
+  private cleanSimulationArtifactsInfo() {
       this.simulationArtifactsTableData = [];
   }
 
