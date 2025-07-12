@@ -41,7 +41,7 @@ public class SimulationArtifactFactory {
         if (subRun.getSubRunNumber() == 0) {
 
             // TODO: refactor
-            if (role == SimulationArtifactRole.GENERATE_IO) {
+            if (role.isGenerateIo()) {
                 loaded.addAll(loadExpectedSimulationArtifacts(
                         ExpectedSimulationArtifacts.GENERATE_RUN_INPUTS,
                         nominalCompositionName,
@@ -54,14 +54,14 @@ public class SimulationArtifactFactory {
                         subRun,
                         subRunDir.getParent().getPath(),
                         SimulationArtifactRole.GENERATE_OUTPUT));
-            } else if (role == SimulationArtifactRole.GENERATE_INPUT) {
-                    loaded.addAll(loadExpectedSimulationArtifacts(
-                            ExpectedSimulationArtifacts.GENERATE_RUN_INPUTS,
-                            nominalCompositionName,
-                            subRun,
-                            subRunDir.getParent().getPath(),
-                            SimulationArtifactRole.GENERATE_INPUT));
-            } else if (role == SimulationArtifactRole.GENERATE_OUTPUT) {
+            } else if (role.isGenerateInput()) {
+                loaded.addAll(loadExpectedSimulationArtifacts(
+                        ExpectedSimulationArtifacts.GENERATE_RUN_INPUTS,
+                        nominalCompositionName,
+                        subRun,
+                        subRunDir.getParent().getPath(),
+                        SimulationArtifactRole.GENERATE_INPUT));
+            } else if (role.isGenerateOutput()) {
                 loaded.addAll(loadExpectedSimulationArtifacts(
                         ExpectedSimulationArtifacts.GENERATE_RUN_OUTPUTS,
                         nominalCompositionName,
@@ -73,7 +73,7 @@ public class SimulationArtifactFactory {
         }
 
         // TODO: refactor
-        if (role == SimulationArtifactRole.GENERATE_IO) {
+        if (role.isGenerateIo()) {
             loaded.addAll(loadExpectedSimulationArtifacts(
                     ExpectedSimulationArtifacts.GENERATE_SUB_RUN_INPUTS,
                     nominalCompositionName,
@@ -86,14 +86,14 @@ public class SimulationArtifactFactory {
                     subRun,
                     subRunDir.getPath(),
                     SimulationArtifactRole.GENERATE_OUTPUT));
-        } else if (role == SimulationArtifactRole.GENERATE_INPUT) {
-                loaded.addAll(loadExpectedSimulationArtifacts(
-                        ExpectedSimulationArtifacts.GENERATE_SUB_RUN_INPUTS,
-                        nominalCompositionName,
-                        subRun,
-                        subRunDir.getPath(),
-                        SimulationArtifactRole.GENERATE_INPUT));
-        } else if (role == SimulationArtifactRole.GENERATE_OUTPUT) {
+        } else if (role.isGenerateInput()) {
+            loaded.addAll(loadExpectedSimulationArtifacts(
+                    ExpectedSimulationArtifacts.GENERATE_SUB_RUN_INPUTS,
+                    nominalCompositionName,
+                    subRun,
+                    subRunDir.getPath(),
+                    SimulationArtifactRole.GENERATE_INPUT));
+        } else if (role.isGenerateOutput()) {
             loaded.addAll(loadExpectedSimulationArtifacts(
                     ExpectedSimulationArtifacts.GENERATE_SUB_RUN_OUTPUTS,
                     nominalCompositionName,
@@ -122,16 +122,7 @@ public class SimulationArtifactFactory {
                     SimulationArtifactType type = entry.getValue();
 
                     String resolvedFileName = template.replace("{NC}", nominalCompositionName);
-                    Path subRunDirPath;
-
-                    if (type == SimulationArtifactType.SOAP_VECTORS) {
-                        subRunDirPath = Path.of(path.replace(
-                                nominalCompositionName, nominalCompositionName + "-SOAPS"));
-                    } else {
-                        subRunDirPath = Path.of(path);
-                    }
-
-                    Path resolvedPath = subRunDirPath.resolve(resolvedFileName);
+                    Path resolvedPath = Path.of(path).resolve(resolvedFileName);
 
                     if (!Files.exists(resolvedPath)) {
                         throw new SimulationArtifactNotFoundException(resolvedPath.toAbsolutePath().toString());
@@ -150,18 +141,24 @@ public class SimulationArtifactFactory {
                                                     SimulationArtifactType type,
                                                     SimulationArtifactRole role) {
 
-        return SimulationArtifact.builder()
+        SimulationArtifact sa = SimulationArtifact.builder()
                 .subRun(subRun)
                 .artifactType(type)
                 .artifactRole(role)
                 .filePath(filePath.toString())
-                .fileSize(getFileSize(filePath))
-                .checksum(computeChecksum(filePath))
                 .build();
+
+        // NOTE: only input files because output files will be generated in a real world scenario
+        if (role.isGenerateInput()) {
+            sa.setFileSize(getFileSize(filePath));
+            sa.setChecksum(computeChecksum(filePath));
+        }
+
+        return sa;
 
     }
 
-    private static Integer getFileSize(Path filePath) {
+    public static Integer getFileSize(Path filePath) {
 
         try {
             return (int) Files.size(filePath);
@@ -171,7 +168,7 @@ public class SimulationArtifactFactory {
 
     }
 
-    private static String computeChecksum(Path filePath) {
+    public static String computeChecksum(Path filePath) {
 
         try (InputStream is = Files.newInputStream(filePath)) {
 

@@ -72,4 +72,15 @@ public interface RunRepository extends JpaRepository<Run, Long> {
      */
     boolean existsByNominalCompositionId(Long nominalCompositionId);
 
+    /**
+     * Retrieves a {@link Run} entity with the given NominalComposition object and a run_number.
+     * <p>
+     * This method's name allows JPA to derive the query by naming convention.
+     *
+     * @param nc and instance of a given {@link NominalComposition}.
+     * @param runNumber a given run_number.
+     * @return a {@link Run} entity.
+     */
+    Optional<Run> findByNominalCompositionAndRunNumber(NominalComposition nc, int runNumber);
+
 }

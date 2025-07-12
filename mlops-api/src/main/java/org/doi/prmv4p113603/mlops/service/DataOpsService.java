@@ -78,8 +78,7 @@ public class DataOpsService {
 
         int nextRunNumber = runRepo.findMaxRunNumberByNominalCompositionId(nominalComposition.getId()).orElse(0) + 1;
 
-        SimulationDirectories simulationDirectories = simulationDirectoriesFactory.create(
-                SimulationType.GENERATE_EXPLORATION,
+        SimulationDirectories simulationDirectories = simulationDirectoriesFactory.createForExploration(
                 nominalCompositionName,
                 nextRunNumber,
                 request.getNumSimulations());
@@ -250,8 +249,7 @@ public class DataOpsService {
 
         // Checking the consistency of directories
 
-        SimulationDirectories simulationDirectories = simulationDirectoriesFactory.create(
-                SimulationType.GENERATE_EXPLOITATION,
+        SimulationDirectories simulationDirectories = simulationDirectoriesFactory.createForExploitation(
                 nominalCompositionName,
                 request.getRuns());
 
@@ -317,12 +315,13 @@ public class DataOpsService {
         nominalCompositionDto.getRuns().stream()
                 .flatMap(runDto -> runDto.getSubRuns().stream())
                 .flatMap(subRunDto -> subRunDto.getSimulationArtifacts().stream())
-                .filter(artifactDto -> artifactDto.getArtifactRole().isGenerateInput()) // only input files
+                .filter(artifactDto -> artifactDto.getArtifactRole().isGenerateInput()) // NOTE: only input files
                 .map(SimulationArtifactDto::getFilePath)
                 .forEach(path -> minioStorageService.uploadFile(MinioUtils.pathToKey(path), path));
     }
 
     public ExplorationPipelineRunResponse triggerAirflowDag(String dagId, AirflowDagRunRequest payload) {
+
         String uri = String.format("/dags/%s/dagRuns", dagId);
 
         return airflowWebClient.post()
@@ -336,6 +335,7 @@ public class DataOpsService {
     }
 
     public ExplorationPipelineRunResponse getAirflowDagRunStatus(String dagId, String dagRunId) {
+
         String uri = String.format("/dags/%s/dagRuns/%s", dagId, dagRunId);
 
         return airflowWebClient.get()

@@ -17,14 +17,13 @@ public class SimulationDirectoriesFactory {
     // Dependencies
     private final MlopsProperties mlopsProperties;
 
-    public SimulationDirectories create(
-            SimulationType simulationType,
+    public SimulationDirectories createForExploration(
             String nominalCompositionName,
             int exploreNextRunNumber,
             int exploreNumSimulations) {
 
         SimulationDirectories simulationDirectories = new SimulationDirectories(
-                simulationType,
+                SimulationType.GENERATE_EXPLORATION,
                 nominalCompositionName,
                 mlopsProperties.getDataRoot());
 
@@ -35,13 +34,12 @@ public class SimulationDirectoriesFactory {
 
     }
 
-    public SimulationDirectories create(
-            SimulationType simulationType,
+    public SimulationDirectories createForExploitation(
             String nominalCompositionName,
             List<ScheduleExploitationRequest.RunInput> exploitRuns) {
 
         SimulationDirectories simulationDirectories = new SimulationDirectories(
-                simulationType,
+                SimulationType.GENERATE_EXPLOITATION,
                 nominalCompositionName,
                 mlopsProperties.getDataRoot());
 
