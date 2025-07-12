@@ -9,7 +9,7 @@ export interface SimulationArtifact {
     id: number;
     artifact_type: string;
     file_path: string;
-    file_size: string;
+    file_size: number;
     checksum: string;
   
 }

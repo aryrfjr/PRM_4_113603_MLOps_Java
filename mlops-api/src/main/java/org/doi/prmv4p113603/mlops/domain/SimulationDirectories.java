@@ -34,10 +34,12 @@ public class SimulationDirectories {
     private final SimulationType simulationType;
     private final String nominalCompositionName;
     private final String dataRoot;
+    private SimulationDirectory nominalCompositionDir;
     private int exploreNextRunNumber = -1;
     private int exploreNumSimulations = -1;
     private List<ScheduleExploitationRequest.RunInput> exploitRuns;
-    private SimulationDirectory nominalCompositionDir;
+    private int etlRunNumber = -1;
+    private int etlSubRunNumber = -1;
 
     public SimulationDirectory getNominalCompositionDir() {
 
@@ -64,9 +66,15 @@ public class SimulationDirectories {
             throw new SimulationDirectoryNotFoundException(nominalCompositionDirName + "-SOAPS");
         } else {
 
-            nominalCompositionDir = new SimulationDirectory(
-                    nominalCompositionDirName,
-                    SimulationArtifactScope.NOMINAL_COMPOSITION);
+            if (simulationType.isGenerateExploration() || simulationType.isGenerateExploitation()) {
+                nominalCompositionDir = new SimulationDirectory(
+                        nominalCompositionDirName,
+                        SimulationArtifactScope.NOMINAL_COMPOSITION);
+            } else if (simulationType.isEtl()) {
+                nominalCompositionDir = new SimulationDirectory(
+                        nominalCompositionDirName + "-SOAPS",
+                        SimulationArtifactScope.NOMINAL_COMPOSITION);
+            }
 
             if (simulationType.isGenerateExploration()) {
 
@@ -116,16 +124,16 @@ public class SimulationDirectories {
                     SimulationDirectory runDir = new SimulationDirectory(runDirName,
                             SimulationArtifactScope.RUN, runInput.getRunNumber());
 
-                    for (Integer subRunId : runInput.getSubRuns()) {
+                    for (Integer subRunNumber : runInput.getSubRuns()) {
 
-                        String subRunDirName = FileSystemUtils.join(runDirName, "2000/", String.valueOf(subRunId));
+                        String subRunDirName = FileSystemUtils.join(runDirName, "2000/", String.valueOf(subRunNumber));
 
                         if (!FileSystemUtils.pathExists(subRunDirName)) {
                             throw new SimulationDirectoryNotFoundException(subRunDirName);
                         }
 
                         SimulationDirectory subRunDir = new SimulationDirectory(subRunDirName,
-                                SimulationArtifactScope.SUB_RUN, subRunId);
+                                SimulationArtifactScope.SUB_RUN, subRunNumber);
 
                         runDir.addChild(subRunDir);
 
@@ -135,7 +143,34 @@ public class SimulationDirectories {
 
                 }
 
-            } // TODO: ETL
+            } else if (simulationType.isEtl()) {
+
+                if (etlRunNumber == -1 || etlSubRunNumber == -1) {
+                    throw new DataOpsInternalInconsistencyException("Attributes etlRunNumber and/or etlSubRunNumber not set.");
+                }
+
+                String runDirName = FileSystemUtils.join(nominalCompositionDirName, "c/md/lammps/100", String.valueOf(etlRunNumber));
+
+                if (!FileSystemUtils.pathExists(runDirName)) {
+                    throw new SimulationDirectoryNotFoundException(runDirName);
+                }
+
+                SimulationDirectory runDir = new SimulationDirectory(runDirName, SimulationArtifactScope.RUN, etlRunNumber);
+
+                String subRunDirName = FileSystemUtils.join(runDirName, "2000/", String.valueOf(etlSubRunNumber));
+
+                if (!FileSystemUtils.pathExists(subRunDirName)) {
+                    throw new SimulationDirectoryNotFoundException(subRunDirName);
+                }
+
+                SimulationDirectory subRunDir = new SimulationDirectory(subRunDirName,
+                        SimulationArtifactScope.SUB_RUN, etlSubRunNumber);
+
+                runDir.addChild(subRunDir);
+
+                nominalCompositionDir.addChild(runDir);
+
+            }
 
         }
 

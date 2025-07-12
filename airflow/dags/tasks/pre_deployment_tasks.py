@@ -90,7 +90,7 @@ def submit_jobs(dag):
     return PythonOperator(task_id="submit_jobs", python_callable=_submit, dag=dag)
 
 
-# Generate (DataOps phase; exploration/exploitation)
+# Sensor for Generate (DataOps phase; exploration/exploitation)
 def wait_for_jobs(dag):
 
     def _wait(**kwargs):
@@ -126,7 +126,7 @@ def wait_for_jobs(dag):
 
                 statuses.append(response.json().get("status"))
 
-            # TODO: statuses should be in a enum-like entity.
+            # TODO: statuses should be in a enum-like entity and the same that we have in the HPC service.
             if all(
                 status in {"COMPLETED", "CANCELLED", "FAILED"} for status in statuses
             ):
@@ -170,6 +170,25 @@ def extract_soap_vectors(dag):
                     f"Response: {response.text}"
                 )
 
+            # Notifying the MLOps back-end via Kafka message
+            message = {
+                "type": "SOAP_VECTORS_EXTRACTED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
+                "nominal_composition": nominal_composition,
+                "run_number": run_number,
+                "sub_run_number": 0,
+                "external_pipeline_run_id": kwargs["dag_run"].run_id,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+
+            producer = KafkaProducer(
+                bootstrap_servers="kafka:9092",
+                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+            )
+            producer.send(  # NOTE: see application-properties of service mlops-api
+                "airflow-events", message
+            )
+            producer.flush()
+
     return PythonOperator(
         task_id="extract_soap_vectors", python_callable=_extract, dag=dag
     )
@@ -210,7 +229,7 @@ def create_ssdb(dag):
 
         # Notifying the MLOps back-end via Kafka message
         message = {
-            "event_type": "ssdb_created",
+            "type": "SSDB_CREATED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
             "nominal_composition": nominal_composition,
             "external_pipeline_run_id": kwargs["dag_run"].run_id,
             "timestamp": datetime.utcnow().isoformat() + "Z",

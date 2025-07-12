@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * DAO for SubRunR entity. It provides built-in CRUD operations.
@@ -48,5 +49,16 @@ public interface SubRunRepository extends JpaRepository<SubRun, Long> {
      * @return a list of {@link SubRun} entities.
      */
     List<SubRun> findAllByRunId(Long runId);
+
+    /**
+     * Retrieves all {@link SubRun} entity with the given Run object and a sub_run_number.
+     * <p>
+     * This method's name allows JPA to derive the query by naming convention.
+     *
+     * @param run and instance of a given {@link Run}.
+     * @param subRunNumber a given sub_run_number.
+     * @return a {@link SubRun} entity.
+     */
+    Optional<SubRun> findByRunAndSubRunNumber(Run run, int subRunNumber);
 
 }
