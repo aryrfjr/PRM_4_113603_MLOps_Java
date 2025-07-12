@@ -1,7 +1,7 @@
 // NOTE: This reusable component is declared in AppModule (app.module.ts).
 
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 
 export interface TableColumn {
   key: string;
@@ -9,13 +9,14 @@ export interface TableColumn {
   align?: 'left' | 'center' | 'right';
   type?: 'string' | 'date' | 'number';  // TODO: more?
   dateFormat?: string;  // e.g. 'short', 'medium', or custom Angular date formats
+  numberFormat?: string;
 }
 
 @Component({
   selector: 'data-table', // defines the reusable <data-table> tag
   templateUrl: './datatable.component.html',
   styleUrls: ['./datatable.component.css'],
-  providers: [DatePipe]
+  providers: [DatePipe, DecimalPipe]
 })
 
 export class DataTableComponent {
@@ -29,7 +30,10 @@ export class DataTableComponent {
   @Input() selectedRowKeyValue: number | string | null = null; // Currently selected value
   @Output() rowSelected = new EventEmitter<number | string | null>();
 
-  constructor(private datePipe: DatePipe) {}
+  constructor(
+    private datePipe: DatePipe,
+    private decimalPipe: DecimalPipe
+  ) {}
 
   /*
   * NOTE: In Angular best practices, reusable components should be stateless when 
@@ -47,13 +51,17 @@ export class DataTableComponent {
   }
 
   formatCell(row: any, col: TableColumn): string {
+
+    const value = row[col.key];
     
     if (col.type === 'date') {
-      return this.datePipe.transform(row[col.key], col.dateFormat || 'medium') || '';
+      return this.datePipe.transform(value, col.dateFormat || 'medium') || '';
+    } else if (col.type === 'number') {
+      return this.decimalPipe.transform(value, col.numberFormat || '1.0-3') || '';
     }
 
     // fallback to default string display
-    return row[col.key];
+    return value;
     
   }
 

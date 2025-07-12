@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *  - Injecting dependencies (via @Autowired, constructor injection).
  *  - Managing lifecycle (e.g., initialization, shutdown hooks).
  */
+// TODO: configure a dedicated logging framework like Log4j, SLF4J, or Logback.
 @SpringBootApplication(scanBasePackages = {
         "org.doi.prmv4p113603.mlops",
         "org.doi.prmv4p113603.common"

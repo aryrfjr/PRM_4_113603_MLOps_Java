@@ -53,6 +53,8 @@ public class SimulationArtifactDto {
                 .id(simulationArtifact.getId())
                 .artifactType(simulationArtifact.getArtifactType())
                 .filePath(simulationArtifact.getFilePath())
+                .fileSize(simulationArtifact.getFileSize())
+                .checksum(simulationArtifact.getChecksum())
                 .build();
     }
 
