@@ -154,6 +154,7 @@ def wait_for_jobs(dag):
         for attempt in range(max_retries):
 
             statuses = []
+            ids_messaged = []
             for job_id in all_job_ids:
 
                 response = requests.get(f"{HPC_API_URL}/api/v1/jobs/{job_id}")
@@ -166,6 +167,23 @@ def wait_for_jobs(dag):
                     )
 
                 statuses.append(response.json().get("status"))
+
+                if (
+                    response.json().get("status") == "COMPLETED"
+                    and not response.json().get("id") in ids_messaged
+                ):
+
+                    # Notifying the MLOps back-end via Kafka message
+                    message = {
+                        "type": "RUN_JOB_FINISHED",
+                        "job_info": response,
+                        "external_pipeline_run_id": kwargs["dag_run"].run_id,
+                        "timestamp": datetime.utcnow().isoformat() + "Z",
+                    }
+
+                    send_kafka_message(message)
+
+                    ids_messaged.append(response.json().get("id"))
 
             # TODO: statuses should be in a enum-like entity and the same that we have in the HPC service.
             if all(

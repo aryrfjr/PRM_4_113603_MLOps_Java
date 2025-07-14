@@ -20,11 +20,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Contains business logic for handling different message types.
  * <p>
  * TODO: could be the implementation of an interface MessageService.
+ * <p>
+ * TODO: https://theburningmonk.com/2024/11/eventbridge-best-practice-why-you-should-wrap-events-in-event-envelopes/
  */
 @Service
 @AllArgsConstructor
@@ -40,6 +44,31 @@ public class AirflowKafkaMessageService {
     public void process(AirflowKafkaMessageDto message) {
 
         System.out.println("Received message: " + message);
+
+        String nominalCompositionName = null;
+        String runNumber = null;
+        String subRunNumber = null;
+
+        if (message.getType().isRunJobFinished()) {
+
+            AirflowKafkaMessageDto.HpcJobInfoDto jobInfo = message.getJobInfo();
+
+            String path = jobInfo.getOutputFiles().get(0);
+            String regex = "/data/ML/big-data-full/([^/]+)/c/md/lammps/100/([^/]+)/2000/([^/]+)/";
+
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(path);
+
+            if (matcher.find()) {
+                nominalCompositionName = matcher.group(1);
+                runNumber = matcher.group(2);
+                subRunNumber = matcher.group(3);
+            } // TODO: throw exception
+
+        } else {
+            nominalCompositionName = message.getNominalComposition();
+            runNumber = String.valueOf(message.getRunNumber());
+        }
 
         NominalComposition nominalComposition = nominalCompositionRepository.findByName(message.getNominalComposition())
                 .orElseThrow(() -> new NominalCompositionNotFoundException(message.getNominalComposition()));
@@ -57,13 +86,29 @@ public class AirflowKafkaMessageService {
             run.setStatus(RunStatus.ETL_FAILED);
         } else if (message.getType().isSoapVectorsExtracted()) {
 
-            for (int subRunNumber : message.getSubRunNumbers()) {
+            for (int srNumber : message.getSubRunNumbers()) {
 
                 run.setStatus(RunStatus.ETL_COMPLETED);
 
-                SimulationArtifact sa = createSoapVectorsArtifacts(nominalComposition, run, subRunNumber);
+                SimulationArtifact sa = createSoapVectorsArtifacts(nominalComposition, run, srNumber);
 
                 System.out.println("Simulation Artifact for SOAP vectors created: " + sa);
+
+            }
+
+        } else if (message.getType().isRunJobFinished()) {
+
+            if (subRunNumber != null) {
+
+                /*
+                 * NOTE: Java requires that variables referenced inside a lambda expression must be effectively final
+                 */
+                final String finalSubRunNumber = subRunNumber;
+
+                SubRun subRun = subRunRepository.findByRunAndSubRunNumber(run, Integer.parseInt(subRunNumber))
+                        .orElseThrow(() -> new SubRunNotFoundException(finalSubRunNumber));
+
+                // TODO: update file size and check sums for all its simulation artifacts
 
             }
 
@@ -71,6 +116,9 @@ public class AirflowKafkaMessageService {
 
     }
 
+    /*
+     * Helpers.
+     */
     private SimulationArtifact createSoapVectorsArtifacts(NominalComposition nominalComposition, Run run, int subRunNumber) {
 
         SubRun subRun = subRunRepository.findByRunAndSubRunNumber(run, subRunNumber)
