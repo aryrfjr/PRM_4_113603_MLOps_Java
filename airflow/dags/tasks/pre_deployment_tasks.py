@@ -30,6 +30,21 @@ MS_API_URL = os.getenv("MS_API_URL")
 #
 ##########################################################################
 
+
+def send_kafka_message(message):
+
+    producer = KafkaProducer(
+        bootstrap_servers="kafka:9092",
+        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+    )
+
+    producer.send(  # NOTE: see application-properties of service mlops-api
+        "airflow-events", message
+    )
+
+    producer.flush()
+
+
 #
 # DAG Tasks scoped to the Data Generation & Labeling (DataOps) phase,
 # which includes the following steps:
@@ -51,10 +66,13 @@ def submit_jobs(dag):
         dag_conf = kwargs["dag_run"].conf
 
         task_conf = dag_conf.get("explore_cells_task", {})
+        nominal_composition = task_conf.get("nominal_composition")
         runs_jobs = task_conf.get("runs_jobs", [])
 
         all_job_ids = []
         for run in runs_jobs:
+
+            run_number = run.get("run_number")
 
             previous_job_id = None
 
@@ -84,7 +102,18 @@ def submit_jobs(dag):
 
                 previous_job_id = current_job_id  # next job will depend on this one
 
-        # return all_job_ids -> will go to XCom
+            # Notifying the MLOps back-end via Kafka message
+            message = {
+                "type": "RUN_SUBMITTED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
+                "nominal_composition": nominal_composition,
+                "run_number": run_number,
+                "external_pipeline_run_id": kwargs["dag_run"].run_id,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+
+            send_kafka_message(message)
+
+        # Will go to XCom
         return all_job_ids
 
     return PythonOperator(task_id="submit_jobs", python_callable=_submit, dag=dag)
@@ -175,19 +204,12 @@ def extract_soap_vectors(dag):
                 "type": "SOAP_VECTORS_EXTRACTED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
                 "nominal_composition": nominal_composition,
                 "run_number": run_number,
-                "sub_run_number": 0,
+                "sub_run_numbers": [0],
                 "external_pipeline_run_id": kwargs["dag_run"].run_id,
                 "timestamp": datetime.utcnow().isoformat() + "Z",
             }
 
-            producer = KafkaProducer(
-                bootstrap_servers="kafka:9092",
-                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-            )
-            producer.send(  # NOTE: see application-properties of service mlops-api
-                "airflow-events", message
-            )
-            producer.flush()
+            send_kafka_message(message)
 
     return PythonOperator(
         task_id="extract_soap_vectors", python_callable=_extract, dag=dag
@@ -220,6 +242,18 @@ def create_ssdb(dag):
         )
 
         if response.status_code != 200:
+
+            # Notifying the MLOps back-end via Kafka message
+            message = {
+                "type": "SSDB_CREATION_FAILED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
+                "nominal_composition": nominal_composition,
+                "runs_in_ssdb": runs_payload,
+                "external_pipeline_run_id": kwargs["dag_run"].run_id,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+
+            send_kafka_message(message)
+
             raise AirflowFailException(
                 f"Failed to submit job. URL: {MS_API_URL}/api/v1/dataops/create_ssdb/{nominal_composition}\n"
                 f"Payload: {payload}\n"
@@ -227,21 +261,17 @@ def create_ssdb(dag):
                 f"Response: {response.text}"
             )
 
-        # Notifying the MLOps back-end via Kafka message
-        message = {
-            "type": "SSDB_CREATED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
-            "nominal_composition": nominal_composition,
-            "external_pipeline_run_id": kwargs["dag_run"].run_id,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-        }
+        else:
 
-        producer = KafkaProducer(
-            bootstrap_servers="kafka:9092",
-            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-        )
-        producer.send(  # NOTE: see application-properties of service mlops-api
-            "airflow-events", message
-        )
-        producer.flush()
+            # Notifying the MLOps back-end via Kafka message
+            message = {
+                "type": "SSDB_CREATED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
+                "nominal_composition": nominal_composition,
+                "runs_in_ssdb": runs_payload,
+                "external_pipeline_run_id": kwargs["dag_run"].run_id,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+
+            send_kafka_message(message)
 
     return PythonOperator(task_id="create_ssdb", python_callable=_create_ssdb, dag=dag)

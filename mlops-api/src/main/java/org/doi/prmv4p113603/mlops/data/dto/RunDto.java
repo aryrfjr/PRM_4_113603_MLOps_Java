@@ -3,7 +3,7 @@ package org.doi.prmv4p113603.mlops.data.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
+import org.doi.prmv4p113603.mlops.domain.RunStatus;
 import org.doi.prmv4p113603.mlops.model.Run;
 
 import java.time.Instant;
@@ -32,7 +32,7 @@ public class RunDto {
     @JsonProperty("run_number")
     private int runNumber;
 
-    private SimulationStatus status = SimulationStatus.SCHEDULED;
+    private RunStatus status = RunStatus.EXPLORATION_SCHEDULED;
 
     @JsonProperty("created_by")
     private String createdBy;

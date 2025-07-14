@@ -57,24 +57,20 @@ public class SimulationDirectories {
      */
     public void load() {
 
-        String nominalCompositionDirName = FileSystemUtils.join(dataRoot, nominalCompositionName);
+        String nominalCompositionDirName = null;
+        if (simulationType.isGenerateExploration() || simulationType.isGenerateExploitation()) {
+            nominalCompositionDirName = FileSystemUtils.join(dataRoot, nominalCompositionName);
+        } else if (simulationType.isEtl()) {
+            nominalCompositionDirName = FileSystemUtils.join(dataRoot, nominalCompositionName + "-SOAPS");
+        }
 
-        if ((simulationType.isGenerateExploration() || simulationType.isGenerateExploitation())
-                && !FileSystemUtils.pathExists(nominalCompositionDirName)) {
+        if (nominalCompositionDirName == null || !FileSystemUtils.pathExists(nominalCompositionDirName)) {
             throw new SimulationDirectoryNotFoundException(nominalCompositionDirName);
-        } else if (simulationType.isEtl() && !FileSystemUtils.pathExists(nominalCompositionDirName + "-SOAPS")) {
-            throw new SimulationDirectoryNotFoundException(nominalCompositionDirName + "-SOAPS");
         } else {
 
-            if (simulationType.isGenerateExploration() || simulationType.isGenerateExploitation()) {
-                nominalCompositionDir = new SimulationDirectory(
-                        nominalCompositionDirName,
-                        SimulationArtifactScope.NOMINAL_COMPOSITION);
-            } else if (simulationType.isEtl()) {
-                nominalCompositionDir = new SimulationDirectory(
-                        nominalCompositionDirName + "-SOAPS",
-                        SimulationArtifactScope.NOMINAL_COMPOSITION);
-            }
+            nominalCompositionDir = new SimulationDirectory(
+                    nominalCompositionDirName,
+                    SimulationArtifactScope.NOMINAL_COMPOSITION);
 
             if (simulationType.isGenerateExploration()) {
 

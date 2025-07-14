@@ -1,6 +1,6 @@
 package org.doi.prmv4p113603.mlops.testutil;
 
-import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
+import org.doi.prmv4p113603.mlops.domain.RunStatus;
 import org.doi.prmv4p113603.mlops.model.*;
 
 import java.time.Instant;
@@ -28,7 +28,7 @@ public class TestFixtures {
         Run run = new Run();
         run.setNominalComposition(nc);
         run.setRunNumber(runNumber);
-        run.setStatus(SimulationStatus.SCHEDULED);
+        run.setStatus(RunStatus.EXPLORATION_SCHEDULED);
         run.setCreatedAt(Instant.now());
         run.setSubRuns(new ArrayList<>());
         return run;
@@ -38,7 +38,7 @@ public class TestFixtures {
         SubRun sr = new SubRun();
         sr.setRun(run);
         sr.setSubRunNumber(subRunNumber);
-        run.setStatus(SimulationStatus.SCHEDULED);
+        run.setStatus(RunStatus.EXPLORATION_SCHEDULED);
         run.setCreatedAt(Instant.now());
         sr.setSimulationArtifacts(new ArrayList<>());
         return sr;
