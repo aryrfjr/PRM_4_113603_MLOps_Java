@@ -18,7 +18,7 @@ public enum SimulationType {
     }
 
     public boolean isEtl() {
-        return this == GENERATE_EXPLOITATION;
+        return this == ETL;
     }
 
 }

@@ -2,7 +2,7 @@ package org.doi.prmv4p113603.mlops.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
+import org.doi.prmv4p113603.mlops.domain.RunStatus;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -24,8 +24,8 @@ import java.util.List;
 @Table(name = "runs", indexes = {
         @Index(name = "idx_runs_nominal_composition", columnList = "nominal_composition_id"),
         @Index(name = "idx_runs_status", columnList = "status")
-}, uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"nominal_composition_id", "run_number"})
+}, uniqueConstraints = { // NOTE: the following combination of keys must be unique across all rows in the runs table.
+        @UniqueConstraint(columnNames = {"nominal_composition_id", "exploration_pipeline_run_id", "run_number"})
 })
 @Getter
 @Setter
@@ -42,12 +42,16 @@ public class Run {
     @JoinColumn(name = "nominal_composition_id", nullable = false)
     private NominalComposition nominalComposition;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exploration_pipeline_run_id")
+    private ExplorationPipelineRun explorationPipelineRun;
+
     @Column(name = "run_number", nullable = false)
     private int runNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private SimulationStatus status = SimulationStatus.SCHEDULED;
+    @Column(name = "status", nullable = false, length = 50)
+    private RunStatus status = RunStatus.EXPLORATION_SCHEDULED;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)

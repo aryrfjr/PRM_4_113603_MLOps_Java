@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.hibernate.annotations.Type;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,10 +20,9 @@ import java.util.List;
  */
 @Entity
 @Table(name = "exploration_pipeline_runs", indexes = {
-        @Index(name = "idx_exploration_pipeline_runs_runs", columnList = "run_id"),
         @Index(name = "idx_exploration_pipeline_runs_status", columnList = "status")
 }, uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"run_id", "external_pipeline_run_id"})
+        @UniqueConstraint(columnNames = {"external_pipeline_run_id"})
 })
 @EntityListeners(AuditingEntityListener.class)
 @Getter
@@ -47,14 +47,6 @@ public class ExplorationPipelineRun {
     @Column(name = "external_pipeline_run_id", nullable = false, updatable = false)
     private String externalPipelineRunId;
 
-    @OneToMany
-    @JoinTable(
-            name = "exploration_pipeline_runs_runs",
-            joinColumns = @JoinColumn(name = "exploration_pipeline_run_id"),
-            inverseJoinColumns = @JoinColumn(name = "run_id")
-    )
-    private List<Run> runs;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private PipelineRunStatus status = PipelineRunStatus.SCHEDULED;
@@ -74,5 +66,9 @@ public class ExplorationPipelineRun {
     @LastModifiedBy
     @Column(name = "updated_by")
     private String updatedBy;
+
+    @OneToMany(mappedBy = "explorationPipelineRun", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Run> runs = new ArrayList<>();
 
 }
