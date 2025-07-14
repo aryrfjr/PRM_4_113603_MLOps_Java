@@ -38,38 +38,53 @@ public class AirflowKafkaMessageService {
 
     @Transactional
     public void process(AirflowKafkaMessageDto message) {
-        if (message.getType().isSsdbCreated()) {
-            System.out.println("Received message: " + message.getExternalPipelineRunId());
+
+        System.out.println("Received message: " + message);
+
+        NominalComposition nominalComposition = nominalCompositionRepository.findByName(message.getNominalComposition())
+                .orElseThrow(() -> new NominalCompositionNotFoundException(message.getNominalComposition()));
+
+        Run run = runRepository.findByNominalCompositionAndRunNumber(nominalComposition, message.getRunNumber())
+                .orElseThrow(() -> new RunNotFoundException(String.valueOf(message.getRunNumber())));
+
+        if (message.getType().isRunSubmitted()) {
+            run.setStatus(RunStatus.EXPLORATION_RUNNING);
+        } else if (message.getType().isRunSubmissionFailed()) {
+            run.setStatus(RunStatus.EXPLORATION_FAILED);
+        } else if (message.getType().isSsdbCreated()) {
+            run.setStatus(RunStatus.ETL_COMPLETED);
+        } else if (message.getType().isSoapVectorsExtractionFailed() || message.getType().isSsdbCreationFailed()) {
+            run.setStatus(RunStatus.ETL_FAILED);
         } else if (message.getType().isSoapVectorsExtracted()) {
 
-            System.out.println("Received message: " + message.getExternalPipelineRunId());
+            for (int subRunNumber : message.getSubRunNumbers()) {
 
+                run.setStatus(RunStatus.ETL_COMPLETED);
 
+                SimulationArtifact sa = createSoapVectorsArtifacts(nominalComposition, run, subRunNumber);
+
+                System.out.println("Simulation Artifact for SOAP vectors created: " + sa);
+
+            }
 
         }
+
     }
 
-    private SimulationArtifact createSoapVectorsArtifact(String ncName, int runNumber, int subRunNumber,
-                                             String filePath,
-                                             Integer fileSize,
-                                             String checksum) {
-
-        NominalComposition nc = nominalCompositionRepository.findByName(ncName)
-                .orElseThrow(() -> new NominalCompositionNotFoundException(ncName));
-
-        Run run = runRepository.findByNominalCompositionAndRunNumber(nc, runNumber)
-                .orElseThrow(() -> new RunNotFoundException("Run not found"));
+    private SimulationArtifact createSoapVectorsArtifacts(NominalComposition nominalComposition, Run run, int subRunNumber) {
 
         SubRun subRun = subRunRepository.findByRunAndSubRunNumber(run, subRunNumber)
-                .orElseThrow(() -> new SubRunNotFoundException("SubRun not found"));
+                .orElseThrow(() -> new SubRunNotFoundException("Run not found"));
 
         SimulationDirectories simulationDirectories = new SimulationDirectories(
                 SimulationType.ETL,
-                nc.getName(),
+                nominalComposition.getName(),
                 mlopsProperties.getDataRoot());
 
         simulationDirectories.setEtlRunNumber(run.getRunNumber());
         simulationDirectories.setEtlSubRunNumber(subRun.getSubRunNumber());
+
+        simulationDirectories.load();
 
         SimulationDirectory subRunSimDir = simulationDirectories
                 .getNominalCompositionDir().getChildren().get(0).getChildren().get(0);
@@ -91,6 +106,7 @@ public class AirflowKafkaMessageService {
                 .checksum(SimulationArtifactFactory.computeChecksum(soapFilePath))
                 .build();
 
+        // NOTE: When creating new entities within a @Transactional context, calling .save() is required.
         return simulationArtifactRepository.save(artifact);
 
     }

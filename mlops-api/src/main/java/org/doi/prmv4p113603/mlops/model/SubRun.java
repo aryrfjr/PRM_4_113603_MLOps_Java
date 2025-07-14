@@ -2,7 +2,6 @@ package org.doi.prmv4p113603.mlops.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -45,10 +44,6 @@ public class SubRun {
 
     @Column(name = "sub_run_number", nullable = false)
     private int subRunNumber;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private SimulationStatus status = SimulationStatus.SCHEDULED;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)

@@ -8,7 +8,6 @@ export interface SubRun {
 
   id: number;
   sub_run_number: number;
-  status: string;
   created_at: string;
   updated_at: string;
   created_by: string;

@@ -29,11 +29,12 @@ public interface SubRunRepository extends JpaRepository<SubRun, Long> {
      *       AND sub_run_number IN (:subRunNumbers)
      * );
      */
+
     /**
      * Checks if a NominalComposition exists (by name) and that the specified
      * SubRuns do not already exist (based on runId and a set of subRunNumbers).
      *
-     * @param runId The id of a Run
+     * @param runId         The id of a Run
      * @param subRunNumbers The SubRun numbers
      * @return true if any of the SubRun numbers exist
      */
@@ -51,14 +52,25 @@ public interface SubRunRepository extends JpaRepository<SubRun, Long> {
     List<SubRun> findAllByRunId(Long runId);
 
     /**
-     * Retrieves all {@link SubRun} entity with the given Run object and a sub_run_number.
+     * Retrieves a {@link SubRun} entity with the given Run object and a sub_run_number.
      * <p>
      * This method's name allows JPA to derive the query by naming convention.
      *
-     * @param run and instance of a given {@link Run}.
-     * @param subRunNumber a given sub_run_number.
+     * @param run          and instance of a given {@link Run}.
+     * @param subRunNumber a given sub-Run number.
      * @return a {@link SubRun} entity.
      */
     Optional<SubRun> findByRunAndSubRunNumber(Run run, int subRunNumber);
+
+    /**
+     * Retrieves all {@link SubRun} entities with the given Run object and a sub_run_number in the list.
+     * <p>
+     * This method's name allows JPA to derive the query by naming convention.
+     *
+     * @param run           and instance of a given {@link Run}.
+     * @param subRunNumbers a set of sub-Run numbers.
+     * @return a set of {@link SubRun} entities.
+     */
+    List<SubRun> findAllByRunAndSubRunNumberIn(Run run, List<Integer> subRunNumbers);
 
 }

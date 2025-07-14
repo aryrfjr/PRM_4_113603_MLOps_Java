@@ -3,7 +3,6 @@ package org.doi.prmv4p113603.mlops.data.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.doi.prmv4p113603.mlops.domain.SimulationStatus;
 import org.doi.prmv4p113603.mlops.model.SubRun;
 
 import java.time.Instant;
@@ -31,8 +30,6 @@ public class SubRunDto {
 
     @JsonProperty("sub_run_number")
     private int subRunNumber;
-
-    private SimulationStatus status = SimulationStatus.SCHEDULED;
 
     @JsonProperty("created_at")
     private Instant createdAt;
@@ -64,7 +61,6 @@ public class SubRunDto {
         return SubRunDto.builder()
                 .id(subRun.getId())
                 .subRunNumber(subRun.getSubRunNumber())
-                .status(subRun.getStatus())
                 .createdAt(subRun.getCreatedAt())
                 .updatedAt(subRun.getUpdatedAt())
                 .createdBy(subRun.getCreatedBy())
