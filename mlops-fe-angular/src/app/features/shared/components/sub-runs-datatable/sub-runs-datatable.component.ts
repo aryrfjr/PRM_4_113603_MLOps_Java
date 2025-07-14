@@ -46,7 +46,6 @@ export class SubRunsDataTableComponent implements OnChanges {
 
   subRunsTableColumns: TableColumn[] = [
     { key: 'sub_run_number', label: 'sub-Run #', align: 'right' },
-    { key: 'status', label: 'Status', align: 'center'  },
     { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
     { key: 'created_by', label: 'Created by' },
     { key: 'updated_at', label: 'Updated at', align: 'right', type: 'date', dateFormat: 'short' },

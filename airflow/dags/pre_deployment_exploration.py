@@ -22,7 +22,7 @@ with DAG(
     start_date=datetime.utcnow(),
     schedule_interval=None,
     catchup=False,
-    tags=[  # metadata for  categorization/organization of DAGs in the Airflow UI
+    tags=[  # metadata for categorization/organization of DAGs in the Airflow UI
         "explore",
         "pre-deployment",
     ],

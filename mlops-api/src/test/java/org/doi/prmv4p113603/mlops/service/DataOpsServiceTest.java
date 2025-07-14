@@ -145,7 +145,7 @@ class DataOpsServiceTest {
         // Asserting with Junit 5
         assertNotNull(result);
         assertEquals(numSimulations, result.getRuns().size());
-        assertEquals(SimulationStatus.SCHEDULED, result.getRuns().get(0).getStatus());
+        assertEquals(RunStatus.EXPLORATION_SCHEDULED, result.getRuns().get(0).getStatus());
 
     }
 
@@ -195,7 +195,7 @@ class DataOpsServiceTest {
 
         // Asserting with Junit 5
         assertNotNull(result);
-        assertEquals(SimulationStatus.SCHEDULED, result.getRuns().get(0).getStatus());
+        assertEquals(RunStatus.EXPLORATION_SCHEDULED, result.getRuns().get(0).getStatus());
 
     }
 
