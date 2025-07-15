@@ -10,7 +10,8 @@ import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
         @Index(name = "idx_artifact_sub_run", columnList = "sub_run_id"),
         @Index(name = "idx_artifact_type", columnList = "artifact_type")
 }, uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"sub_run_id", "artifact_type"})
+        @UniqueConstraint(columnNames = {"sub_run_id", "artifact_type"}),
+        @UniqueConstraint(columnNames = {"sub_run_id", "file_path"})
 })
 @Getter
 @Setter

@@ -33,6 +33,11 @@ MS_API_URL = os.getenv("MS_API_URL")
 
 def send_kafka_message(message):
 
+    try:
+        json.dumps(message)
+    except TypeError as e:
+        raise AirflowFailException(f"Kafka message is not JSON serializable: {e}")
+
     producer = KafkaProducer(
         bootstrap_servers="kafka:9092",
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
@@ -90,6 +95,18 @@ def submit_jobs(dag):
                 response = requests.post(f"{HPC_API_URL}/api/v1/jobs", json=payload)
 
                 if response.status_code != 200:
+
+                    # Notifying the MLOps back-end via Kafka message
+                    message = {
+                        "type": "RUN_SUBMISSION_FAILED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
+                        "nominal_composition": nominal_composition,
+                        "run_number": run_number,
+                        "external_pipeline_run_id": kwargs["dag_run"].run_id,
+                        "timestamp": datetime.utcnow().isoformat() + "Z",
+                    }
+
+                    send_kafka_message(message)
+
                     raise AirflowFailException(
                         f"Failed to submit job. URL: {HPC_API_URL}/api/v1/jobs\n"
                         f"Payload: {payload}\n"
@@ -142,18 +159,36 @@ def wait_for_jobs(dag):
         for attempt in range(max_retries):
 
             statuses = []
+            ids_messaged = []
             for job_id in all_job_ids:
 
                 response = requests.get(f"{HPC_API_URL}/api/v1/jobs/{job_id}")
 
                 if response.status_code != 200:
                     raise AirflowFailException(
-                        f"Failed to submit job. URL: {HPC_API_URL}/api/v1/jobs/{job_id}\n"
+                        f"Failed to get job status. URL: {HPC_API_URL}/api/v1/jobs/{job_id}\n"
                         f"Status Code: {response.status_code}\n"
                         f"Response: {response.text}"
                     )
 
                 statuses.append(response.json().get("status"))
+
+                if (
+                    response.json().get("status") == "COMPLETED"
+                    and not response.json().get("id") in ids_messaged
+                ):
+
+                    # Notifying the MLOps back-end via Kafka message
+                    message = {
+                        "type": "RUN_JOB_FINISHED",
+                        "job_info": response.json(),
+                        "external_pipeline_run_id": kwargs["dag_run"].run_id,
+                        "timestamp": datetime.utcnow().isoformat() + "Z",
+                    }
+
+                    send_kafka_message(message)
+
+                    ids_messaged.append(response.json().get("id"))
 
             # TODO: statuses should be in a enum-like entity and the same that we have in the HPC service.
             if all(
@@ -191,17 +226,15 @@ def extract_soap_vectors(dag):
                 json=payload,
             )
 
-            if response.status_code != 200:
-                raise AirflowFailException(
-                    f"Failed to submit job. URL: {MS_API_URL}/api/v1/dataops/extract_soap_vectors/{nominal_composition}/{run_number}/0\n"
-                    f"Payload: {payload}\n"
-                    f"Status Code: {response.status_code}\n"
-                    f"Response: {response.text}"
-                )
+            # TODO: the type is a Java Enum in Spring Boot gateway REST API
+            if response.status_code == 200:
+                kafka_message_type = "SOAP_VECTORS_EXTRACTED"
+            else:
+                kafka_message_type = "SOAP_VECTORS_EXTRACTION_FAILED"
 
             # Notifying the MLOps back-end via Kafka message
             message = {
-                "type": "SOAP_VECTORS_EXTRACTED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
+                "type": kafka_message_type,
                 "nominal_composition": nominal_composition,
                 "run_number": run_number,
                 "sub_run_numbers": [0],
@@ -210,6 +243,14 @@ def extract_soap_vectors(dag):
             }
 
             send_kafka_message(message)
+
+            if response.status_code != 200:
+                raise AirflowFailException(
+                    f"Failed to submit job. URL: {MS_API_URL}/api/v1/dataops/extract_soap_vectors/{nominal_composition}/{run_number}/0\n"
+                    f"Payload: {payload}\n"
+                    f"Status Code: {response.status_code}\n"
+                    f"Response: {response.text}"
+                )
 
     return PythonOperator(
         task_id="extract_soap_vectors", python_callable=_extract, dag=dag
@@ -241,37 +282,29 @@ def create_ssdb(dag):
             json=payload,
         )
 
+        # TODO: the type is a Java Enum in Spring Boot gateway REST API
+        if response.status_code == 200:
+            kafka_message_type = "SSDB_CREATED"
+        else:
+            kafka_message_type = "SSDB_CREATION_FAILED"
+
+        # Notifying the MLOps back-end via Kafka message
+        message = {
+            "type": kafka_message_type,
+            "nominal_composition": nominal_composition,
+            "runs_in_ssdb": runs_payload,
+            "external_pipeline_run_id": kwargs["dag_run"].run_id,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+        send_kafka_message(message)
+
         if response.status_code != 200:
-
-            # Notifying the MLOps back-end via Kafka message
-            message = {
-                "type": "SSDB_CREATION_FAILED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
-                "nominal_composition": nominal_composition,
-                "runs_in_ssdb": runs_payload,
-                "external_pipeline_run_id": kwargs["dag_run"].run_id,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
-            }
-
-            send_kafka_message(message)
-
             raise AirflowFailException(
                 f"Failed to submit job. URL: {MS_API_URL}/api/v1/dataops/create_ssdb/{nominal_composition}\n"
                 f"Payload: {payload}\n"
                 f"Status Code: {response.status_code}\n"
                 f"Response: {response.text}"
             )
-
-        else:
-
-            # Notifying the MLOps back-end via Kafka message
-            message = {
-                "type": "SSDB_CREATED",  # TODO: the type is a Java Enum in Spring Boot gateway REST API
-                "nominal_composition": nominal_composition,
-                "runs_in_ssdb": runs_payload,
-                "external_pipeline_run_id": kwargs["dag_run"].run_id,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
-            }
-
-            send_kafka_message(message)
 
     return PythonOperator(task_id="create_ssdb", python_callable=_create_ssdb, dag=dag)

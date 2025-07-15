@@ -38,6 +38,8 @@ public class SimulationDirectories {
     private int exploreNextRunNumber = -1;
     private int exploreNumSimulations = -1;
     private List<ScheduleExploitationRequest.RunInput> exploitRuns;
+    private int exploreRunNumber = -1;
+    private int exploreSubRunNumber = -1;
     private int etlRunNumber = -1;
     private int etlSubRunNumber = -1;
 
@@ -55,6 +57,7 @@ public class SimulationDirectories {
     /**
      * Checks integrity and loads real input files (read-only from local HD).
      */
+    // TODO: Apply handler mapping here like I did for AirflowMessageService.
     public void load() {
 
         String nominalCompositionDirName = null;
@@ -74,33 +77,17 @@ public class SimulationDirectories {
 
             if (simulationType.isGenerateExploration()) {
 
-                if (exploreNextRunNumber == -1 || exploreNumSimulations == -1) {
-                    throw new DataOpsInternalInconsistencyException("Attributes nextRunNumber and numSimulations not set.");
-                }
+                if (exploreNextRunNumber != -1 && exploreNumSimulations != -1) {
 
-                // Checking the consistency of directories for all requested Runs and SubRuns
-                for (int runNumber = exploreNextRunNumber; runNumber < exploreNextRunNumber + exploreNumSimulations; runNumber++) {
-
-                    // TODO: handle eventual gaps in the sequence of ID_RUN directories.
-                    String runDirName = FileSystemUtils.join(nominalCompositionDirName, "c/md/lammps/100", String.valueOf(runNumber));
-                    String subRunDirName = FileSystemUtils.join(runDirName, "2000/0");
-
-                    if (!FileSystemUtils.pathExists(runDirName)) {
-                        throw new SimulationDirectoryNotFoundException(runDirName);
-                    } else if (!FileSystemUtils.pathExists(subRunDirName)) {
-                        throw new SimulationDirectoryNotFoundException(subRunDirName);
-                    } else {
-
-                        SimulationDirectory runDir = new SimulationDirectory(runDirName, SimulationArtifactScope.RUN, runNumber);
-
-                        SimulationDirectory subRunDir = new SimulationDirectory(subRunDirName, SimulationArtifactScope.SUB_RUN, 0);
-
-                        runDir.addChild(subRunDir);
-
-                        nominalCompositionDir.addChild(runDir);
-
+                    // Checking the consistency of directories for all requested Runs and SubRuns
+                    for (int runNumber = exploreNextRunNumber; runNumber < exploreNextRunNumber + exploreNumSimulations; runNumber++) {
+                        loadForRunAndSubRun(nominalCompositionDirName, runNumber, 0);
                     }
 
+                } else if (exploreRunNumber != -1 && exploreSubRunNumber != -1) {
+                    loadForRunAndSubRun(nominalCompositionDirName, exploreRunNumber, exploreSubRunNumber);
+                } else {
+                    throw new DataOpsInternalInconsistencyException("Attributes nextRunNumber and numSimulations, or exploreRunNumber and exploreSubRunNumber must be set.");
                 }
 
             } else if (simulationType.isGenerateExploitation()) {
@@ -145,30 +132,40 @@ public class SimulationDirectories {
                     throw new DataOpsInternalInconsistencyException("Attributes etlRunNumber and/or etlSubRunNumber not set.");
                 }
 
-                String runDirName = FileSystemUtils.join(nominalCompositionDirName, "c/md/lammps/100", String.valueOf(etlRunNumber));
-
-                if (!FileSystemUtils.pathExists(runDirName)) {
-                    throw new SimulationDirectoryNotFoundException(runDirName);
-                }
-
-                SimulationDirectory runDir = new SimulationDirectory(runDirName, SimulationArtifactScope.RUN, etlRunNumber);
-
-                String subRunDirName = FileSystemUtils.join(runDirName, "2000/", String.valueOf(etlSubRunNumber));
-
-                if (!FileSystemUtils.pathExists(subRunDirName)) {
-                    throw new SimulationDirectoryNotFoundException(subRunDirName);
-                }
-
-                SimulationDirectory subRunDir = new SimulationDirectory(subRunDirName,
-                        SimulationArtifactScope.SUB_RUN, etlSubRunNumber);
-
-                runDir.addChild(subRunDir);
-
-                nominalCompositionDir.addChild(runDir);
+                loadForRunAndSubRun(nominalCompositionDirName, etlRunNumber, etlSubRunNumber);
 
             }
 
         }
+
+    }
+
+    /*
+     * Helpers.
+     */
+
+    private void loadForRunAndSubRun(String nominalCompositionDirName, int runNumberToLoad, int subRunNumerToLoad) {
+
+        String runDirName = FileSystemUtils.join(nominalCompositionDirName, "c/md/lammps/100", String.valueOf(runNumberToLoad));
+
+        if (!FileSystemUtils.pathExists(runDirName)) {
+            throw new SimulationDirectoryNotFoundException(runDirName);
+        }
+
+        SimulationDirectory runDir = new SimulationDirectory(runDirName, SimulationArtifactScope.RUN, runNumberToLoad);
+
+        String subRunDirName = FileSystemUtils.join(runDirName, "2000/", String.valueOf(subRunNumerToLoad));
+
+        if (!FileSystemUtils.pathExists(subRunDirName)) {
+            throw new SimulationDirectoryNotFoundException(subRunDirName);
+        }
+
+        SimulationDirectory subRunDir = new SimulationDirectory(subRunDirName,
+                SimulationArtifactScope.SUB_RUN, subRunNumerToLoad);
+
+        runDir.addChild(subRunDir);
+
+        nominalCompositionDir.addChild(runDir);
 
     }
 
