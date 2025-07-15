@@ -2,18 +2,16 @@ package org.doi.prmv4p113603.mlops.data.dto.messaging;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.doi.prmv4p113603.mlops.domain.MessageType;
+import org.doi.prmv4p113603.mlops.messaging.MessageType;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
  * Describes the message structure.
- * <p>
- * TODO: could be the implementation of an interface MessageDto.
  */
 @Data
-public class AirflowKafkaMessageDto {
+public class MessageDto {
 
     private MessageType type;
 
@@ -52,7 +50,7 @@ public class AirflowKafkaMessageDto {
     }
 
     @Data
-    public class HpcJobInfoDto {
+    public static class HpcJobInfoDto {
 
         private int id;
 

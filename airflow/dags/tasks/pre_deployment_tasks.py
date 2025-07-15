@@ -33,6 +33,11 @@ MS_API_URL = os.getenv("MS_API_URL")
 
 def send_kafka_message(message):
 
+    try:
+        json.dumps(message)
+    except TypeError as e:
+        raise AirflowFailException(f"Kafka message is not JSON serializable: {e}")
+
     producer = KafkaProducer(
         bootstrap_servers="kafka:9092",
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
@@ -176,7 +181,7 @@ def wait_for_jobs(dag):
                     # Notifying the MLOps back-end via Kafka message
                     message = {
                         "type": "RUN_JOB_FINISHED",
-                        "job_info": response,
+                        "job_info": response.json(),
                         "external_pipeline_run_id": kwargs["dag_run"].run_id,
                         "timestamp": datetime.utcnow().isoformat() + "Z",
                     }

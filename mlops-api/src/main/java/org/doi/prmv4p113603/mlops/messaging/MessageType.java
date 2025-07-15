@@ -1,4 +1,4 @@
-package org.doi.prmv4p113603.mlops.domain;
+package org.doi.prmv4p113603.mlops.messaging;
 
 /**
  * Represents the execution state pipelines for Pre-Deployment Exploration/Exploitation pipelines.
