@@ -36,6 +36,10 @@ public class AirflowDagRunRequest { // TODO: I think that DAG is Airflow specifi
                 .build();
     }
 
+    /*
+     * NOTE: In principle an inner classes, to keep them scoped and private to this messageDTO.
+     */
+
     @Data
     @Builder
     public static class Conf {

@@ -99,4 +99,19 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(UnsupportedMessageTypeException.class)
+    public ResponseEntity<Map<String, Object>> handleUnsupportedMessageType(DataOpsInternalInconsistencyException ex) {
+
+        log.warn("Message type not supported: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "error", "Message type not supported",
+                        "message", ex.getMessage()
+                ));
+
+    }
+
 }
