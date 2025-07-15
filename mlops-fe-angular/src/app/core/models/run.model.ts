@@ -13,7 +13,5 @@ export interface Run {
   updated_by: string;
   created_at: string;
   updated_at: string;
-  started_at: string;
-  completed_at: string;
   
 }

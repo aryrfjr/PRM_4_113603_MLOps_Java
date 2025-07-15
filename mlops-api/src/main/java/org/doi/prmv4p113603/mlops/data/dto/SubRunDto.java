@@ -43,12 +43,6 @@ public class SubRunDto {
     @JsonProperty("updated_by")
     private String updatedBy;
 
-    @JsonProperty("started_at")
-    private Instant startedAt;
-
-    @JsonProperty("completed_at")
-    private Instant completedAt;
-
     @JsonProperty("simulation_artifacts")
     private List<SimulationArtifactDto> simulationArtifacts;
 
@@ -65,8 +59,6 @@ public class SubRunDto {
                 .updatedAt(subRun.getUpdatedAt())
                 .createdBy(subRun.getCreatedBy())
                 .updatedBy(subRun.getUpdatedBy())
-                .startedAt(subRun.getCompletedAt())
-                .completedAt(subRun.getCompletedAt())
                 .build();
     }
 

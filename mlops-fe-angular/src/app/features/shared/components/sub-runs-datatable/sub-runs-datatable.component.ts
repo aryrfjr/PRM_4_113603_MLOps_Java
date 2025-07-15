@@ -49,9 +49,7 @@ export class SubRunsDataTableComponent implements OnChanges {
     { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
     { key: 'created_by', label: 'Created by' },
     { key: 'updated_at', label: 'Updated at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'updated_by', label: 'Updated by' },
-    { key: 'started_at', label: 'Started at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'completed_at', label: 'Completed at', align: 'right', type: 'date', dateFormat: 'short' }
+    { key: 'updated_by', label: 'Updated by' }
   ];
 
   constructor(

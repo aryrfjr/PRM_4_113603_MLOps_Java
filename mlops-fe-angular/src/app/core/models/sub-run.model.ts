@@ -12,7 +12,5 @@ export interface SubRun {
   updated_at: string;
   created_by: string;
   updated_by: string;
-  started_at: string;
-  completed_at: string;
 
 }

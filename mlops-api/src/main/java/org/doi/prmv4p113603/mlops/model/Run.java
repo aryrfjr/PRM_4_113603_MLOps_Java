@@ -69,12 +69,6 @@ public class Run {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @Column(name = "started_at")
-    private Instant startedAt;
-
-    @Column(name = "completed_at")
-    private Instant completedAt;
-
     @OneToMany(mappedBy = "run", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubRun> subRuns;
 
