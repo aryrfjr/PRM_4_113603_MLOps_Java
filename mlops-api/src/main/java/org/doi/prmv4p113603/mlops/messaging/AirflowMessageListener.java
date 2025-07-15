@@ -2,8 +2,8 @@ package org.doi.prmv4p113603.mlops.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import org.doi.prmv4p113603.mlops.data.dto.messaging.AirflowKafkaMessageDto;
-import org.doi.prmv4p113603.mlops.service.AirflowKafkaMessageService;
+import org.doi.prmv4p113603.mlops.data.dto.messaging.MessageDto;
+import org.doi.prmv4p113603.mlops.service.AirflowMessageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -16,19 +16,20 @@ import java.util.function.Consumer;
  */
 @Component
 @AllArgsConstructor
-public class AirflowKafkaMessageListener {
+public class AirflowMessageListener {
 
     private final ObjectMapper objectMapper;
-    private final AirflowKafkaMessageService eventService;
+    private final AirflowMessageService eventService;
 
+    // NOTE: See entries "spring.cloud.stream.bindings.airflowEvents" in application.properties
     @Bean
     public Consumer<String> airflowEvents() {
         return payload -> {
             try {
-                AirflowKafkaMessageDto dto = objectMapper.readValue(payload, AirflowKafkaMessageDto.class);
+                MessageDto dto = objectMapper.readValue(payload, MessageDto.class);
                 eventService.process(dto);
             } catch (Exception e) {
-                System.err.println("Kafka message error: " + e.getMessage());
+                System.err.println("Airflow message error: " + e.getMessage());
             }
         };
     }

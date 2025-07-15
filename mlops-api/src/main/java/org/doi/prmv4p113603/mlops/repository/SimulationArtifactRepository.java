@@ -5,6 +5,7 @@ import org.doi.prmv4p113603.mlops.model.SubRun;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * DAO for SimulationArtifact entity. It provides built-in CRUD operations.
@@ -20,5 +21,16 @@ public interface SimulationArtifactRepository extends JpaRepository<SimulationAr
      * @return a list of {@link SimulationArtifact} entities.
      */
     List<SimulationArtifact> findAllBySubRunId(Long subRunId);
+
+    /**
+     * Retrieves a {@link SimulationArtifact} entity with the given SubRun ID and file path.
+     * <p>
+     * This method's name allows JPA to derive the query by naming convention.
+     *
+     * @param subRunId the ID of a given {@link SubRun}.
+     * @param filePath the file path.
+     * @return a {@link SimulationArtifact} entity.
+     */
+    Optional<SimulationArtifact> findBySubRunIdAndFilePath(Long subRunId, String filePath);
 
 }
