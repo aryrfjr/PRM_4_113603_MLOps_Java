@@ -43,6 +43,9 @@ public class SubRunDto {
     @JsonProperty("updated_by")
     private String updatedBy;
 
+    @JsonProperty("external_pipeline_run_id")
+    private String externalPipelineRunId;
+
     @JsonProperty("simulation_artifacts")
     private List<SimulationArtifactDto> simulationArtifacts;
 
@@ -59,6 +62,7 @@ public class SubRunDto {
                 .updatedAt(subRun.getUpdatedAt())
                 .createdBy(subRun.getCreatedBy())
                 .updatedBy(subRun.getUpdatedBy())
+                .externalPipelineRunId(subRun.getExternalPipelineRunId())
                 .build();
     }
 

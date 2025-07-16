@@ -1,5 +1,6 @@
 package org.doi.prmv4p113603.mlops.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -61,11 +62,8 @@ public class SubRun {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @Column(name = "started_at")
-    private Instant startedAt;
-
-    @Column(name = "completed_at")
-    private Instant completedAt;
+    @Column(name = "external_pipeline_run_id")
+    private String externalPipelineRunId;
 
     @OneToMany(mappedBy = "subRun", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DescriptorFile> descriptorFiles;

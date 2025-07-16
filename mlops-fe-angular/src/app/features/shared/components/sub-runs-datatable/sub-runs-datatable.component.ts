@@ -49,7 +49,10 @@ export class SubRunsDataTableComponent implements OnChanges {
     { key: 'created_at', label: 'Created at', align: 'right', type: 'date', dateFormat: 'short' },
     { key: 'created_by', label: 'Created by' },
     { key: 'updated_at', label: 'Updated at', align: 'right', type: 'date', dateFormat: 'short' },
-    { key: 'updated_by', label: 'Updated by' }
+    { key: 'updated_by', label: 'Updated by' },
+    { key: 'external_pipeline_run_id', label: 'External Pipeline Run ID', type: 'link', 
+      urlTemplate: 'http://localhost:8084/dags/pre_deployment_exploration/grid?tab=graph&dag_run_id={{external_pipeline_run_id}}', 
+      linkTextKey: 'external_pipeline_run_id' }
   ];
 
   constructor(

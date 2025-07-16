@@ -7,9 +7,11 @@ export interface TableColumn {
   key: string;
   label: string;
   align?: 'left' | 'center' | 'right';
-  type?: 'string' | 'date' | 'number';  // TODO: more?
+  type?: 'string' | 'date' | 'number' | 'link';  // TODO: more?
   dateFormat?: string;  // e.g. 'short', 'medium', or custom Angular date formats
   numberFormat?: string;
+  urlTemplate?: string; // e.g. "https://example.com/items/{{id}}"
+  linkTextKey?: string; // allows to use another field for the link text
 }
 
 @Component({
@@ -63,6 +65,11 @@ export class DataTableComponent {
     // fallback to default string display
     return value;
     
+  }
+
+  buildUrl(template: string | undefined, row: any): string {
+    if (!template) return '';
+    return template.replace(/\{\{(.*?)\}\}/g, (_, key) => row[key.trim()] ?? '');
   }
 
 }
