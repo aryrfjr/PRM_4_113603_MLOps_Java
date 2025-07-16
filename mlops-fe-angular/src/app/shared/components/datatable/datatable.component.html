@@ -22,7 +22,22 @@
           'right-align': col.align === 'right'
         }"
       >
-        {{ formatCell(row, col) }}
+        <ng-container [ngSwitch]="col.type">
+          <!-- Link column -->
+          <a
+            *ngSwitchCase="'link'"
+            [href]="buildUrl(col.urlTemplate, row)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ col.linkTextKey ? row[col.linkTextKey] : row[col.key] }}
+          </a>
+
+          <!-- Date/Number/String handled via formatCell -->
+          <span *ngSwitchDefault>
+            {{ formatCell(row, col) }}
+          </span>
+        </ng-container>
       </td>
     </tr>
   </tbody>

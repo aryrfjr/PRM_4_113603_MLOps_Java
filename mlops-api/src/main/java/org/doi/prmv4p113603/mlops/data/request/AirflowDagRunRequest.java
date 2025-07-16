@@ -16,13 +16,15 @@ public class AirflowDagRunRequest { // TODO: I think that DAG is Airflow specifi
 
     public static AirflowDagRunRequest buildFrom(
             String nominalComposition,
-            List<RunJob> runs,
+            List<RunJob> runsJobs,
+            List<RunWithSubRuns> allRunsWithSubRuns,
             SoapParameters soap,
             String note
     ) {
         ExploreCellsTask task = ExploreCellsTask.builder()
                 .nominalComposition(nominalComposition)
-                .runsJobs(runs)
+                .runsJobs(runsJobs)
+                .allRunsWithSubRuns(allRunsWithSubRuns)
                 .soapParameters(soap)
                 .build();
 
@@ -56,11 +58,26 @@ public class AirflowDagRunRequest { // TODO: I think that DAG is Airflow specifi
         @JsonProperty("nominal_composition")
         private String nominalComposition;
 
+        @JsonProperty("all_runs_with_sub_runs")
+        private List<RunWithSubRuns> allRunsWithSubRuns;
+
         @JsonProperty("runs_jobs")
         private List<RunJob> runsJobs;
 
         @JsonProperty("soap_parameters")
         private SoapParameters soapParameters;
+
+    }
+
+    @Data
+    @Builder
+    public static class RunWithSubRuns {
+
+        @JsonProperty("run_number")
+        private int runNumber;
+
+        @JsonProperty("sub_run_numbers")
+        private List<Integer> subRunsNumbers;
 
     }
 

@@ -122,7 +122,7 @@ async def create_pbssdb(
         json.dump(payload, f, indent=2)  # write dict to file
 
     # Downloading input files from MinIO to the temporary versioned directory
-    for run in payload["runs"]:
+    for run in payload["all_runs_with_sub_runs"]:
 
         run_number = run["run_number"]
 
@@ -211,7 +211,7 @@ def create_pbssdb_files(
 
     SS_SOAPS = None  # <SUB_STEP>s (or sub-Runs) SOAPs
 
-    for run in payload["runs"]:
+    for run in payload["all_runs_with_sub_runs"]:
 
         run_number = run["run_number"]
 

@@ -92,7 +92,6 @@ public class NominalCompositionDto {
                                                 .map(srun -> SubRunDto.builder()
                                                         .subRunNumber(srun.getSubRunNumber())
                                                         .createdAt(srun.getCreatedAt())
-                                                        .completedAt(srun.getCompletedAt())
                                                         .simulationArtifacts(
                                                                 srun.getSimulationArtifacts().stream()
                                                                         .map(sas -> SimulationArtifactDto.builder()
@@ -129,7 +128,6 @@ public class NominalCompositionDto {
                                         .map(srun -> SubRunDto.builder()
                                                 .subRunNumber(srun.getSubRunNumber())
                                                 .createdAt(srun.getCreatedAt())
-                                                .completedAt(srun.getCompletedAt())
                                                 .simulationArtifacts(
                                                         srun.getSimulationArtifacts().stream()
                                                                 .map(sas -> SimulationArtifactDto.builder()
