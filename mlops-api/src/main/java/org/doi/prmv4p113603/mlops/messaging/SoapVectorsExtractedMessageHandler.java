@@ -52,7 +52,12 @@ public class SoapVectorsExtractedMessageHandler implements MessageHandler {
 
             run.setStatus(RunStatus.ETL_COMPLETED);
 
-            SimulationArtifact sa = createSoapVectorsSimulationArtifact(nominalComposition, run, subRunNumber);
+            SubRun subRun = subRunRepository.findByRunAndSubRunNumber(run, subRunNumber)
+                    .orElseThrow(() -> new SubRunNotFoundException(String.valueOf(subRunNumber)));
+
+            SimulationArtifact sa = createSoapVectorsSimulationArtifact(nominalComposition, run, subRun);
+
+            subRun.setExternalPipelineRunId(message.getExternalPipelineRunId());
 
             System.out.println("Simulation Artifact for SOAP vectors created: " + sa);
 
@@ -64,10 +69,7 @@ public class SoapVectorsExtractedMessageHandler implements MessageHandler {
      * Helpers.
      */
 
-    private SimulationArtifact createSoapVectorsSimulationArtifact(NominalComposition nominalComposition, Run run, int subRunNumber) {
-
-        SubRun subRun = subRunRepository.findByRunAndSubRunNumber(run, subRunNumber)
-                .orElseThrow(() -> new SubRunNotFoundException(String.valueOf(subRunNumber)));
+    private SimulationArtifact createSoapVectorsSimulationArtifact(NominalComposition nominalComposition, Run run, SubRun subRun) {
 
         SimulationDirectories simulationDirectories = new SimulationDirectories(
                 SimulationType.ETL,

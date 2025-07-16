@@ -24,8 +24,8 @@ public class MessageDto {
     @JsonProperty("sub_run_numbers")
     private List<Integer> subRunNumbers;
 
-    @JsonProperty("runs_in_ssdb")
-    private List<RunSubRunDto> runsInSsdb;
+    @JsonProperty("new_runs_in_ssdb")
+    private List<RunSubRunDto> newRunsInSsdb;
 
     @JsonProperty("job_info")
     private HpcJobInfoDto jobInfo;

@@ -17,6 +17,10 @@ class RunWithSubRunNumbers(BaseModel):
     )
 
 
+class CreatePBSSDBRequest(BaseModel):
+    all_runs_with_sub_runs: List[RunWithSubRunNumbers]
+
+
 class ExtractSOAPVectorsRequest(BaseModel):
     cutoff: float = Field(
         ..., ge=0, example=3.75, description="A cutoff for local region in angstroms."
@@ -41,7 +45,3 @@ class ExtractSOAPVectorsRequest(BaseModel):
         example="{13 29 40}",
         description="The chemical species as a list of atomic numbers.",
     )
-
-
-class CreatePBSSDBRequest(BaseModel):
-    runs: List[RunWithSubRunNumbers]

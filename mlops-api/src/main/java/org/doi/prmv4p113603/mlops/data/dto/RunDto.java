@@ -46,12 +46,6 @@ public class RunDto {
     @JsonProperty("updated_at")
     private Instant updatedAt;
 
-    @JsonProperty("started_at")
-    private Instant startedAt;
-
-    @JsonProperty("completed_at")
-    private Instant completedAt;
-
     @JsonProperty("sub_runs")
     private List<SubRunDto> subRuns;
 
@@ -65,8 +59,6 @@ public class RunDto {
                 .updatedAt(run.getUpdatedAt())
                 .createdBy(run.getCreatedBy())
                 .updatedBy(run.getUpdatedBy())
-                .startedAt(run.getCompletedAt())
-                .completedAt(run.getCompletedAt())
                 .build();
     }
 
