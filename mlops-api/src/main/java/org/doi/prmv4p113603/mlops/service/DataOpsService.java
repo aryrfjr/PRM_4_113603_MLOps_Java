@@ -120,7 +120,7 @@ public class DataOpsService {
         // Persisting ensuring atomicity
         runRepo.saveAll(runs);
 
-        // Creating a DTO
+        // Creating a DTO with only the Runs and sub-Runs created
         NominalCompositionDto ncDto = NominalCompositionDto.fromScheduleExplorationRequest(nominalComposition, runs);
 
         // Uploading to MinIO
@@ -139,15 +139,34 @@ public class DataOpsService {
                 .build();
 
         // The set of jobs that will be submitted to the HPC service by an Airflow DAG task
-        List<AirflowDagRunRequest.RunJob> payloadRuns = new ArrayList<>();
+        List<AirflowDagRunRequest.RunJob> payloadRunJobs = new ArrayList<>();
         runs.stream()
                 .flatMap(run -> run.getSubRuns().stream())
                 .filter(subRun -> subRun.getSubRunNumber() == 0)
-                .forEach(subRun -> payloadRuns.add(getExploreRequestPayloadRunJob(subRun)));
+                .forEach(subRun -> payloadRunJobs.add(getExploreRequestPayloadRunJob(subRun)));
+
+        // The current state of all Runs and sub-Runs for the nominal composition for the
+        // creation of the new version of the SSDB
+        List<Run> allCompleteRuns = runRepo.findAllByNominalCompositionId(nominalComposition.getId());
+        List<AirflowDagRunRequest.RunWithSubRuns> payloadAllRunsWithSubRuns = allCompleteRuns.stream()
+                .map(run -> AirflowDagRunRequest.RunWithSubRuns.builder()
+                        .runNumber(run.getRunNumber())
+                        .subRunsNumbers(
+                                run.getSubRuns() != null
+                                        ? run.getSubRuns().stream()
+                                        .map(SubRun::getSubRunNumber)
+                                        .sorted()
+                                        .toList()
+                                        : List.of()
+                        )
+                        .build()
+                )
+                .toList();
 
         AirflowDagRunRequest requestPayload = AirflowDagRunRequest.buildFrom(
                 nominalCompositionName,
-                payloadRuns,
+                payloadRunJobs,
+                payloadAllRunsWithSubRuns,
                 soapParameters,
                 "string" // TODO: could be defined in the UI
         );
@@ -393,6 +412,13 @@ public class DataOpsService {
                 .jobs(List.of(jobLammps, jobQe, jobLob))
                 .build();
 
+    }
+
+    private static AirflowDagRunRequest.RunWithSubRuns getExploreRequestPayloadRunWithAllSubRuns(SubRun subRun) {
+        return AirflowDagRunRequest.RunWithSubRuns.builder()
+                .runNumber(subRun.getRun().getRunNumber())
+
+                .build();
     }
 
     private static SimulationArtifact getSimulationInput(SubRun subRun,
