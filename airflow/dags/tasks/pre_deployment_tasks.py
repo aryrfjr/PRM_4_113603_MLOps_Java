@@ -266,16 +266,9 @@ def create_ssdb(dag):
 
         task_conf = dag_conf.get("explore_cells_task", {})
         nominal_composition = task_conf.get("nominal_composition")
-        runs_jobs = task_conf.get("runs_jobs", [])
+        all_runs_with_sub_runs = task_conf.get("all_runs_with_sub_runs", [])
 
-        runs_payload = []
-        for run in runs_jobs:
-
-            run_number = run.get("run_number")
-
-            runs_payload.append({"run_number": run_number, "sub_run_numbers": [0]})
-
-        payload = {"runs": runs_payload}
+        payload = {"all_runs_with_sub_runs": all_runs_with_sub_runs}
 
         response = requests.post(
             f"{MS_API_URL}/api/v1/dataops/create_ssdb/{nominal_composition}",
@@ -288,11 +281,19 @@ def create_ssdb(dag):
         else:
             kafka_message_type = "SSDB_CREATION_FAILED"
 
+        runs_jobs = task_conf.get("runs_jobs", [])
+        new_runs_in_ssdb = []
+        for run in runs_jobs:
+
+            run_number = run.get("run_number")
+
+            new_runs_in_ssdb.append({"run_number": run_number, "sub_run_numbers": [0]})
+
         # Notifying the MLOps back-end via Kafka message
         message = {
             "type": kafka_message_type,
             "nominal_composition": nominal_composition,
-            "runs_in_ssdb": runs_payload,
+            "new_runs_in_ssdb": new_runs_in_ssdb,
             "external_pipeline_run_id": kwargs["dag_run"].run_id,
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }

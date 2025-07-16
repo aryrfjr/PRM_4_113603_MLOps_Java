@@ -30,10 +30,14 @@ public class SsdbCreatedMessageHandler implements MessageHandler {
         NominalComposition nominalComposition = nominalCompositionRepository.findByName(message.getNominalComposition())
                 .orElseThrow(() -> new NominalCompositionNotFoundException(message.getNominalComposition()));
 
-        Run run = runRepository.findByNominalCompositionAndRunNumber(nominalComposition, message.getRunNumber())
-                .orElseThrow(() -> new RunNotFoundException(String.valueOf(message.getRunNumber())));
+        for (MessageDto.RunSubRunDto runSubRunDto: message.getNewRunsInSsdb()) {
 
-        run.setStatus(RunStatus.ETL_COMPLETED);
+            Run run = runRepository.findByNominalCompositionAndRunNumber(nominalComposition, runSubRunDto.getRunNumber())
+                    .orElseThrow(() -> new RunNotFoundException(String.valueOf(runSubRunDto.getRunNumber())));
+
+            run.setStatus(RunStatus.ETL_COMPLETED);
+
+        }
 
     }
 

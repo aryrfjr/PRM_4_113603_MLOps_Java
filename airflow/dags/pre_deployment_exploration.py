@@ -22,6 +22,7 @@ with DAG(
     start_date=datetime.utcnow(),
     schedule_interval=None,
     catchup=False,
+    max_active_runs=1,  # ensures that only one DAG run will be active at any time
     tags=[  # metadata for categorization/organization of DAGs in the Airflow UI
         "explore",
         "pre-deployment",
