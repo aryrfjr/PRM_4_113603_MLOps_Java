@@ -378,34 +378,39 @@ def eval_cluster(
     bonds_to_write = []  # used only with a per-bond database
 
     for ib in range(1, len(acs)):
+
         symbB = symbs[acs[ib] - 1]
-        key = symbA + str(acs[0]) + "-" + symbB + str(acs[ib])
+        key = f"{symbA}{acs[0]}-{symbB}{acs[ib]}"
+
         nknf = ""
         try:  # trying with the normal key AtomA-AtomB
             bond = bonds[key]
         except KeyError:
             nknf = key
             try:  # trying with the inverted key AtomB-AtomA
-                key = symbB + str(acs[ib]) + "-" + symbA + str(acs[0])
+                key = f"{symbB}{acs[ib]}-{symbA}{acs[0]}"
                 bond = bonds[key]
                 nknf = ""
             except KeyError:  # none of the two keys have been found
                 nknf = key
+
         if nknf == "":  # if at least one of the two keys have been found
             if (
-                not bond.get_symbA() + "-" + bond.get_symbB() in bonds_to_writeK
-                and not bond.get_symbB() + "-" + bond.get_symbA() in bonds_to_writeK
+                not f"{bond.get_symbA()}-{bond.get_symbB()}" in bonds_to_writeK
+                and not f"{bond.get_symbB()}-{bond.get_symbA()}" in bonds_to_writeK
             ):
-                bonds_to_writeK.append(bond.get_symbA() + "-" + bond.get_symbB())
+                bonds_to_writeK.append(f"{bond.get_symbA()}-{bond.get_symbB()}")
                 bonds_to_write.append(bond)
         else:
-            knf = knf + nknf + ", "
+            knf = f"{knf}{nknf}, "
 
-    if knf == "KNF: ":  # ok! The LOBSTER and quippy clusters are compatible ...
+    if knf == "KNF: ":  # OK! The LOBSTER and quippy clusters are compatible ...
         for ibnd in range(len(bonds_to_write)):
+
             bond = bonds_to_write[ibnd]
             symbA = bond.get_symbA()[:2]
             symbB = bond.get_symbB()[:2]
+
             if symbA + symbB == "ZrZr":
                 ftw = FDB_DONE_ZrZr  # file to write
                 stl = ALL_SOAPS_ZrZr  # SOAPs to load
@@ -424,6 +429,7 @@ def eval_cluster(
             elif symbA + symbB == "CuAl" or symbA + symbB == "AlCu":
                 ftw = FDB_DONE_CuAl
                 stl = ALL_SOAPS_CuAl
+
             # ... write the .bnd file and ...
             ftw.write(
                 "%d %d %s %s %f %f\n"
@@ -436,6 +442,7 @@ def eval_cluster(
                     -bond.get_info(),
                 )
             )
+
             # ... saving the SOAP vectors in a dictionary
             # to avoid repeated elements
             keysoap = f"{id_run}-{sub_step}-{bond.get_symbA()[2:]}"
@@ -445,6 +452,7 @@ def eval_cluster(
             if not keysoap in stl.keys():
                 stl[keysoap] = SS_SOAPS[int(bond.get_symbB()[2:]) - 1]
     else:
+
         # ... otherwise, I will write the unmatched bonds (UBs)
         # and this cluster will be discarded even with a DONE status.
         # It is IMPORTANT to point that these are bonds that were

@@ -89,8 +89,6 @@ async def create_pbssdb(
     REGP = payload["regp"]
 
     DIR_TO_WRITE = ""
-    SHOW_PLOT = False
-    SAVE_PLOT = False
 
     # Downloading the PBSSDBs from MinIO
     for nominal_composition, pbssdb_version in zip(
@@ -106,7 +104,7 @@ async def create_pbssdb(
     DB_DIR = (
         f"/tmp/{PBSSDB_DIR_BASE}/{CHEM_COMPOSITION_TRAIN}-PBSSDB-{PBSSDB_VERSION_TRAIN}"
     )
-    fileobj = open(DB_DIR + "/" + SPECIE_A + "-" + SPECIE_B + ".bnd")
+    fileobj = open(f"{DB_DIR}/{SPECIE_A}-{SPECIE_B}.bnd")
     bondsff = fileobj.readlines()
     fileobj.close()
 
@@ -124,13 +122,13 @@ async def create_pbssdb(
             detail="The <KERNEL_DIM> is greater than the total number of bonds available in the training database.",
         )
     BONDS_TRAIN = bondsff[:KERNEL_DIM]
-    ftl = open(DB_DIR + "/" + SPECIE_A + "-" + SPECIE_B + "-SOAPS.vec", "rb")
+    ftl = open(f"{DB_DIR}/{SPECIE_A}-{SPECIE_B}-SOAPS.vec", "rb")
     SOAPS_TRAIN = pkl.load(ftl)
     ftl.close()
 
     if CROSS:
         DB_DIR = f"/tmp/{PBSSDB_DIR_BASE}/{CHEM_COMPOSITION_TEST}-PBSSDB-{PBSSDB_VERSION_TEST}"
-        fileobj = open(DB_DIR + "/" + SPECIE_A + "-" + SPECIE_B + ".bnd")
+        fileobj = open(f"{DB_DIR}/{SPECIE_A}-{SPECIE_B}.bnd")
         bondsff = fileobj.readlines()
         fileobj.close()
         # shuffling the database before using it
@@ -143,7 +141,7 @@ async def create_pbssdb(
 
     BONDS_TEST = bondsff[len(bondsff) - TEST_SIZE :]
     if CROSS:
-        ftl = open(DB_DIR + "/" + SPECIE_A + "-" + SPECIE_B + "-SOAPS.vec", "rb")
+        ftl = open(f"{DB_DIR}/{SPECIE_A}-{SPECIE_B}-SOAPS.vec", "rb")
         SOAPS_TEST = pkl.load(ftl)
         ftl.close()
     else:
@@ -152,41 +150,34 @@ async def create_pbssdb(
     # Building the kernel matrix
     KM = np.zeros((KERNEL_DIM, KERNEL_DIM))
     for i in range(KERNEL_DIM):
+
         bi_dist = float(BONDS_TRAIN[i].split()[4])
+
         soapAi = SOAPS_TRAIN[
-            str(BONDS_TRAIN[i].split()[0])
-            + "-"
-            + str(BONDS_TRAIN[i].split()[1])
-            + "-"
-            + str(BONDS_TRAIN[i].split()[2])
+            f"{BONDS_TRAIN[i].split()[0]}-{BONDS_TRAIN[i].split()[1]}-{BONDS_TRAIN[i].split()[2]}"
         ]
+
         soapBi = SOAPS_TRAIN[
-            str(BONDS_TRAIN[i].split()[0])
-            + "-"
-            + str(BONDS_TRAIN[i].split()[1])
-            + "-"
-            + str(BONDS_TRAIN[i].split()[3])
+            f"{BONDS_TRAIN[i].split()[0]}-{BONDS_TRAIN[i].split()[1]}-{BONDS_TRAIN[i].split()[3]}"
         ]
+
         for j in range(KERNEL_DIM):
+
             bj_dist = float(BONDS_TRAIN[j].split()[4])
+
             soapAj = SOAPS_TRAIN[
-                str(BONDS_TRAIN[j].split()[0])
-                + "-"
-                + str(BONDS_TRAIN[j].split()[1])
-                + "-"
-                + str(BONDS_TRAIN[j].split()[2])
+                f"{BONDS_TRAIN[j].split()[0]}-{BONDS_TRAIN[j].split()[1]}-{BONDS_TRAIN[j].split()[2]}"
             ]
+
             soapBj = SOAPS_TRAIN[
-                str(BONDS_TRAIN[j].split()[0])
-                + "-"
-                + str(BONDS_TRAIN[j].split()[1])
-                + "-"
-                + str(BONDS_TRAIN[j].split()[3])
+                f"{BONDS_TRAIN[j].split()[0]}-{BONDS_TRAIN[j].split()[1]}-{BONDS_TRAIN[j].split()[3]}"
             ]
+
             dpAAij = np.dot(soapAi, soapAj)
             dpBBij = np.dot(soapBi, soapBj)
             dpABij = np.dot(soapAi, soapBj)
             dpBAij = np.dot(soapBi, soapAj)
+
             if KERNEL_TYPE == "SE":
                 KM[i][j] = np.exp(
                     (-((bi_dist - bj_dist) ** 2)) / (2 * SIGMA**2)
@@ -209,69 +200,30 @@ async def create_pbssdb(
     VAR = STD**2
 
     # Now setting up equation (3) in the supplementary material of [Nature Communications 9, 4501 (2018)]
-    # Firstly the inverse matrix ...
-    # IVAR = VAR * np.identity(KERNEL_DIM)
-    # on 09/07/2019 Prof. Gabor said to do this
+    # Firstly the inverse matrix ... on 09/07/2019 Prof. Gabor said to do this
     IREG = STD * REGP * np.identity(KERNEL_DIM)
-    # Note: using KMM and np.linalg.inv below doesn"t matter, see
-    # ~/UFSCar/MG-NMR/ML/big-data-full/scripts/Zr45Cu45Al10_tests/PB/3/Zr45Cu45Al10-Zr-Al-1500-2-0.5
-    # ~/UFSCar/MG-NMR/ML/big-data-full/scripts/Zr45Cu45Al10_tests/PB/3/Zr45Cu45Al10-Zr-Al-1500-2-0.5_TEST_np_matrix_power
-    # Here, I"m trying to use ZETA according to [Nature Communications 9, 4501 (2018)]
-    # KMM = np.matrix(KM)
-    # IKM = np.linalg.inv((KMM**ZETA) + np.matrix(IVAR))
-    # IKM = np.linalg.inv(np.linalg.matrix_power(KM,ZETA) + IVAR)
-    # Here I will use ZETA latter, as suggested by Prof. Gabor on 05/07/2019
-    # IKM = np.linalg.inv(KM + IVAR)
-    # on 09/07/2019 Prof. Gabor said to do this
+
+    # I tried to use ZETA according to [Nature Communications 9, 4501 (2018)], but on 09/07/2019 Prof. Gabor said to do this
     IKM = np.linalg.inv(KM + IREG)
+
     # ... and then weights (alpha_i)
     alpha = [0.0] * KERNEL_DIM
     for i in range(KERNEL_DIM):
         for j in range(KERNEL_DIM):
             alpha[i] += IKM.item((i, j)) * ICOHPs_TRAIN[j]
-            # alpha[i] += IKM[i][j] * ICOHPs_TRAIN[j]
 
     # And finally the predicted sum(-ICOHP) values for the test set
     if DIR_TO_WRITE != "":
         if CROSS:
-            FILES_PREFIX = (
-                CHEM_COMPOSITION_TRAIN
-                + "-"
-                + CHEM_COMPOSITION_TEST
-                + "-"
-                + SPECIE_A
-                + "-"
-                + SPECIE_B
-                + "-"
-                + str(KERNEL_DIM)
-                + "-"
-                + str(ZETA)
-                + "-"
-                + str(SIGMA)
-                + "-"
-                + str(REGP)
-                + "-"
-                + str(TEST_SIZE)
-            )
+            INFO_OUTPUT_PREFIX = f"{CHEM_COMPOSITION_TRAIN}-{CHEM_COMPOSITION_TEST}-"
         else:
-            FILES_PREFIX = (
-                CHEM_COMPOSITION_TRAIN
-                + "-"
-                + SPECIE_A
-                + "-"
-                + SPECIE_B
-                + "-"
-                + str(KERNEL_DIM)
-                + "-"
-                + str(ZETA)
-                + "-"
-                + str(SIGMA)
-                + "-"
-                + str(REGP)
-                + "-"
-                + str(TEST_SIZE)
-            )
-        ftw = open(DIR_TO_WRITE + "/" + FILES_PREFIX + ".info", "w")
+            INFO_OUTPUT_PREFIX = f"{CHEM_COMPOSITION_TRAIN}-{CHEM_COMPOSITION_TRAIN}-"
+
+        INFO_OUTPUT_PREFIX += (
+            f"{SPECIE_A}-{SPECIE_B}-{KERNEL_DIM}-{ZETA}-{SIGMA}-{REGP}-{TEST_SIZE}"
+        )
+
+        ftw = open(f"{DIR_TO_WRITE}/{INFO_OUTPUT_PREFIX}.info", "w")
         dtpx = []
         dtpy = []
         higher = 0.0
@@ -279,74 +231,70 @@ async def create_pbssdb(
     # Now testing
     ICOHPs_TEST = [0.0] * TEST_SIZE
     SUMDIFF = 0.0
+
     # The testing set will be the lattest BONDS_TEST in the array
     tit = 0  # the true index in the array ICOHPs_TEST
     for it in range(TEST_SIZE):
+
         bit_dist = float(BONDS_TEST[it].split()[4])
+
         soapAit = SOAPS_TEST[
-            str(BONDS_TEST[it].split()[0])
-            + "-"
-            + str(BONDS_TEST[it].split()[1])
-            + "-"
-            + str(BONDS_TEST[it].split()[2])
+            f"{BONDS_TEST[it].split()[0]}-{BONDS_TEST[it].split()[1]}-{BONDS_TEST[it].split()[2]}"
         ]
+
         soapBit = SOAPS_TEST[
-            str(BONDS_TEST[it].split()[0])
-            + "-"
-            + str(BONDS_TEST[it].split()[1])
-            + "-"
-            + str(BONDS_TEST[it].split()[3])
+            f"{BONDS_TEST[it].split()[0]}-{BONDS_TEST[it].split()[1]}-{BONDS_TEST[it].split()[3]}"
         ]
+
         for i in range(KERNEL_DIM):
+
             bi_dist = float(BONDS_TRAIN[i].split()[4])
+
             soapAi = SOAPS_TRAIN[
-                str(BONDS_TRAIN[i].split()[0])
-                + "-"
-                + str(BONDS_TRAIN[i].split()[1])
-                + "-"
-                + str(BONDS_TRAIN[i].split()[2])
+                f"{BONDS_TRAIN[i].split()[0]}-{BONDS_TRAIN[i].split()[1]}-{BONDS_TRAIN[i].split()[2]}"
             ]
+
             soapBi = SOAPS_TRAIN[
-                str(BONDS_TRAIN[i].split()[0])
-                + "-"
-                + str(BONDS_TRAIN[i].split()[1])
-                + "-"
-                + str(BONDS_TRAIN[i].split()[3])
+                f"{BONDS_TRAIN[i].split()[0]}-{BONDS_TRAIN[i].split()[1]}-{BONDS_TRAIN[i].split()[3]}"
             ]
+
             dpAAiti = np.dot(soapAit, soapAi)
             dpBBiti = np.dot(soapBit, soapBi)
             dpABiti = np.dot(soapAit, soapBi)
             dpBAiti = np.dot(soapBit, soapAi)
+
             # Here I"m using ZETA as suggested by Prof. Gabor on 05/07/2019
-            if KERNEL_TYPE == "SE":
-                KERNEL = np.exp(
-                    (-((bit_dist - bi_dist) ** 2)) / (2 * SIGMA**2)
-                )  # Squared Exponential (SE)
-            elif KERNEL_TYPE == "OU":
-                KERNEL = np.exp(
-                    -abs(bit_dist - bi_dist) / SIGMA
-                )  # Ornstein-Uhlenbeck (OU)
-            else:
+            if KERNEL_TYPE == "SE":  # Squared Exponential (SE)
+                KERNEL = np.exp((-((bit_dist - bi_dist) ** 2)) / (2 * SIGMA**2))
+            elif KERNEL_TYPE == "OU":  # Ornstein-Uhlenbeck (OU)
+                KERNEL = np.exp(-abs(bit_dist - bi_dist) / SIGMA)
+            else:  # Custom SE × SOAP kernel (CUSTOM)
                 KERNEL = (
                     np.exp((-((bit_dist - bi_dist) ** 2)) / (2 * SIGMA**2))
                     * (0.25 * (dpAAiti + dpBBiti + dpABiti + dpBAiti)) ** ZETA
                 )
-            # Here, I"m trying to use ZETA according to [Nature Communications 9, 4501 (2018)]
-            # ICOHPs_TEST[tit] += alpha[i]*(KERNEL**ZETA)
+
             # Here I already used ZETA before, as suggested by Prof. Gabor on 05/07/2019
             ICOHPs_TEST[tit] += alpha[i] * KERNEL
+
         SUMDIFF += (ICOHPs_TEST[tit] - float(BONDS_TEST[it].split()[5])) ** 2
+
         if DIR_TO_WRITE != "":
+
             ftw.write(
                 "%d %d %10f %10f\n"
                 % (tit, it, ICOHPs_TEST[tit], float(BONDS_TEST[it].split()[5]))
             )
+
             dtpx.append(ICOHPs_TEST[tit])
+
             if higher < ICOHPs_TEST[tit]:
                 higher = ICOHPs_TEST[tit]
+
             dtpy.append(float(BONDS_TEST[it].split()[5]))
             if higher < float(BONDS_TEST[it].split()[5]):
                 higher = float(BONDS_TEST[it].split()[5])
+
         tit += 1
 
     if DIR_TO_WRITE != "":
@@ -358,9 +306,6 @@ async def create_pbssdb(
             % (VAR, STD, np.var(dtpy), np.std(dtpy), RMSE, higher)
         )
         ftw.close()
-    else:
-        RMSE = np.sqrt(SUMDIFF / len(ICOHPs_TEST))
-        print(f"RMSE = {RMSE}\nTRAINING_VAR = {VAR}\nTRAINING_STD = {STD}\n")
 
     return GenericStatusResponse(
         message=f" ... ",  # TODO: set message
