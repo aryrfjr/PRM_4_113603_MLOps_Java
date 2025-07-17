@@ -1,5 +1,6 @@
 from .shared import Status, GenericStatusResponse, PingResponse
 from .dataops import ExtractSOAPVectorsRequest, CreatePBSSDBRequest
+from .modelops import PBSSDBEvaluationRequest
 
 __all__ = [
     "Status",
@@ -7,4 +8,5 @@ __all__ = [
     "PingResponse",
     "ExtractSOAPVectorsRequest",
     "CreatePBSSDBRequest",
+    "PBSSDBEvaluationRequest",
 ]
