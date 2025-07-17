@@ -14,6 +14,12 @@ import os
 import json
 import pickle as pkl
 
+##########################################################################
+#
+# Globals
+#
+##########################################################################
+
 router = APIRouter()
 storage = MinioStorage()
 
@@ -81,7 +87,7 @@ def extract_soap_vectors(
 #
 ########################################################################
 @router.post(
-    "/create_ssdb/{nominal_composition}",
+    "/create_pbssdb/{nominal_composition}",
     response_model=GenericStatusResponse,
     status_code=status.HTTP_200_OK,
     summary="Writes to a per-bond single SOAP database (PBSSDB) directory.",
@@ -156,7 +162,6 @@ async def create_pbssdb(
             minio_prefix=pbssdb_minio_dir,
         )
 
-        # TODO: return version so that the next DAG task can create the corresponding mixed DBs
         return GenericStatusResponse(
             message=f"Created PBSSDB version '{pbssdb_version}' in directory '{pbssdb_minio_dir}' ({num_files} files).",
             status=Status.DONE.value,
@@ -316,22 +321,22 @@ def create_pbssdb_files(
     FDB_DONE_CuAl.close()
 
     # And finally dumping the per-element SOAP vectors synchronized with the respective .xyz files
-    ftd = open(f"{sub_run_dir}/Zr-Zr-SOAPS.vec", "wb")
+    ftd = open(f"{pbssdb_output_dir}/Zr-Zr-SOAPS.vec", "wb")
     pkl.dump(ALL_SOAPS_ZrZr, ftd)
     ftd.close()
-    ftd = open(f"{sub_run_dir}/Cu-Cu-SOAPS.vec", "wb")
+    ftd = open(f"{pbssdb_output_dir}/Cu-Cu-SOAPS.vec", "wb")
     pkl.dump(ALL_SOAPS_CuCu, ftd)
     ftd.close()
-    ftd = open(f"{sub_run_dir}/Al-Al-SOAPS.vec", "wb")
+    ftd = open(f"{pbssdb_output_dir}/Al-Al-SOAPS.vec", "wb")
     pkl.dump(ALL_SOAPS_AlAl, ftd)
     ftd.close()
-    ftd = open(f"{sub_run_dir}/Zr-Cu-SOAPS.vec", "wb")
+    ftd = open(f"{pbssdb_output_dir}/Zr-Cu-SOAPS.vec", "wb")
     pkl.dump(ALL_SOAPS_ZrCu, ftd)
     ftd.close()
-    ftd = open(f"{sub_run_dir}/Zr-Al-SOAPS.vec", "wb")
+    ftd = open(f"{pbssdb_output_dir}/Zr-Al-SOAPS.vec", "wb")
     pkl.dump(ALL_SOAPS_ZrAl, ftd)
     ftd.close()
-    ftd = open(f"{sub_run_dir}/Cu-Al-SOAPS.vec", "wb")
+    ftd = open(f"{pbssdb_output_dir}/Cu-Al-SOAPS.vec", "wb")
     pkl.dump(ALL_SOAPS_CuAl, ftd)
     ftd.close()
 
