@@ -4,7 +4,7 @@ from tasks.pre_deployment_tasks import (
     submit_jobs,
     wait_for_jobs,
     extract_soap_vectors,
-    create_ssdb,
+    create_pbssdb,
 )
 
 ########################################################################
@@ -33,6 +33,6 @@ with DAG(
     step_1 = submit_jobs(dag)
     step_2 = wait_for_jobs(dag)
     step_3 = extract_soap_vectors(dag)
-    step_4 = create_ssdb(dag)
+    step_4 = create_pbssdb(dag)
 
     step_1 >> step_2 >> step_3 >> step_4
