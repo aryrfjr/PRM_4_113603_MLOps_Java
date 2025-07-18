@@ -172,6 +172,31 @@ services:
     networks:
       - mlopsnet
 
+  # MLflow Tracking Server
+  # Custom-built image (from ./mlflow) with explicit image name following the project naming standard
+  mlflow:
+    build:
+      context: ./mlflow
+    image: aryjr/prm_4_113603_mlops-p1-mlflow:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      - BACKEND_STORE_URI=postgresql://mlflow:mlflow@postgres:5432/mlflow
+      - ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - ./mlflow/artifacts:/mlflow/artifacts
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://mlflow:mlflow@postgres/mlflow
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+    networks:
+      - mlopsnet
+
   # Kafka broker service. Used by Airflow to send events and by Spring Boot (mlops-api) to consume them
   kafka:
     image: bitnami/kafka:latest
