@@ -27,3 +27,5 @@ This repository provides a **Java-based** counterpart for the controller layer t
 - Angular (Dev Container): http://localhost:4200
 
 - Airflow: http://localhost:8084
+
+- MLflow: http://localhost:5000
