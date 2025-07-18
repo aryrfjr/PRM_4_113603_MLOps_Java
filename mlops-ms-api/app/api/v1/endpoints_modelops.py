@@ -5,6 +5,7 @@ from app.schemas import (
     PBSSDBEvaluationRequest,
 )
 from app.services.minio_client import MinioStorage
+from pathlib import Path as DirPath
 from random import shuffle
 import pickle as pkl
 import numpy as np
@@ -58,8 +59,6 @@ async def create_pbssdb(
     Evaluates a per-bond single SOAP database (PBSSDB) directory.
     """
 
-    PBSSDB_DIR_BASE = "ML/big-data-full"
-
     # Parse JSON from request
     payload = request.dict()
 
@@ -88,7 +87,13 @@ async def create_pbssdb(
     SIGMA = payload["sigma"]
     REGP = payload["regp"]
 
-    DIR_TO_WRITE = ""
+    PBSSDB_DIR_BASE = "ML/big-data-full"
+    OBJ_OUTPUT_DIR = f"{PBSSDB_DIR_BASE}/PBSSDB-evaluation"
+    LOCAL_OUTPUT_DIR = f"/data/{OBJ_OUTPUT_DIR}"
+
+    local_dir_path = DirPath(LOCAL_OUTPUT_DIR)
+
+    local_dir_path.mkdir(parents=True, exist_ok=True)
 
     # Downloading the PBSSDBs from MinIO
     for nominal_composition, pbssdb_version in zip(
@@ -213,20 +218,19 @@ async def create_pbssdb(
             alpha[i] += IKM.item((i, j)) * ICOHPs_TRAIN[j]
 
     # And finally the predicted sum(-ICOHP) values for the test set
-    if DIR_TO_WRITE != "":
-        if CROSS:
-            INFO_OUTPUT_PREFIX = f"{CHEM_COMPOSITION_TRAIN}-{CHEM_COMPOSITION_TEST}-"
-        else:
-            INFO_OUTPUT_PREFIX = f"{CHEM_COMPOSITION_TRAIN}-{CHEM_COMPOSITION_TRAIN}-"
+    if CROSS:
+        INFO_OUTPUT_NAME = f"{CHEM_COMPOSITION_TRAIN}_{PBSSDB_VERSION_TRAIN}-{CHEM_COMPOSITION_TEST}_{PBSSDB_VERSION_TEST}-"
+    else:
+        INFO_OUTPUT_NAME = f"{CHEM_COMPOSITION_TRAIN}_{PBSSDB_VERSION_TRAIN}-"
 
-        INFO_OUTPUT_PREFIX += (
-            f"{SPECIE_A}-{SPECIE_B}-{KERNEL_DIM}-{ZETA}-{SIGMA}-{REGP}-{TEST_SIZE}"
-        )
+    INFO_OUTPUT_NAME += (
+        f"{SPECIE_A}-{SPECIE_B}-{KERNEL_DIM}-{ZETA}-{SIGMA}-{REGP}-{TEST_SIZE}"
+    )
 
-        ftw = open(f"{DIR_TO_WRITE}/{INFO_OUTPUT_PREFIX}.info", "w")
-        dtpx = []
-        dtpy = []
-        higher = 0.0
+    ftw = open(f"{LOCAL_OUTPUT_DIR}/{INFO_OUTPUT_NAME}.info", "w")
+    dtpx = []
+    dtpy = []
+    higher = 0.0
 
     # Now testing
     ICOHPs_TEST = [0.0] * TEST_SIZE
@@ -279,35 +283,44 @@ async def create_pbssdb(
 
         SUMDIFF += (ICOHPs_TEST[tit] - float(BONDS_TEST[it].split()[5])) ** 2
 
-        if DIR_TO_WRITE != "":
+        ftw.write(
+            "%d %d %10f %10f\n"
+            % (tit, it, ICOHPs_TEST[tit], float(BONDS_TEST[it].split()[5]))
+        )
 
-            ftw.write(
-                "%d %d %10f %10f\n"
-                % (tit, it, ICOHPs_TEST[tit], float(BONDS_TEST[it].split()[5]))
-            )
+        dtpx.append(ICOHPs_TEST[tit])
 
-            dtpx.append(ICOHPs_TEST[tit])
+        if higher < ICOHPs_TEST[tit]:
+            higher = ICOHPs_TEST[tit]
 
-            if higher < ICOHPs_TEST[tit]:
-                higher = ICOHPs_TEST[tit]
-
-            dtpy.append(float(BONDS_TEST[it].split()[5]))
-            if higher < float(BONDS_TEST[it].split()[5]):
-                higher = float(BONDS_TEST[it].split()[5])
+        dtpy.append(float(BONDS_TEST[it].split()[5]))
+        if higher < float(BONDS_TEST[it].split()[5]):
+            higher = float(BONDS_TEST[it].split()[5])
 
         tit += 1
 
-    if DIR_TO_WRITE != "":
-        # writting the root-mean square error ...
-        RMSE = np.sqrt(SUMDIFF / len(ICOHPs_TEST))
-        # ... and the variances of training and testing sets
-        ftw.write(
-            "TRAINING_VAR = %10f\nTRAINING_STD = %10f\nTESTING_VAR = %10f\nTESTING_STD = %10f\nRMSE = %10f\nMAX_ICOHP = %10f\n"
-            % (VAR, STD, np.var(dtpy), np.std(dtpy), RMSE, higher)
-        )
-        ftw.close()
+    # writting the root-mean square error ...
+    RMSE = np.sqrt(SUMDIFF / len(ICOHPs_TEST))
 
-    return GenericStatusResponse(
-        message=f" ... ",  # TODO: set message
-        status=Status.DONE.value,
+    # ... and the variances of training and testing sets
+    ftw.write(
+        "TRAINING_VAR = %10f\nTRAINING_STD = %10f\nTESTING_VAR = %10f\nTESTING_STD = %10f\nRMSE = %10f\nMAX_ICOHP = %10f\n"
+        % (VAR, STD, np.var(dtpy), np.std(dtpy), RMSE, higher)
     )
+    ftw.close()
+
+    try:
+
+        storage.upload_file(
+            MINIO_BUCKET_NAME,
+            f"{OBJ_OUTPUT_DIR}/{INFO_OUTPUT_NAME}.info",
+            f"{LOCAL_OUTPUT_DIR}/{INFO_OUTPUT_NAME}.info",
+        )
+
+        return GenericStatusResponse(
+            message=f"Uploaded '{OBJ_OUTPUT_DIR}/{INFO_OUTPUT_NAME}.info' to MinIO bucket '{MINIO_BUCKET_NAME}'.",
+            status=Status.DONE.value,
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

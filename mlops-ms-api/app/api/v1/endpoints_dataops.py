@@ -57,10 +57,8 @@ def extract_soap_vectors(
 
     # TODO: since SOAPs are not being generated right now, should include
     #   a delay command to wait for a while before upload the SOAPs.vec file.
-
-    # local_file_path = f"/data/ML/big-data-full/{nominal_composition}/c/md/lammps/100/{run}/zca-th300.dump"
-    local_file_path = f"/data/ML/big-data-full/{nominal_composition}-SOAPS/c/md/lammps/100/{run}/2000/{sub_run}/SOAPS.vec"
     object_name = f"ML/big-data-full/{nominal_composition}-SOAPS/c/md/lammps/100/{run}/2000/{sub_run}/SOAPS.vec"
+    local_file_path = f"/data/{object_name}"
 
     if not os.path.isfile(local_file_path):
         raise HTTPException(
@@ -405,6 +403,7 @@ def eval_cluster(
             knf = f"{knf}{nknf}, "
 
     if knf == "KNF: ":  # OK! The LOBSTER and quippy clusters are compatible ...
+
         for ibnd in range(len(bonds_to_write)):
 
             bond = bonds_to_write[ibnd]
@@ -451,6 +450,7 @@ def eval_cluster(
             keysoap = f"{id_run}-{sub_step}-{bond.get_symbB()[2:]}"
             if not keysoap in stl.keys():
                 stl[keysoap] = SS_SOAPS[int(bond.get_symbB()[2:]) - 1]
+
     else:
 
         # ... otherwise, I will write the unmatched bonds (UBs)
