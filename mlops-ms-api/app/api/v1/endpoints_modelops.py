@@ -9,6 +9,7 @@ from pathlib import Path as DirPath
 from random import shuffle
 import pickle as pkl
 import numpy as np
+import mlflow
 
 ##########################################################################
 #
@@ -20,6 +21,8 @@ router = APIRouter()
 storage = MinioStorage()
 
 MINIO_BUCKET_NAME = "mlops-bucket"
+
+mlflow.set_tracking_uri("http://mlflow:5000")
 
 #
 # Endpoints scoped to the Model Development (ModelOps) phase,
@@ -310,6 +313,31 @@ async def create_pbssdb(
     ftw.close()
 
     try:
+
+        mlflow.set_experiment("PBSSDB Evaluations")
+
+        with mlflow.start_run(run_name=INFO_OUTPUT_NAME):
+            # Log parameters
+            mlflow.log_param("CHEM_COMPOSITION_TRAIN", CHEM_COMPOSITION_TRAIN)
+            mlflow.log_param("CHEM_COMPOSITION_TEST", CHEM_COMPOSITION_TEST)
+            mlflow.log_param("ZETA", ZETA)
+            mlflow.log_param("SIGMA", SIGMA)
+            mlflow.log_param("REGP", REGP)
+            mlflow.log_param("TRAIN_SIZE", KERNEL_DIM)
+            mlflow.log_param("TEST_SIZE", TEST_SIZE)
+            mlflow.log_param("KERNEL_TYPE", KERNEL_TYPE)
+            mlflow.log_param("CROSS_EVALUATION", CROSS)
+
+            # Log metrics
+            mlflow.log_metric("TRAINING_VAR", VAR)
+            mlflow.log_metric("TRAINING_STD", STD)
+            mlflow.log_metric("TESTING_VAR", np.var(dtpy))
+            mlflow.log_metric("TESTING_STD", np.std(dtpy))
+            mlflow.log_metric("RMSE", RMSE)
+            mlflow.log_metric("MAX_ICOHP", higher)
+
+            # Log .info result as artifact
+            mlflow.log_artifact(f"{LOCAL_OUTPUT_DIR}/{INFO_OUTPUT_NAME}.info")
 
         storage.upload_file(
             MINIO_BUCKET_NAME,
