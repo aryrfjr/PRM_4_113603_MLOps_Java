@@ -1,6 +1,7 @@
 package org.doi.prmv4p113603.mlops.service;
 
 import lombok.AllArgsConstructor;
+import org.doi.prmv4p113603.mlops.data.SortDirection;
 import org.doi.prmv4p113603.mlops.data.dto.NominalCompositionDto;
 import org.doi.prmv4p113603.mlops.exception.DuplicatedNominalCompositionException;
 import org.doi.prmv4p113603.mlops.exception.NominalCompositionDeletionException;
@@ -10,6 +11,7 @@ import org.doi.prmv4p113603.mlops.repository.NominalCompositionRepository;
 import org.doi.prmv4p113603.mlops.repository.RunRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,10 +55,37 @@ public class NominalCompositionService {
     /**
      * Lists all NominalCompositions ordered by name.
      */
-    public List<NominalCompositionDto> listAll() {
-        return nominalCompositionRepository.findAllByOrderByNameAsc().stream()
+    public List<NominalCompositionDto> listAll(String sortBy, SortDirection direction) {
+
+        List<NominalCompositionDto> list = nominalCompositionRepository.findAll().stream()
                 .map(NominalCompositionDto::fromEntity)
                 .collect(Collectors.toList());
+
+        Comparator<NominalCompositionDto> comparator;
+
+        switch (sortBy.toLowerCase()) {
+            case "name":
+                comparator = Comparator.comparing(NominalCompositionDto::getName, Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
+            case "createdat":
+                comparator = Comparator.comparing(NominalCompositionDto::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+                break;
+            case "updatedat":
+                comparator = Comparator.comparing(NominalCompositionDto::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid sortBy value: " + sortBy);
+        }
+
+        // Inverting if desc
+        if (direction.isDesc()) {
+            comparator = comparator.reversed();
+        }
+
+        list.sort(comparator);
+
+        return list;
+
     }
 
     /**
