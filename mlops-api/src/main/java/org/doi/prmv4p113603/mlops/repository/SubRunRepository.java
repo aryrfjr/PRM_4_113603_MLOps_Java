@@ -73,4 +73,8 @@ public interface SubRunRepository extends JpaRepository<SubRun, Long> {
      */
     List<SubRun> findAllByRunAndSubRunNumberIn(Run run, List<Integer> subRunNumbers);
 
+    // NOTE: JOIN FETCH to load all SubRuns with corresponding Runs avoiding LazyInitializationException.
+    @Query("SELECT sr FROM SubRun sr JOIN FETCH sr.run")
+    List<SubRun> findAllWithRun();
+
 }
