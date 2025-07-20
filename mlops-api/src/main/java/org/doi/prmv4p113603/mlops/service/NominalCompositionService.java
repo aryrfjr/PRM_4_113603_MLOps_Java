@@ -57,6 +57,21 @@ public class NominalCompositionService {
      */
     public List<NominalCompositionDto> listAll(String sortBy, SortDirection direction) {
 
+        /*
+         * NOTE: This is an example of a 'custom order' (not 'natural order') to sort entities
+         *  that don't implement Comparable; even if the sorting is by a "natural-looking"
+         *  field like name. An example of 'natural order' would be sorting String objects, since
+         *  String implements Comparable<String>.:
+         *
+         * List<String> names = List.of("Zoe", "Anna", "Mike");
+         * List<String> sorted = new ArrayList<>(names);
+         *
+         * String implements Comparable<String>
+         * Collections.sort(sorted); // or: sorted.sort(null);
+         *
+         * System.out.println(sorted); // [Anna, Mike, Zoe]
+         */
+
         List<NominalCompositionDto> list = nominalCompositionRepository.findAll().stream()
                 .map(NominalCompositionDto::fromEntity)
                 .collect(Collectors.toList());
