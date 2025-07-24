@@ -14,6 +14,10 @@ This repository provides a **Java-based** counterpart for the controller layer t
 
 ![MLOPs system architecture](img/PRM_4_113603_MLOps_JavaPythonArchitecture.drawio.png)
 
+The diagram below illustrates a **SAGA-based orchestration pattern** applied to a two-stage pre-deployment MLOps workflow. Triggered via the Angular frontend, the Spring Boot Gateway coordinates two Airflow DAGs; one for exploring simulation results and another for ETL and model preparation. Each DAG makes synchronous calls to Python microservices (FastAPI) for domain-specific processing steps like SOAP vector extraction and PBSSDB creation. Kafka is used to notify the orchestrator of key state transitions, and compensating actions are defined for failure scenarios to maintain consistency across S3-stored artifacts and HPC job states. This architecture exemplifies a robust, event-driven approach to handling long-running scientific workflows in a modular, polyglot MLOps system.
+
+![MLOPs sequence diagram for Pre-Deployment Exploration](img/PRM_4_113603_MLOps_Sequence_Pre-Deployment_Explore.png)
+
 ## Notes for DEV:
 
 - MLOps REST API documentation: http://localhost:8080/swagger-ui.html

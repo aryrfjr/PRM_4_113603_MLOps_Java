@@ -22,6 +22,7 @@ storage = MinioStorage()
 
 MINIO_BUCKET_NAME = "mlops-bucket"
 
+# TODO: Airflow shoud push information to MLflow ... decouple this microservice from MLflow ...
 mlflow.set_tracking_uri("http://mlflow:5000")
 
 #
