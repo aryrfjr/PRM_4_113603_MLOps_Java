@@ -1,10 +1,10 @@
 from airflow import DAG
 from datetime import datetime
-from tasks.pre_deployment_exploration import submit_jobs, wait_for_jobs
+from tasks.pre_deployment_evaluate_model import evaluate_pbssdb
 
 ########################################################################
 #
-# DAG scoped to the Data Generation (DataOps phase; exploration) phase.
+# DAG scoped to the Model Development (ModelOps) phase.
 #
 ########################################################################
 
@@ -15,13 +15,12 @@ with DAG(
     catchup=False,
     max_active_runs=1,  # ensures that only one DAG run will be active at any time
     tags=[  # metadata for categorization/organization of DAGs in the Airflow UI
-        "explore",
+        "evaluate_model",
         "pre-deployment",
     ],
 ) as dag:
 
     # The sequence of tasks execution in this DAG
-    step_1 = submit_jobs(dag)
-    step_2 = wait_for_jobs(dag)
+    step_1 = evaluate_pbssdb(dag)
 
-    step_1 >> step_2
+    step_1

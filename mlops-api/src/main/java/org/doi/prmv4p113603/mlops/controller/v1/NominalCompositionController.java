@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.doi.prmv4p113603.mlops.data.SortDirection;
 import org.doi.prmv4p113603.mlops.data.dto.*;
 import org.doi.prmv4p113603.mlops.service.NominalCompositionService;
 import org.springframework.http.*;
@@ -69,8 +70,13 @@ public class NominalCompositionController {
             description = "Lists all NominalCompositions ordered by name."
     )
     // TODO: return ResponseEntity
-    public List<NominalCompositionDto> listAll() {
-        return service.listAll();
+    public List<NominalCompositionDto> listAll(
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        SortDirection sortDirection = SortDirection.fromString(direction);
+
+        return service.listAll(sortBy, sortDirection);
     }
 
     /**
