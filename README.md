@@ -62,16 +62,15 @@ sequenceDiagram
     AF2->>K: Emit message EXPLORE_SOAP_VECTORS_EXTRACTED_SSDB_CREATED
     K->>GW: Receive message EXPLORE_SOAP_VECTORS_EXTRACTED_SSDB_CREATED
     GW->>GW: Update SubRun simulation artifact
+    GW->>GW: Update saga (state = ETL_COMPLETED)
     alt DAG PD ETL Model (SOAP/PBSSDB)
-        AF1->>K: Emit message ETL_MODEL_FAILED (with SAGA_ID)
-        K->>GW: Receive message ETL_MODEL_FAILED (with SAGA_ID)
+        AF1->>K: Emit message EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED (with SAGA_ID)
+        K->>GW: Receive message EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED (with SAGA_ID)
+        GW->>GW: Update Run & SubRun (state = EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED)
         GW->>GW: Update SAGA (state = ETL_FAILED)
-        GW->>AF1: Trigger compensation for DAG PD Explore and DAG PD ETL Model
-        AF1->>A: Cleanup intermediate data
-        A->>S3: Delete clean data
+        GW->>S3: Cleanup intermediate data (SOAP.vec && PBSSDB dir)
         GW-->>UI: Notify failure
     end
-    GW->>GW: Update saga (state = COMPLETED)
     UI->>GW: Poll for result
     GW-->>UI: Return S3 result
 ```
