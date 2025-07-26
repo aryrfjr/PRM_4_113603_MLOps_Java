@@ -1,6 +1,5 @@
 package org.doi.prmv4p113603.mlops.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -23,8 +22,7 @@ import java.util.List;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "sub_runs", indexes = {
-        @Index(name = "idx_sub_runs_run_id", columnList = "run_id"),
-        @Index(name = "idx_sub_runs_status", columnList = "status")
+        @Index(name = "idx_sub_runs_run_id", columnList = "run_id")
 }, uniqueConstraints = {
         @UniqueConstraint(columnNames = {"run_id", "sub_run_number"})
 })

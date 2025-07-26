@@ -1,0 +1,37 @@
+# Assuming that at some point I will work with multiple docker-compose files that should share a network:
+# docker network create mlopsnet
+#
+# And to revert:
+# docker network rm mlopsnet
+#
+# Start only test database:
+# docker compose -f docker-compose.integration-test.pgsql.yml up -d
+#
+
+services:
+  postgres-test:
+    image: postgres:16
+    container_name: postgres-test
+    restart: always
+    environment:
+      POSTGRES_DB: mlops_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"  # <--- different from production port!
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mlopsnet
+
+networks:
+  mlopsnet:
+    external: true  # re-use existing network
+
+volumes:
+  postgres_test_data:
