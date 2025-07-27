@@ -1,11 +1,16 @@
-# Assuming that at some point I will work with multiple docker-compose files that should share a network:
+#
+# For testing repositories with PostgreSQL using the profile 'test_repo_pgsql'.
+#
+# Spins up a PostgreSQL container on port 5434 (different from prod) within the mlopsnet Docker network.
+#
+# It uses a shared network that must be created:
 # docker network create mlopsnet
 #
-# And to revert:
+# To remove the created network:
 # docker network rm mlopsnet
 #
-# Start only test database:
-# docker compose -f docker-compose.integration-test.pgsql.yml up -d
+# To start only test database use the following docker compose file:
+# docker compose -f docker-compose.test_repo_pgsql.yml up -d
 #
 
 services:

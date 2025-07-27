@@ -1,0 +1,89 @@
+services:
+  postgres-airflow-test:
+    image: postgres:16
+    container_name: postgres-airflow-test
+    restart: always
+    environment:
+      POSTGRES_DB: airflow_test
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+    ports:
+      - "5440:5432"  # Dedicated port for test DB
+    volumes:
+      - airflow_test_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 10s
+      retries: 5
+    networks:
+      - mlopsnet
+
+  airflow-webserver-test:
+    image: apache/airflow:2.8.1
+    restart: always
+    depends_on:
+      postgres-airflow-test:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow-test:5432/airflow_test
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
+    ports:
+      - "8090:8080"  # Expose REST API on a separate port
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    command: bash -c "airflow db migrate && airflow webserver"
+    networks:
+      - mlopsnet
+
+  airflow-scheduler-test:
+    image: apache/airflow:2.8.1
+    restart: always
+    depends_on:
+      postgres-airflow-test:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow-test:5432/airflow_test
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    command: bash -c "airflow scheduler"
+    networks:
+      - mlopsnet
+
+  airflow-init-test:
+    image: apache/airflow:2.8.1
+    depends_on:
+      postgres-airflow-test:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow-test:5432/airflow_test
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+    entrypoint: bash
+    command: -c "
+      airflow db migrate && \
+      airflow users create \
+        --username admin \
+        --password admin \
+        --firstname Admin \
+        --lastname User \
+        --role Admin \
+        --email admin@example.com"
+    networks:
+      - mlopsnet
+
+networks:
+  mlopsnet:
+    external: true
+
+volumes:
+  airflow_test_pg_data:
+
