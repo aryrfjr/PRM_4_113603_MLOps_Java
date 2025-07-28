@@ -1,42 +1,15 @@
+# Used only for repository-level tests with isolated PostgreSQL settings.
 #
-# For testing repositories with PostgreSQL using the profile 'test_repo_pgsql'.
-#
-# Spins up a PostgreSQL container on port 5434 (different from prod) within the mlopsnet Docker network.
-#
-# It uses a shared network that must be created:
-# docker network create mlopsnet
-#
-# To remove the created network:
-# docker network rm mlopsnet
-#
-# To start only test database use the following docker compose file:
-# docker compose -f docker-compose.test_repo_pgsql.yml up -d
-#
-
+# Usage: docker-compose -f docker-compose.base.yml -f docker-compose.test_repo_pgsql.yml up -d
 services:
-  postgres-test:
-    image: postgres:16
+  postgres:
     container_name: postgres-test
-    restart: always
     environment:
       POSTGRES_DB: mlops_test
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
     ports:
-      - "5434:5432"  # <--- different from production port!
+      - "5434:5432"
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - mlopsnet
-
-networks:
-  mlopsnet:
-    external: true  # re-use existing network
 
 volumes:
   postgres_test_data:

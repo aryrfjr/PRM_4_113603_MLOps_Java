@@ -1,22 +1,19 @@
+# Used only for object storage-level tests with isolated MinIO settings.
 #
-# Minimal MinIO service for testing S3/Object Storage access
-# 
-# Usage: docker compose -f docker-compose.test_objstr_minio.yml up -d
-#
-
+# Usage: docker-compose -f docker-compose.base.yml -f docker-compose.test_objstr_minio.yml up -d
 services:
   minio-test:
     image: minio/minio
     container_name: minio-test
     ports:
-      - "9002:9000"   # <--- test port, avoid collision with dev/prod (9000)
-      - "9003:9001"   # <--- test web console
+      - "9002:9000"   # Exposed S3 API for test
+      - "9003:9001"   # Web console (test)
     environment:
       MINIO_ROOT_USER: testminio
       MINIO_ROOT_PASSWORD: testminio123
+    command: server /data --console-address ":9001"
     volumes:
       - minio_test_data:/data
-    command: server /data --console-address ":9001"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 10s
@@ -30,4 +27,3 @@ networks:
 
 volumes:
   minio_test_data:
-
