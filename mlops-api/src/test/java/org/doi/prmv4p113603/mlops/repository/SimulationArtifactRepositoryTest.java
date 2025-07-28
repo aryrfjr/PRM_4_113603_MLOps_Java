@@ -1,15 +1,22 @@
 package org.doi.prmv4p113603.mlops.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.domain.*;
+
+import static org.doi.prmv4p113603.mlops.testutil.TestFixtures.*;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,31 +49,15 @@ class SimulationArtifactRepositoryTest {
     void shouldPersistAndRetrieveSimulationArtifact() {
 
         // Given
-        NominalComposition nc = NominalComposition.builder()
-                .name("Zr47Cu47Al6")
-                .description("Zr47Cu47Al6 test")
-                .createdBy("test")
-                .createdAt(Instant.now())
-                .build();
+        NominalComposition nominalComposition = dummyNominalComposition(Optional.empty(), "Zr47Cu47Al6");
 
-        nc = nominalCompositionRepository.save(nc);
+        nominalComposition = nominalCompositionRepository.save(nominalComposition);
 
-        Run run = Run.builder()
-                .nominalComposition(nc)
-                .runNumber(1)
-                .status(RunStatus.EXPLORATION_SCHEDULED)
-                .createdBy("test")
-                .createdAt(Instant.now())
-                .build();
+        Run run = dummyRun(Optional.empty(), nominalComposition, 1, RunStatus.EXPLORATION_SCHEDULED, Optional.empty());
 
         run = runRepository.save(run);
 
-        SubRun subRun = SubRun.builder()
-                .run(run)
-                .subRunNumber(1)
-                .createdBy("test")
-                .createdAt(Instant.now())
-                .build();
+        SubRun subRun = dummySubRun(Optional.empty(), run, 1, Optional.empty());
 
         subRun = subRunRepository.save(subRun);
 
@@ -86,13 +77,17 @@ class SimulationArtifactRepositoryTest {
         assertThat(artifacts).hasSize(1);
         assertThat(artifacts.get(0).getArtifactType()).isEqualTo(SimulationArtifactType.ICOHPLIST);
 
-        for (SimulationArtifact sa: artifacts) {
-            SubRun sasr = sa.getSubRun();
-            System.out.println("SubRun number:" + sasr.getSubRunNumber());
-            Run sar = sasr.getRun();
-            System.out.println("Run number:" + sar.getRunNumber());
-            System.out.println("Simulation Artifact:" + sa.toString());
-            System.out.println("Simulation Artifact type:" + sa.getArtifactType());
+        System.out.println("\nSimulation Artifacts (toString): " + artifacts + "\n");
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        try {
+            System.out.println("\nSimulation Artifacts (JSON): " + mapper.writeValueAsString(artifacts) + "\n");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
 
     }
