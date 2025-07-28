@@ -6,19 +6,20 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.doi.prmv4p113603.mlops.model.*;
 import org.doi.prmv4p113603.mlops.domain.*;
-
-import static org.doi.prmv4p113603.mlops.testutil.TestFixtures.*;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.doi.prmv4p113603.mlops.testutil.TestFixtures.*;
 
 /*
  * NOTE: to run test lifecycle phase for this class: ./mvnw test -Dtest=SimulationArtifactRepositoryTest
@@ -45,8 +46,17 @@ class SimulationArtifactRepositoryTest {
     @Autowired
     private NominalCompositionRepository nominalCompositionRepository;
 
+    @Autowired
+    DataSource dataSource;
+
     @Test
     void shouldPersistAndRetrieveSimulationArtifact() {
+
+        try (Connection conn = dataSource.getConnection()) {
+            System.out.println("\nSpring is connected to: " + conn.getMetaData().getURL() + "\n");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         // Given
         NominalComposition nominalComposition = dummyNominalComposition(Optional.empty(), "Zr47Cu47Al6");

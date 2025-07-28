@@ -1,6 +1,6 @@
 # Used only for repository-level tests with isolated PostgreSQL settings.
 #
-# Usage: docker-compose -f docker-compose.base.yml -f docker-compose.test_repo_pgsql.yml up -d
+# Usage: docker compose -f docker-compose.base.yml -f docker-compose.test_repo_pgsql.yml up -d
 services:
   postgres:
     container_name: postgres-test
