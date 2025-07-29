@@ -1,0 +1,101 @@
+# Common base file to be overridden by a specific environment such as development and test, like:
+#
+# docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up -d
+#
+# NOTE: This file includes postgres, kafka, mlflow, minio, and networks because they are shared
+#   infrastructure services that: (i) are used across multiple environments (dev and test);
+#   (ii) have stable, common configurations; and (iii) are not highly environment-specific.
+services:
+
+  # Both dev and test environments need a PostgreSQL instance.
+  # The core configuration (image, credentials, healthcheck, network) is identical.
+  #
+  # NOTE: What varies per environment: (i) DB name (mlops vs mlops_test); (ii) Port (5433 vs 5434);
+  #   and (iii) Volume (to avoid shared data).
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      retries: 5
+    networks:
+      - mlopsnet
+
+  # Messaging infra service that likely behaves the same in all environments. In principle,
+  # no overrides needed between dev and test.
+  kafka:
+    image: bitnami/kafka:latest
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_KRAFT_MODE=true
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_LOG_DIRS=/bitnami/kafka/data
+    volumes:
+      - kafka_data:/bitnami/kafka
+    networks:
+      - mlopsnet
+
+  # This service is purely infrastructure. It is usually configured once and used by
+  # dev/test pipelines alike. Test environments typically need it only for full-stack tests.
+  mlflow:
+    build:
+      context: ./mlflow
+    image: aryjr/prm_4_113603_mlops-p1-mlflow:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      - BACKEND_STORE_URI=postgresql://mlflow:mlflow@postgres:5432/mlflow
+      - ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - ./mlflow/artifacts:/mlflow/artifacts
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://mlflow:mlflow@postgres/mlflow
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+    networks:
+      - mlopsnet
+
+  # MinIO is also infrastructure and will be used in both dev and test.
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - mlopsnet
+
+# Docker needs this network definition in every Compose file unless marked as external.
+networks:
+  mlopsnet:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  kafka_data:
+  minio_data:

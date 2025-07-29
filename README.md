@@ -16,7 +16,64 @@ This repository provides a **Java-based** counterpart for the controller layer t
 
 The diagram below illustrates a **SAGA-based orchestration pattern** applied to a two-stage pre-deployment MLOps workflow. Triggered via the Angular frontend, the Spring Boot Gateway coordinates two Airflow DAGs; one for exploring simulation results and another for ETL and model preparation. Each DAG makes synchronous calls to Python microservices (FastAPI) for domain-specific processing steps like SOAP vector extraction and PBSSDB creation. Kafka is used to notify the orchestrator of key state transitions, and compensating actions are defined for failure scenarios to maintain consistency across S3-stored artifacts and HPC job states. This architecture exemplifies a robust, event-driven approach to handling long-running scientific workflows in a modular, polyglot MLOps system.
 
-![MLOPs sequence diagram for Pre-Deployment Exploration](img/PRM_4_113603_MLOps_Sequence_Pre-Deployment_Explore.png)
+```mermaid
+---
+config:
+  theme: redux-color
+  look: handDrawn
+---
+sequenceDiagram
+    participant UI as Front-end (Angular)
+    participant GW as Back-end Gateway API (Spring)
+    participant AF1 as DAG PD Explore (Airflow)
+    participant AF2 as DAG PD ETL Model (Airflow)
+    participant A as HPC (Spring)
+    participant C as Extract SOAP vectors (FastAPI)
+    participant D as Create PBSSDB (FastAPI)
+    participant K as Kafka
+    participant S3 as Object Store (S3/MinIO)
+    UI->>GW: Pre-Deployment Explore
+    GW->>GW: Create SAGA (state = EXPLORE_STARTED)
+    GW->>AF1: Trigger DAG PD Explore
+    AF1->>A: Submit jobs | POST '/api/v1/jobs'
+    A->>S3: Write semi-structured data from CMD/DFT simulations
+    AF1->>K: Emit message EXPLORE_RUNS_SUBMITTED
+    K->>GW: Receive message EXPLORE_RUNS_SUBMITTED
+    GW->>GW: Update Run & SubRun 0 (state = JOBS_SUBMITTED)
+    AF1->>A: Check jobs | GET /api/v1/jobs/{job_id}
+    AF1->>AF1: Try until the jobs are completed
+    AF1->>K: Emit message EXPLORE_RUNS_FINISHED
+    K->>GW: Receive message EXPLORE_RUNS_FINISHED
+    GW->>GW: Update Run & SubRun 0 (state = JOBS_FINISHED)
+    GW->>GW: Update SAGA (state = EXPLORE_FINISHED)
+    alt DAG PD Explore fails (Submit/Wait)
+        AF1->>K: Emit message EXPLORE_RUNS_FAILED (with SAGA_ID)
+        K->>GW: Receive message EXPLORE_RUNS_FAILED (with SAGA_ID)
+        GW->>GW: Update Run & SubRun (state = JOBS_FAILED)
+        GW->>GW: Update SAGA (state = EXPLORE_FAILED)
+    end
+    GW->>GW: Update SAGA (state = ETL_STARTED)
+    GW->>AF2: Trigger DAG PD ETL Model
+    AF2->>C: Extract SOAP vectors | POST /api/v1/dataops/extract_soap_vectors/{nominal_composition}/{run_number}/0
+    C->>S3: Store SOAP vectors
+    AF2->>AF2: Repeat for all Run numbers
+    AF2->>D: Create PBSSDB | POST /api/v1/dataops/create_pbssdb/{nominal_composition}
+    D->>S3: Write PBSSDB
+    AF2->>K: Emit message EXPLORE_SOAP_VECTORS_EXTRACTED_SSDB_CREATED
+    K->>GW: Receive message EXPLORE_SOAP_VECTORS_EXTRACTED_SSDB_CREATED
+    GW->>GW: Update SubRun simulation artifact
+    GW->>GW: Update saga (state = ETL_COMPLETED)
+    alt DAG PD ETL Model (SOAP/PBSSDB)
+        AF1->>K: Emit message EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED (with SAGA_ID)
+        K->>GW: Receive message EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED (with SAGA_ID)
+        GW->>GW: Update Run & SubRun (state = EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED)
+        GW->>GW: Update SAGA (state = ETL_FAILED)
+        GW->>S3: Cleanup intermediate data (SOAP.vec && PBSSDB dir)
+        GW-->>UI: Notify failure
+    end
+    UI->>GW: Poll for result
+    GW-->>UI: Return S3 result
+```
 
 ## Notes for DEV:
 

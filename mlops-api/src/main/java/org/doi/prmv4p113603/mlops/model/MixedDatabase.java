@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString // From Lombok; for printing these objects using System.out.println
 public class MixedDatabase {
 
     @Id
