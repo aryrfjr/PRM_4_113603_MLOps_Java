@@ -16,6 +16,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString // From Lombok; for printing these objects using System.out.println
 public class BondInteraction {
 
     @Id

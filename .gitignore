@@ -25,17 +25,8 @@ replay_pid*
 
 # IntelliJ project files to ignore
 .idea/*
-!.idea/inspectionProfiles
-!.idea/runConfigurations
-!.idea/codeStyles
 hpc-mock/.idea/*
-!hpc-mock/.idea/inspectionProfiles
-!hpc-mock/.idea/runConfigurations
-!hpc-mock/.idea/codeStyles
 mlops-common-java/.idea/*
-!mlops-common-java/.idea/inspectionProfiles
-!mlops-common-java/.idea/runConfigurations
-!mlops-common-java/.idea/codeStyles
 
 # Ignore workspace-specific files
 .idea/workspace.xml

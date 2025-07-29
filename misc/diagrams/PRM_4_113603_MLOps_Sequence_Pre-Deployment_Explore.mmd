@@ -26,33 +26,32 @@ sequenceDiagram
     AF1->>K: Emit message EXPLORE_RUNS_FINISHED
     K->>GW: Receive message EXPLORE_RUNS_FINISHED
     GW->>GW: Update Run & SubRun 0 (state = JOBS_FINISHED)
+    GW->>GW: Update SAGA (state = EXPLORE_FINISHED)
     alt DAG PD Explore fails (Submit/Wait)
         AF1->>K: Emit message EXPLORE_RUNS_FAILED (with SAGA_ID)
         K->>GW: Receive message EXPLORE_RUNS_FAILED (with SAGA_ID)
-        GW->>GW: Update SAGA (state = EXPLORE_FAILED)
         GW->>GW: Update Run & SubRun (state = JOBS_FAILED)
+        GW->>GW: Update SAGA (state = EXPLORE_FAILED)
     end
     GW->>GW: Update SAGA (state = ETL_STARTED)
     GW->>AF2: Trigger DAG PD ETL Model
     AF2->>C: Extract SOAP vectors | POST /api/v1/dataops/extract_soap_vectors/{nominal_composition}/{run_number}/0
     C->>S3: Store SOAP vectors
-    AF2->>K: Emit message EXPLORE_SOAP_VECTORS_EXTRACTED
-    K->>GW: Receive message EXPLORE_SOAP_VECTORS_EXTRACTED
-    GW->>GW: Update SubRun simulation artifact (TODO: only after EXPLORE_SSDB_CREATED)
     AF2->>AF2: Repeat for all Run numbers
     AF2->>D: Create PBSSDB | POST /api/v1/dataops/create_pbssdb/{nominal_composition}
     D->>S3: Write PBSSDB
-    AF2->>K: Emit message EXPLORE_SSDB_CREATED
-    K->>GW: Receive message EXPLORE_SSDB_CREATED
+    AF2->>K: Emit message EXPLORE_SOAP_VECTORS_EXTRACTED_SSDB_CREATED
+    K->>GW: Receive message EXPLORE_SOAP_VECTORS_EXTRACTED_SSDB_CREATED
+    GW->>GW: Update SubRun simulation artifact
+    GW->>GW: Update saga (state = ETL_COMPLETED)
     alt DAG PD ETL Model (SOAP/PBSSDB)
-        AF1->>K: Emit message ETL_MODEL_FAILED (with SAGA_ID)
-        K->>GW: Receive message ETL_MODEL_FAILED (with SAGA_ID)
-        GW->>GW: Update SAGA (state = FAILED)
-        GW->>AF1: Trigger compensation for DAG PD Explore and DAG PD ETL Model
-        AF1->>A: Cleanup intermediate data
-        A->>S3: Delete clean data
+        AF1->>K: Emit message EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED (with SAGA_ID)
+        K->>GW: Receive message EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED (with SAGA_ID)
+        GW->>GW: Update Run & SubRun (state = EXTRACT_SOAP_FAILED || CREATE_SSDB_FAILED)
+        GW->>GW: Update SAGA (state = ETL_FAILED)
+        GW->>S3: Cleanup intermediate data (SOAP.vec && PBSSDB dir)
         GW-->>UI: Notify failure
     end
-    GW->>GW: Update saga (state = COMPLETED)
     UI->>GW: Poll for result
     GW-->>UI: Return S3 result
+
