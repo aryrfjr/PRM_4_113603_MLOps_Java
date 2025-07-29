@@ -1,0 +1,27 @@
+#
+# Profile for testing repositories with PostgreSQL.
+#
+# It configures Spring Boot to connect to the test DB on localhost:5434
+# and uses create-drop strategy to recreate schema per test run.
+#
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/mlops_test
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # TODO: Check usage of Flyway or Liquibase over this option.
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    open-in-view: false
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

@@ -18,6 +18,7 @@ import org.doi.prmv4p113603.mlops.domain.SimulationArtifactType;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString // From Lombok; for printing these objects using System.out.println
 public class SimulationArtifact {
 
     @Id

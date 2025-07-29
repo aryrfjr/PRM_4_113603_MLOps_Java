@@ -1,0 +1,27 @@
+#
+# Profile for testing object storage (MinIO)
+#
+
+minio:
+  endpoint: http://localhost:9002  # matches docker-compose test port
+  access-key: testminio
+  secret-key: testminio123
+  bucket: test-bucket
+
+spring:
+  cloud:
+    aws:
+      s3:
+        endpoint: http://localhost:9002  # if using AWS SDK compatibility
+        path-style-access: true
+      credentials:
+        access-key: testminio
+        secret-key: testminio123
+      region:
+        static: us-east-1
+
+logging:
+  level:
+    root: INFO
+    com.amazonaws: DEBUG
+    org.springframework.web: INFO

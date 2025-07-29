@@ -1,29 +1,17 @@
+# Development-only services and dev-specific overrides.
+#
+# Usage: docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up -d
 services:
-
-  # TODO: Avoid production impact by creating a docker-compose.dev.ym
-
-  # PostgreSQL database service
-  # Uses a public official image (no build needed)
   postgres:
-    image: postgres:16
-    restart: always
+    container_name: postgres
     environment:
       POSTGRES_DB: mlops
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "postgres" ]
-      interval: 10s
-      retries: 5
-    networks:
-      - mlopsnet
 
-  # MLOps Gateway REST API with Spring Framework
   mlops-api:
     build:
       context: ./mlops-api
@@ -44,22 +32,20 @@ services:
       - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
       - /home/aryjr/.m2/settings.xml:/root/.m2/settings.xml
 
-  # MLOps Microservices REST API
   mlops-ms-api:
     build: ./mlops-ms-api
     ports:
       - "8000:8000"
     volumes:
-      - ./mlops-ms-api:/app  # <--- only for DEV, remove for PROD
-      - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data  # raw data accessible to the API
+      - ./mlops-ms-api:/app
+      - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
     networks:
       - mlopsnet
     environment:
-      - PYTHONUNBUFFERED=1 # logs and print() statements will flush instantly ... more reliable debugging
+      - PYTHONUNBUFFERED=1
     command: >
       uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  # Simulated HPC service
   mlops-hpc:
     build:
       context: ./hpc-mock
@@ -76,25 +62,6 @@ services:
       - /home/aryjr/fromiomega/pos-doc/UFSCar/MG-NMR:/data
       - /home/aryjr/.m2/settings.xml:/root/.m2/settings.xml
 
-  # MinIO Object Storage
-  minio:
-    image: minio/minio
-    container_name: minio
-    restart: always
-    ports:
-      - "9000:9000"  # S3 API
-      - "9001:9001"  # Web UI
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
-    networks:
-      - mlopsnet
-
-  # Airflow Webserver UI
-  # Uses the official Airflow image (no build needed)
   airflow-webserver:
     image: apache/airflow:2.8.1
     restart: always
@@ -109,8 +76,8 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
       AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
-      HPC_API_URL: http://mlops-hpc:8080  # Internal Docker network communication with the Simulated HPC service
-      MS_API_URL: http://mlops-ms-api:8000  # Internal Docker network communication with the MLOps Microservices API
+      HPC_API_URL: http://mlops-hpc:8080
+      MS_API_URL: http://mlops-ms-api:8000
     ports:
       - "8084:8080"
     volumes:
@@ -121,8 +88,6 @@ services:
     networks:
       - mlopsnet
 
-  # Airflow Scheduler
-  # Uses the official Airflow image (no build needed)
   airflow-scheduler:
     image: apache/airflow:2.8.1
     restart: always
@@ -136,8 +101,8 @@ services:
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
-      HPC_API_URL: http://mlops-hpc:8080  # Internal Docker network communication with the Simulated HPC service
-      MS_API_URL: http://mlops-ms-api:8000  # Internal Docker network communication with the MLOps Microservices API
+      HPC_API_URL: http://mlops-hpc:8080
+      MS_API_URL: http://mlops-ms-api:8000
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
@@ -146,8 +111,6 @@ services:
     networks:
       - mlopsnet
 
-  # Airflow Init - runs DB migrations and creates the admin user
-  # Uses the official Airflow image (no build needed)
   airflow-init:
     image: apache/airflow:2.8.1
     depends_on:
@@ -171,62 +134,3 @@ services:
       --email admin@example.com"
     networks:
       - mlopsnet
-
-  # MLflow Tracking Server
-  # Custom-built image (from ./mlflow) with explicit image name following the project naming standard
-  # TODO: Switch mlflow to log artifacts to MinIO instead of a volume.
-  mlflow:
-    build:
-      context: ./mlflow
-    image: aryjr/prm_4_113603_mlops-p1-mlflow:latest
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "5000:5000"
-    environment:
-      - BACKEND_STORE_URI=postgresql://mlflow:mlflow@postgres:5432/mlflow
-      - ARTIFACT_ROOT=/mlflow/artifacts
-    volumes:
-      - ./mlflow/artifacts:/mlflow/artifacts
-    command: >
-      mlflow server
-      --backend-store-uri postgresql://mlflow:mlflow@postgres/mlflow
-      --default-artifact-root /mlflow/artifacts
-      --host 0.0.0.0
-      --port 5000
-    networks:
-      - mlopsnet
-
-  # Kafka broker service. Used by Airflow to send events and by Spring Boot (mlops-api) to consume them
-  kafka:
-    image: bitnami/kafka:latest
-    restart: always
-    ports:
-      - "9092:9092"
-    environment:
-      - KAFKA_KRAFT_MODE=true
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
-      - KAFKA_CFG_NODE_ID=1
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-      - KAFKA_CFG_LOG_DIRS=/bitnami/kafka/data
-    volumes:
-      - kafka_data:/bitnami/kafka
-    networks:
-      - mlopsnet
-
-# Docker networks
-networks:
-  mlopsnet:
-    driver: bridge
-
-# Docker-managed persistent volume for PostgreSQL data
-volumes:
-  postgres_data:
-  minio_data:
-  kafka_data:
